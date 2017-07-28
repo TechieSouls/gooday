@@ -54,7 +54,9 @@ public class User extends CgGeneral{
 	@ApiModelProperty(required=true)
 	@Column(nullable=false)
 	private String name;
-
+	
+	@Column(name="photo")
+	private String photo;
 	
 	public String getToken() {
 		return token;
@@ -131,6 +133,12 @@ public class User extends CgGeneral{
 		this.name = name;
 	}
 
-	
+	public String getPhoto() {
+		return photo;
+	}
+
+	public void setPhoto(String photo) {
+		this.photo = photo;
+	}
 
 }

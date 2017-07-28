@@ -23,6 +23,7 @@ import com.cg.bo.CgGeneral;
 public class Event extends CgGeneral {
 	
 	public enum EventType{Sport,Cafe,Entertainment,Travel,Birthday,Food,Seasonal};
+	public enum EventSource{Cenes,Facebook,Google,Outlook}
 	
 	@Id
 	@GeneratedValue (strategy=GenerationType.AUTO)
@@ -44,11 +45,27 @@ public class Event extends CgGeneral {
 
 	@ApiModelProperty(required=true)
 	@Column(nullable=true)
-	private String message;
+	private String decription;
 
 	@ApiModelProperty(required=true)
 	@Column(name="created_by_id")
 	private Long createdById;
+	
+	@ApiModelProperty(required=true)
+	@Column(name="source")
+	private String source;
+	
+	@ApiModelProperty(required=true)
+	@Column(name="source_event_id")
+	private String sourceEventId;
+	
+	@ApiModelProperty(required=true)
+	@Column(name="source_user_id")
+	private String sourceUserId;
+	
+	@ApiModelProperty(required=true)
+	@Column(name="timezone")
+	private String timezone;
 	
 	@OneToMany(cascade = CascadeType.ALL,fetch=FetchType.EAGER)
 	@JoinColumn(name="event_id")
@@ -80,11 +97,11 @@ public class Event extends CgGeneral {
 	public void setLocation(String location) {
 		this.location = location;
 	}
-	public String getMessage() {
-		return message;
+	public String getDecription() {
+		return decription;
 	}
-	public void setMessage(String message) {
-		this.message = message;
+	public void setDecription(String decription) {
+		this.decription = decription;
 	}
 	public String getType() {
 		return type;
@@ -116,4 +133,29 @@ public class Event extends CgGeneral {
 	public void setEventMembers(List<EventMember> eventMembers) {
 		this.eventMembers = eventMembers;
 	}
+	public String getSource() {
+		return source;
+	}
+	public void setSource(String source) {
+		this.source = source;
+	}
+	public String getSourceEventId() {
+		return sourceEventId;
+	}
+	public void setSourceEventId(String sourceEventId) {
+		this.sourceEventId = sourceEventId;
+	}
+	public String getSourceUserId() {
+		return sourceUserId;
+	}
+	public void setSourceUserId(String sourceUserId) {
+		this.sourceUserId = sourceUserId;
+	}
+	public String getTimezone() {
+		return timezone;
+	}
+	public void setTimezone(String timezone) {
+		this.timezone = timezone;
+	}
+	
 }
