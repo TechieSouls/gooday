@@ -10,10 +10,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.crypto.Mac;
@@ -38,15 +34,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cg.bo.FacebookProfile;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.enums.CgEnums.AuthenticateType;
-import com.cg.events.bo.Event;
 import com.cg.repository.UserRepository;
+import com.cg.service.FacebookService;
 import com.cg.stateless.security.TokenAuthenticationService;
 import com.cg.user.bo.User;
 import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
-import com.google.gson.JsonObject;
 
 @RestController
 @Api(value = "User", description = "Create User data")
@@ -157,29 +152,18 @@ public class UserController {
 				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
 			}
 			try {
-				String url = "https://graph.facebook.com/me?access_token="
-						+ user.getFacebookAuthToken();
-				URL obj = new URL(url);
-				HttpURLConnection con = (HttpURLConnection) obj
-						.openConnection();
-				con.setRequestMethod("GET");
-				int responseCode = con.getResponseCode();
-				if (responseCode == 200) {
-
-					System.out.println("Response Code : " + responseCode);
-
-					BufferedReader in = new BufferedReader(
-							new InputStreamReader(con.getInputStream()));
-					String inputLine;
-					StringBuffer response = new StringBuffer();
-
-					while ((inputLine = in.readLine()) != null) {
-						response.append(inputLine);
+					FacebookService facebookService = new FacebookService();
+					FacebookProfile facebookProfile = facebookService.facebookProfile(user.getFacebookAuthToken());
+					if (facebookProfile.getErrorDetail() != null) {
+						if (facebookProfile.getName() != null) {
+							user.setName(facebookProfile.getName());
+						}
+					} else {
+						user.setErrorCode(facebookProfile.getErrorCode());
+						user.setErrorDetail(facebookProfile.getErrorDetail());
+						return new ResponseEntity<User>(user, HttpStatus.OK);
 					}
-					in.close();
-					org.primefaces.json.JSONObject jObject = new org.primefaces.json.JSONObject(
-							response.toString());
-					if (user.getFacebookID().equals(jObject.get("id"))) {
+					if (user.getFacebookID().equals(facebookProfile.getId())) {
 
 						if (user.getUsername() == null) {
 							for (int retry = 0; retry < 5; retry++) {
@@ -192,10 +176,6 @@ public class UserController {
 						}
 						if (user.getUsername() == null) {
 							throw new Exception();
-						}
-						if (user.getName() == null
-								&& jObject.get("name") != null) {
-							user.setName(jObject.getString("name"));
 						}
 						if (user.getName() == null
 								|| user.getName().trim().length() < 3) {
@@ -212,13 +192,9 @@ public class UserController {
 						throw new Exception();
 					}
 
-				} else {
-					throw new Exception();
-				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
-
 			}
 			user.setToken(establishUserAndLogin(httpServletResponse, user));
 			user.setPassword(null);

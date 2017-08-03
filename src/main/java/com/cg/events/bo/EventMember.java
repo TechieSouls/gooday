@@ -35,16 +35,28 @@ public class EventMember extends CgGeneral {
 	private Long eventId;
 	
 	@ApiModelProperty(required=true)
-	@Column(name="member_id")
-	private Long memberId;
+	@Column(name="source")
+	private String source;
 	
 	@ApiModelProperty(required=true)
-	@Column(name="member_status")
-	private String memberStatus;
+	@Column(name="source_email")
+	private String sourceEmail;
 	
-	@OneToOne(cascade = CascadeType.ALL,targetEntity=User.class,fetch=FetchType.EAGER)
-	@JoinColumn(name="member_id",insertable=false,updatable=false)
-	private User member;
+	@ApiModelProperty(required=true)
+	@Column(name="source_id")
+	private String sourceId;
+	
+	@ApiModelProperty(required=true)
+	@Column(name="name")
+	private String name;
+	
+	@ApiModelProperty(required=true)
+	@Column(name="picture")
+	private String picture;
+	
+	@ApiModelProperty(required=true)
+	@Column(name="status")
+	private String status;
 	
 	public Long getEventMemberId() {
 		return eventMemberId;
@@ -58,23 +70,40 @@ public class EventMember extends CgGeneral {
 	public void setEventId(Long eventId) {
 		this.eventId = eventId;
 	}
-	public Long getMemberId() {
-		return memberId;
+	public String getSource() {
+		return source;
 	}
-	public void setMemberId(Long memberId) {
-		this.memberId = memberId;
+	public void setSource(String source) {
+		this.source = source;
 	}
-	public String getMemberStatus() {
-		return memberStatus;
+	public String getSourceId() {
+		return sourceId;
 	}
-	public void setMemberStatus(String memberStatus) {
-		this.memberStatus = memberStatus;
+	public void setSourceId(String sourceId) {
+		this.sourceId = sourceId;
 	}
-	public User getMember() {
-		return member;
+	public String getName() {
+		return name;
 	}
-	public void setMember(User member) {
-		this.member = member;
+	public void setName(String name) {
+		this.name = name;
 	}
-	
+	public String getPicture() {
+		return picture;
+	}
+	public void setPicture(String picture) {
+		this.picture = picture;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public String getSourceEmail() {
+		return sourceEmail;
+	}
+	public void setSourceEmail(String sourceEmail) {
+		this.sourceEmail = sourceEmail;
+	}
 }
