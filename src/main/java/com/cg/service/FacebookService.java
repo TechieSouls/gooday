@@ -23,7 +23,7 @@ public class FacebookService {
 	String facebook_profile_api = "https://graph.facebook.com/me";
 	
 	public FacebookProfile facebookProfile(String accessToken) {
-		String api = facebook_profile_api+"?access_token="+accessToken;
+		String api = facebook_profile_api+"?fields=picture,name&access_token="+accessToken;
 		FacebookProfile fp = doFacebookProfileRestRequest(api,HttpMethod.GET,null);
 	    return fp;
 	}

@@ -1,11 +1,14 @@
 package com.cg.bo;
 
+import java.util.Map;
+
 public class FacebookProfile {
 	
 	private String id;
 	private String name;
 	private String access_token;
-	private String picture;
+	private Map<String,Object> picture;
+	
 	private int errorCode;
 	private String errorDetail;
 	
@@ -27,10 +30,10 @@ public class FacebookProfile {
 	public void setAccess_token(String access_token) {
 		this.access_token = access_token;
 	}
-	public String getPicture() {
+	public Map<String, Object> getPicture() {
 		return picture;
 	}
-	public void setPicture(String picture) {
+	public void setPicture(Map<String, Object> picture) {
 		this.picture = picture;
 	}
 	public int getErrorCode() {

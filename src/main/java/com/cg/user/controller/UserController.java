@@ -7,19 +7,28 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletResponse;
 
+import okhttp3.internal.framed.ErrorCode;
+
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,16 +40,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cg.bo.FacebookProfile;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.enums.CgEnums.AuthenticateType;
+import com.cg.repository.UserAvailabilityRepository;
 import com.cg.repository.UserRepository;
 import com.cg.service.FacebookService;
 import com.cg.stateless.security.TokenAuthenticationService;
 import com.cg.user.bo.User;
+import com.cg.user.bo.UserAvailability;
 import com.google.common.collect.Sets;
 
 @RestController
@@ -49,7 +62,20 @@ public class UserController {
 
 	@Autowired
 	UserRepository userRepository;
+	
+	@Autowired
+	UserAvailabilityRepository userAvailabilityRepository;
 
+
+	@Value("${cenes.imageUploadPath}")
+	private String imageUploadPath;
+	
+	@Value("${cenes.domain}")
+	private String domain;
+	
+	@Value("${cenes.salt}")
+	private String salt;
+	
 	/*
 	 * { "username":"Blue", "password":200, "name":"1234" }
 	 */
@@ -75,19 +101,19 @@ public class UserController {
 		}
 		if (user.getPassword() != null) {
 			user.setPassword(new Md5PasswordEncoder().encodePassword(
-					user.getPassword(), user.getUsername()));
+					user.getPassword(), salt));
 		}
 		if (user.getEmail() != null) {
 
 			if (userRepository.findUserByEmail(user.getEmail()) != null) {
-				user.setErrorCode(ErrorCodes.UserNameOrEmailAlreadyTaken
+				user.setErrorCode(ErrorCodes.EmailAlreadyTaken
 						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.UserNameOrEmailAlreadyTaken
+				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken
 						.toString());
 				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
 			}
 		}
-		if (user.getUsername() != null) {
+		/*if (user.getUsername() != null) {
 
 			if (userRepository.findUserByUsername(user.getUsername()) != null) {
 				user.setErrorCode(ErrorCodes.UserNameOrEmailAlreadyTaken
@@ -96,17 +122,9 @@ public class UserController {
 						.toString());
 				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
 			}
-		}
+		}*/
 
 		if (user.getAuthType() == AuthenticateType.email) {
-			if (user.getUsername() == null
-					|| user.getUsername().trim().length() < 6) {
-				user.setErrorCode(ErrorCodes.UserNameLenghtMustBeSixCharater
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.UserNameLenghtMustBeSixCharater
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
-			}
 			if (user.getEmail() == null || user.getEmail().trim().length() < 6) {
 				user.setErrorCode(ErrorCodes.EmailLenghtMustBeSixCharater
 						.getErrorCode());
@@ -129,15 +147,20 @@ public class UserController {
 						.toString());
 				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
 			}
+			
+			if (user.getUsername() == null) {
+				user.setUsername(user.getName().toLowerCase().replaceAll(" ",".")+System.currentTimeMillis());
+			}
+			
 			try {
 				// new Md5PasswordEncoder().encodePassword(user.getPassword(),
 				// user.getUsername());
 				user.setToken(establishUserAndLogin(httpServletResponse, user));
 				user = userRepository.save(user);
 			} catch (DataIntegrityViolationException e) {
-				user.setErrorCode(ErrorCodes.UserNameOrEmailAlreadyTaken
+				user.setErrorCode(ErrorCodes.EmailAlreadyTaken
 						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.UserNameOrEmailAlreadyTaken
+				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken
 						.toString());
 				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
 			}
@@ -154,46 +177,35 @@ public class UserController {
 			try {
 					FacebookService facebookService = new FacebookService();
 					FacebookProfile facebookProfile = facebookService.facebookProfile(user.getFacebookAuthToken());
-					if (facebookProfile.getErrorDetail() != null) {
-						if (facebookProfile.getName() != null) {
-							user.setName(facebookProfile.getName());
-						}
-					} else {
-						user.setErrorCode(facebookProfile.getErrorCode());
-						user.setErrorDetail(facebookProfile.getErrorDetail());
-						return new ResponseEntity<User>(user, HttpStatus.OK);
+					if (facebookProfile.getName() != null) {
+						user.setName(facebookProfile.getName());
 					}
-					if (user.getFacebookID().equals(facebookProfile.getId())) {
-
-						if (user.getUsername() == null) {
-							for (int retry = 0; retry < 5; retry++) {
-								String raString = UUID.randomUUID().toString();
-								if (userRepository.findUserByUsername(raString) == null) {
-									user.setUsername(raString);
-									break;
-								}
-							}
-						}
-						if (user.getUsername() == null) {
-							throw new Exception();
-						}
-						if (user.getName() == null
-								|| user.getName().trim().length() < 3) {
-							user.setErrorCode(ErrorCodes.NameLenghtMustBeSixCharater
-									.getErrorCode());
-							user.setErrorDetail(ErrorCodes.NameLenghtMustBeSixCharater
-									.toString());
-							return new ResponseEntity<User>(user,
-									HttpStatus.BAD_REQUEST);
-						}
-						user = userRepository.save(user);
-
-					} else {
-						throw new Exception();
+					if (facebookProfile.getPicture() != null) {
+						Map<String,Object> pictureMap = facebookProfile.getPicture();
+						Map<String,String> dataMap = (Map<String,String>)pictureMap.get("data");
+						user.setPhoto(dataMap.get("url"));
 					}
+
+					if (user.getUsername() == null) {
+						user.setUsername(user.getName().toLowerCase().replaceAll(" ",".")+System.currentTimeMillis());
+					}
+					if (user.getName() == null
+							|| user.getName().trim().length() < 3) {
+						user.setErrorCode(ErrorCodes.NameLenghtMustBeSixCharater
+								.getErrorCode());
+						user.setErrorDetail(ErrorCodes.NameLenghtMustBeSixCharater
+								.toString());
+						return new ResponseEntity<User>(user,
+								HttpStatus.BAD_REQUEST);
+					}
+					user.setToken(establishUserAndLogin(httpServletResponse, user));
+					user = userRepository.save(user);
+
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				user.setErrorCode(ErrorCodes.FacebookAcessTokenExpires.getErrorCode());
+				user.setErrorDetail(ErrorCodes.FacebookAcessTokenExpires.toString());
 				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
 			}
 			user.setToken(establishUserAndLogin(httpServletResponse, user));
@@ -203,6 +215,8 @@ public class UserController {
 		return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
 	}
 
+	
+	
 	
 	@ApiOperation(value = "Facebook Friends", notes = "Get Facebook Friends", code = 200, httpMethod = "GET", produces = "application/json")
 	@ModelAttribute(value = "friends")
@@ -258,6 +272,64 @@ public class UserController {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	@RequestMapping(value = "/api/profile/upload", method = RequestMethod.POST)
+    public ResponseEntity<User> uploadImages(@RequestParam("mediaFile") MultipartFile uploadfile,@RequestParam("userId") String userId) {
+    	
+		User user = userRepository.findOne(Long.valueOf(userId));
+		String dirPath = imageUploadPath.replaceAll("\\[userId\\]", userId);
+		
+		InputStream inputStream = null;
+        OutputStream outputStream = null;
+        String extension = uploadfile.getOriginalFilename().substring(uploadfile.getOriginalFilename().trim().lastIndexOf("."),uploadfile.getOriginalFilename().length());
+        
+        String fileName = UUID.randomUUID().toString()+extension;
+
+        File f = new File(dirPath);
+        if(!f.exists()) { 
+        	try {
+				f.mkdirs();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }        
+        File newFile = new File(dirPath+fileName);
+        try {
+            inputStream = uploadfile.getInputStream();
+
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            outputStream = new FileOutputStream(newFile);
+            int read = 0;
+            byte[] bytes = new byte[1024];
+
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+           
+            String profilePicUrl = "http://"+domain+"/assets/uploads/"+userId+"/profile/"+fileName;
+            user.setPhoto(profilePicUrl);
+            userRepository.save(user);
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	user = new User();
+        	user.setErrorCode(HttpStatus.BAD_REQUEST.ordinal());
+        	user.setErrorDetail(HttpStatus.BAD_REQUEST.toString());
+        	return new ResponseEntity<User>(user, HttpStatus.OK);
+        }
+        return new ResponseEntity<User>(user, HttpStatus.OK);
+    }
+	
+	@RequestMapping(value = "/api/user/metime", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<UserAvailability> saveUserBlockedTime(@RequestBody com.cg.user.bo.UserAvailability userAvailability) {
+		
+		userAvailability.loadMetadata();
+		userAvailabilityRepository.save(userAvailability);
+		return new ResponseEntity<UserAvailability>(userAvailability,HttpStatus.OK);
 	}
 	
 	@Autowired

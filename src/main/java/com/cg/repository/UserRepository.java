@@ -10,5 +10,5 @@ public interface UserRepository extends CrudRepository<User, Long> {
 	User findUserByUsername(String username);
 	User findUserByFacebookID(String facebookID);
 	User findUserByEmail(String email);
-
+	User findUserByEmailAndPassword(String email,String password);
 }
