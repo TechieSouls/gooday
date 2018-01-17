@@ -147,7 +147,7 @@ public class PushNotificationService {
             //payload.addBadge(1);
             //payload.addSound("default");
             System.out.println(payload.toString());
-            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/mandeep/svn/cenes/cenes/src/main/resources/cenesGroupProd.p12", "123456", false, devices);
+            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/prod/cenes-backend/src/main/resources/cenesGroupProd.p12", "123456", true, devices);
             for (PushedNotification NOTIFICATION: NOTIFICATIONS) {
                 if (NOTIFICATION.isSuccessful()) {
                      //APPLE ACCEPTED THE NOTIFICATION AND SHOULD DELIVER IT 
