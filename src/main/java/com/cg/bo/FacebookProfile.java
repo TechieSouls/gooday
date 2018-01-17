@@ -8,6 +8,8 @@ public class FacebookProfile {
 	private String name;
 	private String access_token;
 	private Map<String,Object> picture;
+	private String gender;
+	private String email;
 	
 	private int errorCode;
 	private String errorDetail;
@@ -47,5 +49,17 @@ public class FacebookProfile {
 	}
 	public void setErrorDetail(String errorDetail) {
 		this.errorDetail = errorDetail;
+	}
+	public String getGender() {
+		return gender;
+	}
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
 	}
 }

@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -15,6 +16,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.hibernate.annotations.Cascade;
 
 import com.cg.bo.CgGeneral;
 
@@ -22,8 +26,10 @@ import com.cg.bo.CgGeneral;
 @Table(name="events")
 public class Event extends CgGeneral {
 	
+	public enum ScheduleEventAs{Event,MeTime,Holiday,Gathering}
 	public enum EventType{Sport,Cafe,Entertainment,Travel,Birthday,Food,Seasonal};
-	public enum EventSource{Cenes,Facebook,Google,Outlook}
+	public enum EventSource{Cenes,Facebook,Google,Outlook,Apple}
+	public enum EventProcessedStatus{UnProcessed,Waiting,Processed}
 	
 	@Id
 	@GeneratedValue (strategy=GenerationType.AUTO)
@@ -39,13 +45,22 @@ public class Event extends CgGeneral {
 	@Column(name="type")
 	private String type;
 
+	@Column(name="recurring_event_id")
+	private String recurringEventId;
+	
 	@ApiModelProperty(required=true)
 	@Column(nullable=true)
 	private String location;
 
+	@Column(nullable=true)
+	private String latitude;
+	
+	@Column(nullable=true)
+	private String longitude;
+	
 	@ApiModelProperty(required=true)
 	@Column(nullable=true)
-	private String decription;
+	private String description;
 
 	@ApiModelProperty(required=true)
 	@Column(name="created_by_id")
@@ -66,9 +81,16 @@ public class Event extends CgGeneral {
 	@ApiModelProperty(required=true)
 	@Column(name="timezone")
 	private String timezone;
+
+	@Column(name="schedule_as")
+	private String scheduleAs;
 	
-	@OneToMany(cascade = CascadeType.ALL,fetch=FetchType.EAGER)
+	@Column(name="event_picture")
+	private String eventPicture;
+	
+	@OneToMany(cascade = CascadeType.ALL,fetch=FetchType.EAGER,orphanRemoval=true )
 	@JoinColumn(name="event_id")
+	@Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
 	private List<EventMember> eventMembers;
 	
 	@ApiModelProperty(required=true)
@@ -78,6 +100,18 @@ public class Event extends CgGeneral {
 	@ApiModelProperty(required=true)
 	@Column(name="end_time")
 	private Date endTime;
+	
+	@Column(name="is_predictive_on")
+	private Boolean isPredictiveOn = false;
+	
+	@Column(name="predictive_data",columnDefinition="TEXT")
+	private String predictiveData;
+
+	@Transient
+	private Map<String,Object> predictiveDataForIos;
+	
+	@Column(name="processed")
+	private Integer processed = EventProcessedStatus.UnProcessed.ordinal();
 	
 	public Long getEventId() {
 		return eventId;
@@ -97,11 +131,11 @@ public class Event extends CgGeneral {
 	public void setLocation(String location) {
 		this.location = location;
 	}
-	public String getDecription() {
-		return decription;
+	public String getDescription() {
+		return description;
 	}
-	public void setDecription(String decription) {
-		this.decription = decription;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 	public String getType() {
 		return type;
@@ -157,5 +191,77 @@ public class Event extends CgGeneral {
 	public void setTimezone(String timezone) {
 		this.timezone = timezone;
 	}
+	public String getScheduleAs() {
+		return scheduleAs;
+	}
+	public void setScheduleAs(String scheduleAs) {
+		this.scheduleAs = scheduleAs;
+	}
+	public String getEventPicture() {
+		return eventPicture;
+	}
+	public void setEventPicture(String eventPicture) {
+		this.eventPicture = eventPicture;
+	}
+	public Integer getProcessed() {
+		return processed;
+	}
+	public void setProcessed(Integer processed) {
+		this.processed = processed;
+	}
+	public String getRecurringEventId() {
+		return recurringEventId;
+	}
+	public void setRecurringEventId(String recurringEventId) {
+		this.recurringEventId = recurringEventId;
+	}
+	public Boolean getIsPredictiveOn() {
+		return isPredictiveOn;
+	}
+	public void setIsPredictiveOn(Boolean isPredictiveOn) {
+		this.isPredictiveOn = isPredictiveOn;
+	}
+	public String getPredictiveData() {
+		return predictiveData;
+	}
+	public void setPredictiveData(String predictiveData) {
+		this.predictiveData = predictiveData;
+	}
 	
+	public Map<String, Object> getPredictiveDataForIos() {
+		return predictiveDataForIos;
+	}
+	public void setPredictiveDataForIos(Map<String, Object> predictiveDataForIos) {
+		this.predictiveDataForIos = predictiveDataForIos;
+	}
+	public String getLatitude() {
+		return latitude;
+	}
+	public void setLatitude(String latitude) {
+		this.latitude = latitude;
+	}
+	
+	
+	public String getLongitude() {
+		return longitude;
+	}
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
+	}
+	@Override
+	public String toString() {
+		return "Event [eventId=" + eventId + ", title=" + title + ", type="
+				+ type + ", recurringEventId=" + recurringEventId
+				+ ", location=" + location + ", latitude=" + latitude
+				+ ", longitude=" + longitude + ", description=" + description
+				+ ", createdById=" + createdById + ", source=" + source
+				+ ", sourceEventId=" + sourceEventId + ", sourceUserId="
+				+ sourceUserId + ", timezone=" + timezone + ", scheduleAs="
+				+ scheduleAs + ", eventPicture=" + eventPicture
+				+ ", eventMembers=" + eventMembers + ", startTime=" + startTime
+				+ ", endTime=" + endTime + ", isPredictiveOn=" + isPredictiveOn
+				+ ", predictiveData=" + predictiveData
+				+ ", predictiveDataForIos=" + predictiveDataForIos
+				+ ", processed=" + processed + "]";
+	}
 }

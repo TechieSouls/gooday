@@ -1,22 +1,17 @@
 package com.cg.events.bo;
 
-import io.swagger.annotations.ApiModelProperty;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import com.cg.bo.CgGeneral;
-import com.cg.user.bo.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.cg.events.bo.Event.EventProcessedStatus;
+
+import io.swagger.annotations.ApiModelProperty;
 
 @Entity
 @Table(name="event_members")
@@ -57,6 +52,15 @@ public class EventMember extends CgGeneral {
 	@ApiModelProperty(required=true)
 	@Column(name="status")
 	private String status;
+	
+	@Column(name="user_id")
+	private Long userId;
+	
+	@Column(name="processed")
+	private Integer processed = EventProcessedStatus.Processed.ordinal();	
+	
+	@Transient
+	private Boolean owner = false;
 	
 	public Long getEventMemberId() {
 		return eventMemberId;
@@ -105,5 +109,23 @@ public class EventMember extends CgGeneral {
 	}
 	public void setSourceEmail(String sourceEmail) {
 		this.sourceEmail = sourceEmail;
+	}
+	public Long getUserId() {
+		return userId;
+	}
+	public void setUserId(Long userId) {
+		this.userId = userId;
+	}
+	public Boolean getOwner() {
+		return owner;
+	}
+	public void setOwner(Boolean owner) {
+		this.owner = owner;
+	}
+	public Integer getProcessed() {
+		return processed;
+	}
+	public void setProcessed(Integer processed) {
+		this.processed = processed;
 	}
 }

@@ -6,10 +6,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.Date;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -45,10 +42,9 @@ public class UserDetailController {
 	// @Autowired
 	UserService userService;
 
-	
-	
 	@Autowired
 	UserRepository userRepository;
+	
 	@Autowired
 	TokenAuthenticationService tokenAuthenticationService;
 
@@ -58,12 +54,45 @@ public class UserDetailController {
 	 * { "username":"Blue", "password":200, "name":"1234" }
 	 */
 
+	
+	@ApiOperation(value = "create a token", notes = "Create  ", code = 200, httpMethod = "GET", produces = "application/json")
+	@ModelAttribute(value = "user")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "product updated successfuly", response = User.class) })
+	@RequestMapping(value = "/auth/user/authenticate", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<User> createToken(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			@RequestBody User user) {
+		
+		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user");
+		if (user.getAuthType() == AuthenticateType.email && user.getEmail() != null) {
+			String password = new Md5PasswordEncoder().encodePassword(user.getPassword(), salt);
+			user = userRepository.findUserByEmailAndPassword(user.getEmail(),password);
+		}
+		
+		if (user == null) {
+			user = new User();
+			user.setErrorCode(ErrorCodes.IncorrectEmailOrPassword.getErrorCode());
+			user.setErrorDetail(ErrorCodes.IncorrectEmailOrPassword.toString());
+		} else if (user.getUserId() == null) {
+			user = new User();
+			user.setErrorCode(HttpStatus.BAD_REQUEST.ordinal());
+			user.setErrorDetail(HttpStatus.BAD_REQUEST.name());
+		}
+		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user "+user.toString());	
+		user.setPassword(null);
+		return new ResponseEntity<User>(user, HttpStatus.OK);
+	}
+	
+	
 	@ApiOperation(value = "fetch user detail", notes = "Fecth user detail", code = 200, httpMethod = "GET", produces = "application/json")
 	@ModelAttribute(value = "product")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "product updated successfuly", response = User.class) })
 	@RequestMapping(value = "/api/users/{userId}", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<User> getUserDetail(@ApiParam(name = "userId", value = "User id", required = true) @PathVariable("userId") Long userId) {
+	public ResponseEntity<User> getUserDetail(@ApiParam(name = "userId", value = "User id", required = true) 
+		@PathVariable("userId") Long userId) {
 		User user = new User();
 		try {
 			return new ResponseEntity<User>(userRepository.findOne(userId),
@@ -100,41 +129,6 @@ public class UserDetailController {
 		return new ResponseEntity<User>(user, HttpStatus.OK);
 	}
 
-	@ApiOperation(value = "create a token", notes = "Create  ", code = 200, httpMethod = "GET", produces = "application/json")
-	@ModelAttribute(value = "user")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "product updated successfuly", response = User.class) })
-	@RequestMapping(value = "/auth/user/authenticate", method = RequestMethod.POST)
-	@ResponseBody
-	public ResponseEntity<User> createToken(
-			HttpServletRequest request,
-			HttpServletResponse response,
-			@RequestBody User user) {
-		
-		if (user.getAuthType() == AuthenticateType.facebook && user.getFacebookID() != null) {
-			user = userRepository.findUserByFacebookID(user.getFacebookID());
-			if (user != null) {
-				user.setFacebookAuthToken(user.getFacebookAuthToken());
-				userRepository.save(user);
-			}
-		} else if (user.getAuthType() == AuthenticateType.email && user.getEmail() != null) {
-			String password = new Md5PasswordEncoder().encodePassword(user.getPassword(), salt);
-			user = userRepository.findUserByEmailAndPassword(user.getEmail(),password);
-		}
-		
-		if (user == null) {
-			user = new User();
-			user.setErrorCode(ErrorCodes.IncorrectEmailOrPassword.getErrorCode());
-			user.setErrorDetail(ErrorCodes.IncorrectEmailOrPassword.toString());
-		} else if (user.getUserId() == null) {
-			user = new User();
-			user.setErrorCode(HttpStatus.BAD_REQUEST.ordinal());
-			user.setErrorDetail(HttpStatus.BAD_REQUEST.name());
-		}
-			
-		user.setPassword(null);
-		return new ResponseEntity<User>(user, HttpStatus.OK);
-	}
-	
 	private String establishUserAndLogin(HttpServletResponse response,
 			User email) {
 		// Find user, create if necessary

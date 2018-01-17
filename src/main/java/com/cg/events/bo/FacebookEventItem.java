@@ -15,6 +15,7 @@ public class FacebookEventItem {
 	private Map<String,Object> attending;
 	private Map<String,Object> maybe;
 	private Map<String,Object> declined;
+	private Map<String,Object> picture;
 	
 	public String getId() {
 		return id;
@@ -81,5 +82,11 @@ public class FacebookEventItem {
 	}
 	public void setDeclined(Map<String, Object> declined) {
 		this.declined = declined;
+	}
+	public Map<String, Object> getPicture() {
+		return picture;
+	}
+	public void setPicture(Map<String, Object> picture) {
+		this.picture = picture;
 	}
 }

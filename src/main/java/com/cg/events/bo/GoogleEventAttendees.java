@@ -4,6 +4,7 @@ public class GoogleEventAttendees {
 	
 		private String email;
 		private Boolean self;
+		private Boolean organizer;
 		private String displayName;
 		private String responseStatus;
 		
@@ -30,5 +31,11 @@ public class GoogleEventAttendees {
 		}
 		public void setResponseStatus(String responseStatus) {
 			this.responseStatus = responseStatus;
+		}
+		public Boolean getOrganizer() {
+			return organizer;
+		}
+		public void setOrganizer(Boolean organizer) {
+			this.organizer = organizer;
 		}
 }

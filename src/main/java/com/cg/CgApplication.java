@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -38,7 +39,8 @@ import com.pubnub.api.PubNub;
 
 @SpringBootApplication
 @EnableSwagger2
-@ComponentScan(basePackages = { "com.cg" }, basePackageClasses = {
+@EnableScheduling
+@ComponentScan(basePackages = { "com.cg","com.cg.jobs" }, basePackageClasses = {
 		SpringSecurityConfig.class, UserRepository.class })
 public class CgApplication {
 

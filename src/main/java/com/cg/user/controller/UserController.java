@@ -14,22 +14,24 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletResponse;
 
-import okhttp3.internal.framed.ErrorCode;
-
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,15 +47,34 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cg.bo.CenesProperty.PropertyOwningEntity;
+import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.FacebookProfile;
+import com.cg.bo.UserFriend;
+import com.cg.bo.UserFriend.UserStatus;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.enums.CgEnums.AuthenticateType;
+import com.cg.events.bo.MeTime;
+import com.cg.events.bo.MeTimeEvent;
+import com.cg.events.bo.RecurringEvent;
+import com.cg.events.bo.RecurringEvent.RecurringEventProcessStatus;
+import com.cg.events.bo.RecurringEvent.RecurringEventStatus;
+import com.cg.events.bo.RecurringPattern;
+import com.cg.events.repository.RecurringPatternRepository;
+import com.cg.manager.EmailManager;
+import com.cg.manager.EventManager;
+import com.cg.manager.EventTimeSlotManager;
+import com.cg.manager.RecurringManager;
+import com.cg.repository.CenesPropertyValueRepository;
 import com.cg.repository.UserAvailabilityRepository;
+import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
 import com.cg.service.FacebookService;
+import com.cg.service.UserService;
 import com.cg.stateless.security.TokenAuthenticationService;
 import com.cg.user.bo.User;
-import com.cg.user.bo.UserAvailability;
+import com.cg.user.bo.UserDevice;
+import com.cg.utils.CenesUtils;
 import com.google.common.collect.Sets;
 
 @RestController
@@ -64,9 +85,32 @@ public class UserController {
 	UserRepository userRepository;
 	
 	@Autowired
+	EventManager eventManager;
+	
+	@Autowired
+	EventTimeSlotManager eventTimeSlotManager;
+	
+	@Autowired
+	RecurringManager recurringManager;
+	
+	@Autowired
+	RecurringPatternRepository recurringPatternRepository;
+	
+	@Autowired
 	UserAvailabilityRepository userAvailabilityRepository;
+	
+	@Autowired
+	UserFriendRepository userFriendRepository;
 
-
+	@Autowired
+	UserService userService;
+	
+	@Autowired
+	EmailManager emailManager;
+	
+	@Autowired
+	CenesPropertyValueRepository cenesPropertyValueRepository;
+	
 	@Value("${cenes.imageUploadPath}")
 	private String imageUploadPath;
 	
@@ -76,10 +120,6 @@ public class UserController {
 	@Value("${cenes.salt}")
 	private String salt;
 	
-	/*
-	 * { "username":"Blue", "password":200, "name":"1234" }
-	 */
-
 	@ApiOperation(value = "Create user", notes = "create user ", code = 200, httpMethod = "POST", produces = "application/json")
 	@ModelAttribute(value = "user")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "product updated successfuly") })
@@ -88,143 +128,203 @@ public class UserController {
 	public ResponseEntity<User> createUser(
 			HttpServletResponse httpServletResponse,
 			@ApiParam(name = "User", value = "user dummy data", required = true) @RequestBody User user) {
-
-		if (user.getFacebookID() != null) {
-			if (userRepository.findUserByFacebookID(user.getFacebookID()) != null) {
-				user.setErrorCode(ErrorCodes.UserNameOrEmailAlreadyTaken
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.UserNameOrEmailAlreadyTaken
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+		
+		User userInfo = null;
+		
+		//Setting auth type in case it is not passed in the api
+		if (user.getAuthType() == null) {
+			if (user.getFacebookID() != null) {
+				user.setAuthType(AuthenticateType.facebook);
+			} else if (user.getEmail() != null) {
+				user.setAuthType(AuthenticateType.email);
 			}
-
-		}
-		if (user.getPassword() != null) {
-			user.setPassword(new Md5PasswordEncoder().encodePassword(
-					user.getPassword(), salt));
-		}
-		if (user.getEmail() != null) {
-
-			if (userRepository.findUserByEmail(user.getEmail()) != null) {
-				user.setErrorCode(ErrorCodes.EmailAlreadyTaken
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+			if (user.getAuthType() == null) {
+				user.setErrorCode(ErrorCodes.AuthTypeNotPresent.getErrorCode());
+				user.setErrorDetail(ErrorCodes.AuthTypeNotPresent.toString());
+				return new ResponseEntity<User>(user,HttpStatus.PARTIAL_CONTENT);
 			}
 		}
-		/*if (user.getUsername() != null) {
-
-			if (userRepository.findUserByUsername(user.getUsername()) != null) {
-				user.setErrorCode(ErrorCodes.UserNameOrEmailAlreadyTaken
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.UserNameOrEmailAlreadyTaken
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+		
+		if (user.getAuthType().equals(AuthenticateType.email)) {
+			if (user.getPassword() == null) {
+				user.setErrorCode(ErrorCodes.PasswordNotPresent.getErrorCode());
+				user.setErrorDetail(ErrorCodes.PasswordNotPresent.toString());
+				return new ResponseEntity<User>(user,HttpStatus.PARTIAL_CONTENT);
 			}
-		}*/
-
-		if (user.getAuthType() == AuthenticateType.email) {
-			if (user.getEmail() == null || user.getEmail().trim().length() < 6) {
-				user.setErrorCode(ErrorCodes.EmailLenghtMustBeSixCharater
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.EmailLenghtMustBeSixCharater
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+			if (user.getEmail() == null) {
+				user.setErrorCode(ErrorCodes.EmailNotPresent.getErrorCode());
+				user.setErrorDetail(ErrorCodes.EmailNotPresent.toString());
+				return new ResponseEntity<User>(user,HttpStatus.PARTIAL_CONTENT);
 			}
-			if (user.getName() == null || user.getName().trim().length() < 3) {
-				user.setErrorCode(ErrorCodes.NameLenghtMustBeSixCharater
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.NameLenghtMustBeSixCharater
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+			if (user.getName() == null) {
+				user.setErrorCode(ErrorCodes.NameNotPresent.getErrorCode());
+				user.setErrorDetail(ErrorCodes.NameNotPresent.toString());
+				return new ResponseEntity<User>(user,HttpStatus.PARTIAL_CONTENT);
 			}
-			if (user.getPassword() == null
-					|| user.getPassword().trim().length() < 6) {
-				user.setErrorCode(ErrorCodes.PasswordLenghtMustBeSixCharater
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.PasswordLenghtMustBeSixCharater
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+			System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : Email Type User");
+			userInfo = userService.findUserByEmail(user.getEmail());
+			if (userInfo == null) {
+				System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : New signup request");
+				try {
+					user.setUsername(user.getName().toLowerCase().replaceAll(" ",".")+System.currentTimeMillis());
+					user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+					user.setToken(establishUserAndLogin(httpServletResponse, user));
+					userInfo = userService.saveUser(user);
+				} catch(Exception e) {
+					e.printStackTrace();
+					user.setPassword(null);
+					user.setErrorCode(ErrorCodes.EmailAlreadyTaken.getErrorCode());
+					user.setErrorDetail(ErrorCodes.EmailAlreadyTaken.toString());
+					return new ResponseEntity<User>(user, HttpStatus.OK);
+				}
+			} else {
+				user.setPassword(null);
+				user.setErrorCode(ErrorCodes.EmailAlreadyTaken.getErrorCode());
+				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken.toString());
+				System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : Email Already Exists");
+				return new ResponseEntity<User>(user, HttpStatus.OK);
 			}
-			
-			if (user.getUsername() == null) {
-				user.setUsername(user.getName().toLowerCase().replaceAll(" ",".")+System.currentTimeMillis());
-			}
-			
-			try {
-				// new Md5PasswordEncoder().encodePassword(user.getPassword(),
-				// user.getUsername());
-				user.setToken(establishUserAndLogin(httpServletResponse, user));
-				user = userRepository.save(user);
-			} catch (DataIntegrityViolationException e) {
-				user.setErrorCode(ErrorCodes.EmailAlreadyTaken
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
-			}
-			return new ResponseEntity<User>(user, HttpStatus.CREATED);
-		} else if (user.getAuthType() == AuthenticateType.facebook) {
-
+			System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : User Details -> "+userInfo.toString());
+			return new ResponseEntity<User>(userInfo, HttpStatus.ACCEPTED);
+		} else if (user.getAuthType().equals(AuthenticateType.facebook)) {
 			if (user.getFacebookAuthToken() == null) {
-				user.setErrorCode(ErrorCodes.FacebookLoginNeedAcessToekn
-						.getErrorCode());
-				user.setErrorDetail(ErrorCodes.FacebookLoginNeedAcessToekn
-						.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+				user.setErrorCode(ErrorCodes.FacebookTokenNotPresent.getErrorCode());
+				user.setErrorDetail(ErrorCodes.FacebookTokenNotPresent.toString());
+				return new ResponseEntity<User>(user, HttpStatus.PARTIAL_CONTENT);
 			}
-			try {
+			if (user.getFacebookID() == null) {
+				user.setErrorCode(ErrorCodes.FacebookIdNotPresent.getErrorCode());
+				user.setErrorDetail(ErrorCodes.FacebookIdNotPresent.toString());
+				return new ResponseEntity<User>(user, HttpStatus.PARTIAL_CONTENT);
+			}
+			
+			System.out.println("[ Date : "+new Date()+" ] ,UserType : Facebook, Message : Facebook Type User");
+			userInfo = userRepository.findUserByFacebookID(user.getFacebookID());
+			if (userInfo == null) {
+				System.out.println("[ Date : "+new Date()+" ] ,UserType : Facebook, Message : New signup request");
+				try {
+					//Create new user if not exists.
 					FacebookService facebookService = new FacebookService();
 					FacebookProfile facebookProfile = facebookService.facebookProfile(user.getFacebookAuthToken());
 					if (facebookProfile.getName() != null) {
 						user.setName(facebookProfile.getName());
+						user.setUsername(user.getName().toLowerCase().replaceAll(" ",".")+System.currentTimeMillis());
 					}
 					if (facebookProfile.getPicture() != null) {
 						Map<String,Object> pictureMap = facebookProfile.getPicture();
 						Map<String,String> dataMap = (Map<String,String>)pictureMap.get("data");
 						user.setPhoto(dataMap.get("url"));
 					}
-
 					if (user.getUsername() == null) {
 						user.setUsername(user.getName().toLowerCase().replaceAll(" ",".")+System.currentTimeMillis());
 					}
-					if (user.getName() == null
-							|| user.getName().trim().length() < 3) {
-						user.setErrorCode(ErrorCodes.NameLenghtMustBeSixCharater
-								.getErrorCode());
-						user.setErrorDetail(ErrorCodes.NameLenghtMustBeSixCharater
-								.toString());
-						return new ResponseEntity<User>(user,
-								HttpStatus.BAD_REQUEST);
+					if (facebookProfile.getEmail() != null && facebookProfile.getEmail().length() > 0) {
+						user.setEmail(facebookProfile.getEmail());
 					}
+					user.setGender(facebookProfile.getGender());
 					user.setToken(establishUserAndLogin(httpServletResponse, user));
-					user = userRepository.save(user);
-
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				user.setErrorCode(ErrorCodes.FacebookAcessTokenExpires.getErrorCode());
-				user.setErrorDetail(ErrorCodes.FacebookAcessTokenExpires.toString());
-				return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+					userInfo = userService.saveUser(user);
+					userInfo.setIsNew(true);
+				} catch(Exception e) {
+					e.printStackTrace();
+					user.setErrorCode(ErrorCodes.FacebookAcessTokenExpires.getErrorCode());
+					user.setErrorDetail(ErrorCodes.FacebookAcessTokenExpires.toString());
+					return new ResponseEntity<User>(user, HttpStatus.FORBIDDEN);
+				}
+			} else {
+				FacebookService facebookService = new FacebookService();
+				FacebookProfile facebookProfile = facebookService.facebookProfile(user.getFacebookAuthToken());
+				if (facebookProfile.getPicture() != null) {
+					Map<String,Object> pictureMap = facebookProfile.getPicture();
+					Map<String,String> dataMap = (Map<String,String>)pictureMap.get("data");
+					user.setPhoto(dataMap.get("url"));
+				}
+				userInfo.setFacebookAuthToken(user.getFacebookAuthToken());
+				if (user.getPhoto() != null) {
+					userInfo.setPhoto(user.getPhoto());
+				}
+				if (facebookProfile.getEmail() != null && facebookProfile.getEmail().length() > 0) {
+					userInfo.setEmail(facebookProfile.getEmail());
+				}
+				userInfo.setGender(facebookProfile.getGender());
+				userInfo = userService.saveUser(userInfo);
+				userInfo.setIsNew(false);
+				System.out.println("[ Date : "+new Date()+" ] ,UserType : Facebook, Message : Old user retrived from database");
 			}
-			user.setToken(establishUserAndLogin(httpServletResponse, user));
-			user.setPassword(null);
-			return new ResponseEntity<User>(user, HttpStatus.CREATED);
+			System.out.println("[ Date : "+new Date()+" ] ,UserType : Facebook, Message : User Details -> "+userInfo.toString());
+			return new ResponseEntity<User>(userInfo, HttpStatus.ACCEPTED);
 		}
-		return new ResponseEntity<User>(user, HttpStatus.BAD_REQUEST);
+		user.setErrorCode(ErrorCodes.InternalServerError.getErrorCode());
+		user.setErrorDetail(ErrorCodes.InternalServerError.toString());
+		return new ResponseEntity<User>(user, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
+	@ResponseBody
+	@RequestMapping(value="/api/user/update/", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> updateUser(@RequestBody User user) {
+		
+		User dbUser = userService.findUserById(user.getUserId());
+		dbUser.setName(user.getName());
+		dbUser.setEmail(user.getEmail());
+		if (user.getPhoto() != null && user.getPhoto().length() > 0) {
+			dbUser.setPhoto(user.getPhoto());
+		}
+		dbUser.setGender(user.getGender());
+		
+		Map<String, Object> response = new HashMap<>();
+		try {
+			dbUser = userRepository.save(dbUser);
+			response.put("success", true);
+			response.put("data", dbUser);
+			response.put("errorCode", 0);
+			response.put("errorDetail", null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("data", "");
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
 	
+	@ResponseBody
+	@RequestMapping(value="/api/user/calendarsyncstatus/{user_id}", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> userCalendarSyncStatus(@PathVariable("user_id") String userId) {
+		Map<String, Object> response = new HashMap<>();
+
+		List<CenesPropertyValue> cenesPropertyValues = cenesPropertyValueRepository
+				.findByEntityIdAndPropertyOwningEntity(Long.parseLong(userId), PropertyOwningEntity.User);
+		try {
+			response.put("success", true);
+			response.put("errorCode", 0);
+			response.put("errorDetail", null);
+			if (cenesPropertyValues.size() > 0) {
+				response.put("data", cenesPropertyValues);
+			} else {
+				response.put("data", new ArrayList<>());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("data", new ArrayList<>());
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+		}
+
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+
+	}
 	
-	
-	@ApiOperation(value = "Facebook Friends", notes = "Get Facebook Friends", code = 200, httpMethod = "GET", produces = "application/json")
+	@ApiOperation(value = "Facebeook Friends", notes = "Get Facebook Friends", code = 200, httpMethod = "GET", produces = "application/json")
 	@ModelAttribute(value = "friends")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Friends Retrived Successfully") })
-	@RequestMapping(value = "/api/facebook/friends/{facebook_id}/{auth_token}", method = RequestMethod.GET,produces = MediaType.APPLICATION_JSON_VALUE)
+	@RequestMapping(value = "/api/facebook/friends/{facebook_id}/{auth_token}/{user_id}", method = RequestMethod.GET,
+		produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public ResponseEntity<String> getFacebookFriends(@ApiParam(name = "facebook_id", value = "facebook id of the  user", required = true) @PathVariable("facebook_id") String facebookId,
-			@ApiParam(name = "auth_token", value = "auth_token of the  user", required = true) @PathVariable("auth_token") String auth_token) {
+	public ResponseEntity<String> getFacebookFriends(@ApiParam(name = "facebook_id", value = "facebook id of the  user", required = true) 
+		@PathVariable("facebook_id") String facebookId, @ApiParam(name = "auth_token", value = "auth_token of the  user", required = true) 
+		@PathVariable("auth_token") String auth_token, @PathVariable("user_id") String userId) {
 		try {
 			
 			 String secret = "8f3199da15c6b58a18efd02177824f3a";
@@ -237,8 +337,9 @@ public class UserController {
 		     String hash = Base64.encodeBase64String(sha256_HMAC.doFinal(message.getBytes()));
 		     System.out.println(hash);
 			
-			String url = "https://graph.facebook.com/"+facebookId+"/friends?access_token="
-					+ auth_token+"&appsecret_proof="+hash;
+			/*String url = "https://graph.facebook.com/"+facebookId+"/friends?access_token="
+					+ auth_token+"&appsecret_proof="+hash;*/
+		     String url = "https://graph.facebook.com/"+facebookId+"/friends?access_token=" + auth_token;
 			
 			URL obj = new URL(url);
 			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -261,11 +362,27 @@ public class UserController {
 				org.primefaces.json.JSONObject jObject = new org.primefaces.json.JSONObject(
 						response.toString());
 				JSONArray jsonArray =  (JSONArray) jObject.get("data");
-				for(int i = 0 ; i < jsonArray.length();i++){
-					JSONObject jsonObject = (JSONObject) jsonArray.get(i);
-					jsonObject.put("profile_picture", "https://graph.facebook.com/v2.9/"+jsonObject.getString("id")+"/picture?width=640&height=640");
+				if (jsonArray.length() > 0) {
+					List<UserFriend> userFriendList = new ArrayList<>();
+					for(int i = 0 ; i < jsonArray.length();i++){
+						JSONObject jsonObject = (JSONObject) jsonArray.get(i);
+						jsonObject.put("profile_picture", "https://graph.facebook.com/v2.9/"+jsonObject.getString("id")+"/picture?width=640&height=640");
+						UserFriend userFriend = new UserFriend();
+						userFriend.setCreatedAt(new Date());
+						userFriend.setUpdateAt(new Date());
+						userFriend.setSource("Facebook");
+						userFriend.setStatus(UserStatus.Requested);
+						userFriend.setFriendId(Long.parseLong(userId));
+						userFriend.setSourceId(Long.parseLong(jsonObject.get("id").toString()));
+						userFriendList.add(userFriend);
+					}
+					userFriendRepository.save(userFriendList);
+					return new ResponseEntity<String>(jObject.toString(), HttpStatus.OK);
+				} else {
+					System.out.println("Empity friend list of the user");
+					return null;
 				}
-				return new ResponseEntity<String>(jObject.toString(), HttpStatus.OK);
+				
 			}
 
 		} catch (Exception e) {
@@ -280,6 +397,21 @@ public class UserController {
 		User user = userRepository.findOne(Long.valueOf(userId));
 		String dirPath = imageUploadPath.replaceAll("\\[userId\\]", userId);
 		
+		File file = new File(dirPath);
+		if (file != null) {
+			File[] files = file.listFiles(); 
+	        if (files != null && files.length > 0) {
+	            for (File f:files) {
+	            	if (f.isFile() && f.exists()) { 
+	            		f.delete();
+	            		System.out.println("successfully deleted");
+	                } else {
+	                	System.out.println("cant delete a file due to open or error");
+	                } 
+	            }
+	        }
+		}
+
 		InputStream inputStream = null;
         OutputStream outputStream = null;
         String extension = uploadfile.getOriginalFilename().substring(uploadfile.getOriginalFilename().trim().lastIndexOf("."),uploadfile.getOriginalFilename().length());
@@ -312,7 +444,10 @@ public class UserController {
            
             String profilePicUrl = "http://"+domain+"/assets/uploads/"+userId+"/profile/"+fileName;
             user.setPhoto(profilePicUrl);
-            userRepository.save(user);
+            userService.saveUser(user);
+            
+            eventManager.updateEventMemberPicture(profilePicUrl,user.getUserId());
+            
         } catch (Exception e) {
         	e.printStackTrace();
         	user = new User();
@@ -323,13 +458,277 @@ public class UserController {
         return new ResponseEntity<User>(user, HttpStatus.OK);
     }
 	
+	
+	@RequestMapping(value = "/api/user/friends", method = RequestMethod.GET)
+	@ResponseBody
+/*	public ResponseEntity<List<UserFriend>> getUserFriends(@RequestParam("user_id") Long userId) {
+		
+		List<UserFriend> friends = userFriendRepository.findByFriendId(userId, null);
+		return new ResponseEntity<List<UserFriend>>(friends,HttpStatus.OK);
+	}
+*/	public ResponseEntity<List<User>> getUserFriends(@RequestParam("user_id") Long userId) {
+		List<User> friends = null;
+		friends = (List)userRepository.findAll();	
+		List<User> userFriends = new ArrayList<>();
+		for (User user : friends) {
+			if (user.getUserId().equals(userId)) {
+				continue;
+			}
+			userFriends.add(user);
+		}
+		return new ResponseEntity<List<User>>(userFriends,HttpStatus.OK);
+	}
+	
+	
 	@RequestMapping(value = "/api/user/metime", method = RequestMethod.POST)
 	@ResponseBody
-	public ResponseEntity<UserAvailability> saveUserBlockedTime(@RequestBody com.cg.user.bo.UserAvailability userAvailability) {
+	public ResponseEntity<String> saveMeTime(@RequestBody MeTime meTime) {
 		
-		userAvailability.loadMetadata();
-		userAvailabilityRepository.save(userAvailability);
-		return new ResponseEntity<UserAvailability>(userAvailability,HttpStatus.OK);
+		if (meTime != null) {
+			Long userId = meTime.getUserId();
+			recurringManager.deleteRecurringEventsByUserId(userId);
+			eventManager.deleteEventsByCreatedByIdScheduleAs(userId, "MeTime");
+			eventTimeSlotManager.deleteEventTimeSlotsByUserIdScheduleAs(userId, "MeTime");
+		}
+		
+		System.out.println("[METIME EVENTS : STARTS]");
+		Map<String,Integer> dayOfWeekMap = new HashMap<>();
+		dayOfWeekMap.put("Sunday", 1);
+		dayOfWeekMap.put("Monday",2);
+		dayOfWeekMap.put("Tuesday", 3);
+		dayOfWeekMap.put("Wednesday", 4);
+		dayOfWeekMap.put("Thursday", 5);
+		dayOfWeekMap.put("Friday", 6);
+		dayOfWeekMap.put("Saturday", 7);
+		
+		JSONObject responseObject = new JSONObject();
+		try {
+			Map<String,RecurringEvent> recurringEventMap = new HashMap<>();
+			for (MeTimeEvent meEvent : meTime.getEvents()) {
+				Calendar startCal = Calendar.getInstance();
+				startCal.setTimeInMillis(meEvent.getStartTime());
+				
+				if (!recurringEventMap.containsKey(meEvent.getTitle())) {
+					RecurringEvent recurringEvent = new RecurringEvent();
+					recurringEvent.setTitle(meEvent.getTitle());
+					recurringEvent.setDescription(meEvent.getDescription());
+					recurringEvent.setCreatedById(meTime.getUserId());
+					recurringEvent.setTimezone(meTime.getTimezone());
+					recurringEvent.setCreationTimestamp(new Date());
+					recurringEvent.setUpdateTimestamp(new Date());
+					recurringEvent.setSource("Cenes");
+					
+					System.out.println(meEvent.getStartTime());
+					
+			        recurringEvent.setStartTime(startCal.getTime());
+			        
+			        Calendar endCal =  Calendar.getInstance();
+			        endCal.setTimeInMillis(meEvent.getEndTime());
+			        if (meEvent.getStartTime() > meEvent.getEndTime()) {
+				        endCal.add(Calendar.DAY_OF_MONTH, 1);
+			        }
+			        System.out.println(endCal.getTime());
+			        recurringEvent.setEndTime(endCal.getTime());
+					
+					recurringEvent.setProcessed(RecurringEventProcessStatus.unprocessed.ordinal());
+					recurringEvent.setStatus(RecurringEventStatus.Started.toString());
+				
+					List<RecurringPattern> recurringPatterns = new ArrayList<>();
+					RecurringPattern recurringPattern = new RecurringPattern();
+					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
+					recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
+					recurringPatterns.add(recurringPattern);
+					
+					recurringEvent.setRecurringPatterns(recurringPatterns);
+					
+					recurringEventMap.put(meEvent.getTitle(), recurringEvent);
+				} else {
+					RecurringEvent recurringEvent = recurringEventMap.get(meEvent.getTitle());
+					List<RecurringPattern> recurringPatterns = recurringEvent.getRecurringPatterns();
+					RecurringPattern recurringPattern = new RecurringPattern();
+					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
+					recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
+					recurringPatterns.add(recurringPattern);
+				}
+			}
+			
+			for (Entry<String,RecurringEvent> entryMap : recurringEventMap.entrySet()) {
+				recurringManager.saveRecurringEvent(entryMap.getValue());
+			}
+			
+			responseObject.put("status", "success");
+			responseObject.put("saved", "true");
+			System.out.println("[METIME EVENTS : ENDS]");
+
+			return new ResponseEntity<String>(responseObject.toString(),HttpStatus.OK);
+		} catch(Exception e) {
+			return new ResponseEntity<String>(responseObject.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	
+	@RequestMapping(value = "/api/user/getmetimes", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<Map<String,Object>> getMeTimes(@RequestParam("user_id") Long userId) {
+		Map<String,Object> response = new HashMap<>();
+		List<RecurringEvent> meTimeEvents = recurringManager.findRecurringEventsByCreatedById(userId);
+		if (meTimeEvents != null && meTimeEvents.size() > 0) {
+			for (RecurringEvent meTimeEvent : meTimeEvents) {
+				Calendar metimeCalendar = Calendar.getInstance();
+				metimeCalendar.setTime(meTimeEvent.getStartTime());
+				for (RecurringPattern rp : meTimeEvent.getRecurringPatterns()) {
+					metimeCalendar.set(Calendar.DAY_OF_WEEK, rp.getDayOfWeek());
+					rp.setDayOfWeekTimestamp(metimeCalendar.getTimeInMillis());
+				}
+			}
+			response.put("data", meTimeEvents);
+		} else {
+			response.put("data", new ArrayList<>());
+		}
+		response.put("success", true);
+		response.put("errorCode", 0);
+		response.put("errorDetail", null);
+		
+		try {
+			return new ResponseEntity<Map<String,Object>>(response,HttpStatus.OK);
+		} catch(Exception e) {
+			response.put("success", false);
+			response.put("errorCode", 1);
+			response.put("errorDetail", null);
+			return new ResponseEntity<Map<String,Object>>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	
+	@RequestMapping(value="/api/user/registerdevice",method=RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> registerDevice(@RequestBody UserDevice userDevice) {
+		Map<String,Object> response = new HashMap<>();
+		try {
+			
+			UserDevice savedUser = userService.findUserDeviceByDeviceTypeAndUserId(userDevice.getDeviceType(), userDevice.getUserId());
+			if (savedUser != null) {
+				savedUser.setDeviceToken(userDevice.getDeviceToken());
+				userService.saveUserDeviceToken(savedUser);
+			} else {
+				userService.saveUserDeviceToken(userDevice);
+			}
+			
+			response.put("success", true);
+			response.put("output","registred");
+			response.put("errorCode",0);
+			response.put("errorDetail",null);
+		} catch(Exception e){
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("output", e.getMessage());
+			response.put("errorCode",ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail",ErrorCodes.InternalServerError.toString());
+		}
+		return new ResponseEntity<Map<String,Object>>(response,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value="/api/user/logout")
+	public ResponseEntity<Map<String, Object>> registerDevice(Long userId,String deviceType) {
+		Map<String,Object> response = new HashMap<>();
+		try {
+			
+			userService.deleteUserDeviceByUserIdAndDeviceType(userId, deviceType.toLowerCase());
+			response.put("success", true);
+			response.put("output","Logout Successfully");
+			response.put("errorCode",0);
+			response.put("errorDetail",null);
+		} catch(Exception e){
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("output", e.getMessage());
+			response.put("errorCode",ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail",ErrorCodes.InternalServerError.toString());
+		}
+		return new ResponseEntity<Map<String,Object>>(response,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/forgetPassword", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> getForgetPassword(@RequestParam("email") String email) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					
+					String resetPasswordToken = CenesUtils.getAlphaNumeric(40);
+					user.setResetToken(resetPasswordToken);
+					user.setResetTokenCreatedAt(new Date());
+					user = userService.saveUser(user);
+					
+					emailManager.sendForgotPasswordLink(user);
+					response.put("success", true);
+				} else {
+					response.put("success", false);
+					response.put("errorDetail", "Email does not exist");
+				}
+				response.put("errorCode", 0);
+			} else {
+				response.put("success", false);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/updatePassword/{email}/{password}", method = RequestMethod.GET)
+	public ResponseEntity<User> updatePassword(@PathVariable("email") String email,
+			@PathVariable("password") String newPassword, User user) {
+		Map<String, Object> response = new HashMap<>();
+		try {
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					user.setPassword(new Md5PasswordEncoder().encodePassword(newPassword, salt));
+					user = userService.saveUser(user);
+					response.put("success", true);
+					response.put("data", user);
+				} else {
+					response.put("success", false);
+					response.put("data", null);
+				}
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+
+			} else {
+				response.put("success", false);
+				response.put("data", null);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("data", null);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+		}
+		ResponseEntity<User> responseEntity = new ResponseEntity<User>(user, HttpStatus.OK);
+		return responseEntity;
+	}
+	
+	@RequestMapping(value = "/auth/validateResetToken", method = RequestMethod.GET)
+	public User validateResetToken(String resetToken) {
+		try {
+			User user = userService.findUserByResetToken(resetToken);
+			return user;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	@Autowired

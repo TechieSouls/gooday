@@ -17,7 +17,14 @@ public class CgConstants {
 		FriendAlreadyYourFriend(111),
 		CantFollowYourSelf(112),
 		FacebookLoginNeedAcessToekn(113),
-		FacebookAcessTokenExpires(114);
+		FacebookAcessTokenExpires(114),
+		PasswordNotPresent(115),
+		EmailNotPresent(116),
+		FacebookIdNotPresent(117),
+		FacebookTokenNotPresent(118),
+		NameNotPresent(119),
+		AuthTypeNotPresent(120),
+		InternalServerError(121);
 		int errorCode;
 
 		private ErrorCodes(int i) {

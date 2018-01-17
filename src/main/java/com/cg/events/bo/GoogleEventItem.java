@@ -10,6 +10,7 @@ public class GoogleEventItem {
 	private String summary;
 	private String description;
 	private String location;
+	private String recurringEventId;
 	private Map<String,String> start;
 	private Map<String,String> end;
 	private List<GoogleEventAttendees> attendees;
@@ -61,5 +62,11 @@ public class GoogleEventItem {
 	}
 	public void setEnd(Map<String, String> end) {
 		this.end = end;
+	}
+	public String getRecurringEventId() {
+		return recurringEventId;
+	}
+	public void setRecurringEventId(String recurringEventId) {
+		this.recurringEventId = recurringEventId;
 	}
 }

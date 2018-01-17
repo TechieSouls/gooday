@@ -23,7 +23,7 @@ public class FacebookService {
 	String facebook_profile_api = "https://graph.facebook.com/me";
 	
 	public FacebookProfile facebookProfile(String accessToken) {
-		String api = facebook_profile_api+"?fields=picture,name&access_token="+accessToken;
+		String api = facebook_profile_api+"?fields=picture.height(961),name,gender,email&access_token="+accessToken;
 		FacebookProfile fp = doFacebookProfileRestRequest(api,HttpMethod.GET,null);
 	    return fp;
 	}
@@ -31,7 +31,7 @@ public class FacebookService {
 	
 	public FacebookEvents facebookEvents(String facebookId,String accessToken) {
 			
-		String fields = "id,description,end_time,name,place,start_time,rsvp_status,timezone,attending,maybe,declined";
+		String fields = "id,description,end_time,name,place,start_time,rsvp_status,timezone,attending,maybe,declined,picture";
 		String eventsApi = "https://graph.facebook.com/"
 				+ facebookId
 				+ "/events?fields="+fields+"&access_token="

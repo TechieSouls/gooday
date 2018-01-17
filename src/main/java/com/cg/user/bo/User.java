@@ -1,6 +1,6 @@
 package com.cg.user.bo;
 
-import io.swagger.annotations.ApiModelProperty;
+import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +12,8 @@ import javax.persistence.Transient;
 
 import com.cg.bo.CgGeneral;
 import com.cg.enums.CgEnums.AuthenticateType;
+
+import io.swagger.annotations.ApiModelProperty;
 
 
 @Entity
@@ -57,6 +59,18 @@ public class User extends CgGeneral{
 	
 	@Column(name="photo")
 	private String photo;
+	
+	@Column(name="gender")
+	private String gender;
+	
+	@Column(name="reset_token")
+	private String resetToken;
+	
+	@Column(name="reset_token_created_at")
+	private Date resetTokenCreatedAt;
+	
+	@Transient
+	private Boolean isNew;
 	
 	public String getToken() {
 		return token;
@@ -141,4 +155,35 @@ public class User extends CgGeneral{
 		this.photo = photo;
 	}
 
+	public Boolean getIsNew() {
+		return isNew;
+	}
+
+	public void setIsNew(Boolean isNew) {
+		this.isNew = isNew;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	public String getResetToken() {
+		return resetToken;
+	}
+
+	public void setResetToken(String resetToken) {
+		this.resetToken = resetToken;
+	}
+
+	public Date getResetTokenCreatedAt() {
+		return resetTokenCreatedAt;
+	}
+
+	public void setResetTokenCreatedAt(Date resetTokenCreatedAt) {
+		this.resetTokenCreatedAt = resetTokenCreatedAt;
+	}
 }

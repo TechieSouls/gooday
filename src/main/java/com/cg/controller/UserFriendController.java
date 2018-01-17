@@ -1,10 +1,5 @@
 package com.cg.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cg.bo.UserFriend;
 import com.cg.bo.UserFriend.UserStatus;
-import com.cg.bo.enums.EventType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
@@ -32,6 +26,11 @@ import com.pubnub.api.PubNub;
 import com.pubnub.api.callbacks.PNCallback;
 import com.pubnub.api.models.consumer.PNPublishResult;
 import com.pubnub.api.models.consumer.PNStatus;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 @RestController
 public class UserFriendController {
@@ -51,10 +50,12 @@ public class UserFriendController {
 	@RequestMapping(value = "/api/following/{friendUserId}", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<UserFriend> followAUser(
-			@ApiParam(name = "friendUserId", value = "User id", required = true) @PathVariable("friendUserId") Long friendUserId) {
+			@ApiParam(name = "friendUserId", value = "User id", required = true) 
+			@PathVariable("friendUserId") Long friendUserId) {
 
 		User user = (User) SecurityContextHolder.getContext()
 				.getAuthentication().getPrincipal();
+		//User user = (User) userRepository.findOne(friendUserId);
 		List<UserFriend> friends = friendRepository.findByUserIdAndFriendId(
 				user.getUserId(), friendUserId);
 		if (friends != null && friends.size() > 0) {
@@ -94,9 +95,9 @@ public class UserFriendController {
 		gson.toJson(userFriend);
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("eventObjectId", userFriend.getUserFriendId());
-		jsonObject.addProperty("eventType", EventType.NEW_FOLLOWING.toString());
+		//jsonObject.addProperty("eventType", EventType.NEW_FOLLOWING.toString());
 		 sendPubNub(jsonObject.toString(), userFriend.getFriendId() + "");
-		 jsonObject.addProperty("eventType", EventType.NEW_FOLLOWER.toString());
+		// jsonObject.addProperty("eventType", EventType.NEW_FOLLOWER.toString());
 		 sendPubNub(jsonObject.toString(), user.getUserId() + "");
 		
 		return new ResponseEntity<UserFriend>(userFriend, HttpStatus.OK);
@@ -122,7 +123,8 @@ public class UserFriendController {
 	@RequestMapping(value = "/api/following/{friendUserId}", method = RequestMethod.DELETE)
 	@ResponseBody
 	public ResponseEntity<UserFriend> unFollowAUser(
-			@ApiParam(name = "friendUserId", value = "User id", required = true) @PathVariable("friendUserId") Long friendUserId) {
+			@ApiParam(name = "friendUserId", value = "User id", required = true) 
+			@PathVariable("friendUserId") Long friendUserId) {
 
 		User user = (User) SecurityContextHolder.getContext()
 				.getAuthentication().getPrincipal();
@@ -132,9 +134,9 @@ public class UserFriendController {
 			friendRepository.delete(friends);
 			JsonObject jsonObject = new JsonObject();
 			jsonObject.addProperty("eventObjectId", friends.get(0).getUserFriendId());
-			jsonObject.addProperty("eventType", EventType.DELETE_FOLLOWING.toString());
+			//jsonObject.addProperty("eventType", EventType.DELETE_FOLLOWING.toString());
 			 sendPubNub(jsonObject.toString(),friends.get(0).getFriendId()  + "");
-			 jsonObject.addProperty("eventType", EventType.DELETE_FOLLOWER.toString());
+			// jsonObject.addProperty("eventType", EventType.DELETE_FOLLOWER.toString());
 			 sendPubNub(jsonObject.toString(), user.getUserId() + "");
 	
 			return new ResponseEntity<UserFriend>(friends.get(0), HttpStatus.OK);

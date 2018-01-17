@@ -20,6 +20,13 @@ import com.cg.user.bo.User;
 @Table(name="user_friends")
 public class UserFriend extends  CgGeneral{
 	
+	public enum FriendSource {
+		Cenes,
+		Facebook,
+		Google,
+		Outlook
+	}
+	
 	public enum UserStatus {
 		Requested,
 		Invitation,
@@ -54,6 +61,12 @@ public class UserFriend extends  CgGeneral{
 	@Column(name="status")
 	UserStatus status;
 
+	@Column(name="source")
+	private String source;
+	
+	@Column(name="source_id")
+	private Long sourceId;
+	
 	public Long getUserFriendId() {
 		return userFriendId;
 	}
@@ -101,8 +114,21 @@ public class UserFriend extends  CgGeneral{
 	public void setStatus(UserStatus status) {
 		this.status = status;
 	}
-	
-	
-	
 
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
+	}
+
+	public Long getSourceId() {
+		return sourceId;
+	}
+
+	public void setSourceId(Long sourceId) {
+		this.sourceId = sourceId;
+	}
+	
 }
