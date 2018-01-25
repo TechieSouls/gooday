@@ -19,6 +19,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM Event e WHERE e.sourceEventId = :sourceEventId")
 	boolean existsBySourceEventId(@Param("sourceEventId") String sourceEventId);
 	
+	Event findBySourceEventId(String sourceEventId);
+	
 	Event findBySourceEventIdAndCreatedById(String sourceEventId,Long createdById);
 	
 	@Query("select e from Event e where DATE(e.startTime) >= :eventDate and DATE(e.startTime) <= :endDate and e.createdById = :createdById and e.scheduleAs in ('Event','Holiday','Gathering') and e.timezone = :timezone order by e.startTime asc")

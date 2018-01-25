@@ -23,8 +23,8 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long>{
 	@Query("select r from Reminder r JOIN r.reminderMembers rm where r.status = 'Start' and rm.memberId = :reminderId and rm.status = 'Accept' order by r.reminderTime asc")
 	List<Reminder> findByAcceptedReminderMemberStatusAsc(@Param("reminderId") Long userId);
 
-	@Query("select r from Reminder r JOIN r.reminderMembers rm where ((DATE(r.reminderTime) >= :eventDate  and DATE(r.reminderTime) <= :endDate) or r.reminderTime is null) and r.status = 'Start' and rm.memberId = :reminderId and rm.status = 'Accept' order by r.reminderTime asc")
-	List<Reminder> findAllRemindersByAcceptedReminderMemberStatusAsc(@Param("reminderId") Long userId,@Param("eventDate") Date eventDate,@Param("endDate") Date endDate);
+	@Query("select r from Reminder r JOIN r.reminderMembers rm where (DATE(r.reminderTime) <= :endDate or r.reminderTime is null) and r.status = 'Start' and rm.memberId = :reminderId and rm.status = 'Accept' order by r.reminderTime asc")
+	List<Reminder> findAllRemindersByAcceptedReminderMemberStatusAsc(@Param("reminderId") Long userId,@Param("endDate") Date endDate);
 	
 	@Query("select r from Reminder r JOIN r.reminderMembers rm where rm.memberId = :userId and (rm.status = 'Accept' or rm.status is null) order by r.reminderTime asc")
 	List<Reminder> findAllUserRemidners(@Param("userId") Long userId);

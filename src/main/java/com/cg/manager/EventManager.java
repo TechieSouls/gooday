@@ -199,7 +199,7 @@ public class EventManager {
 			}
 		}
 		
-		List<Reminder> reminders = reminderRepository.findAllRemindersByAcceptedReminderMemberStatusAsc(userId,startDate, endDate);
+		List<Reminder> reminders = reminderRepository.findAllRemindersByAcceptedReminderMemberStatusAsc(userId, endDate);
 		if (reminders != null && reminders.size() > 0) {
 			for (Reminder reminder : reminders) {
 				String dateKey = null;
@@ -418,18 +418,38 @@ public class EventManager {
 							&& googleEvents.getItems() != null
 							&& googleEvents.getItems().size() > 0) {
 						for (GoogleEventItem eventItem : googleEvents.getItems()) {
-							
 							if ("cancelled".equals(eventItem.getStatus())) {
 								continue;
 							}
-							Event event = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+							
+							boolean isUserInvitee = false;
+							if (eventItem.getAttendees() != null && eventItem.getAttendees().size() > 0) {
+								for (GoogleEventAttendees attendee : eventItem.getAttendees()) {
+									if (attendee.getEmail().equals(user.getEmail()) && !attendee.getOrganizer()) {
+										isUserInvitee = true;
+										break;
+									}
+								}
+							}
+							
+							Event event = null;
+							Long userId = user.getUserId();
+							if (isUserInvitee) {
+								event = this.eventRepository.findBySourceEventId(eventItem.getId());
+								if (event != null) {
+									userId = event.getCreatedById();
+								}
+							}
+							if (event == null) {
+								event = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+							}
 							if (event == null) {
 								event = new Event();
 							}
 							event.setSourceEventId(eventItem.getId());
 							event.setSource(EventSource.Google.toString());
 							event.setTitle(eventItem.getSummary());
-							event.setCreatedById(user.getUserId());
+							event.setCreatedById(userId);
 							if (eventItem.getDescription() != null) {
 								event.setDescription(eventItem.getDescription());
 							}
@@ -472,7 +492,7 @@ public class EventManager {
 							
 							List<EventMember> eventMembersTemp  = new ArrayList<>();
 							if (eventItem.getAttendees() != null && eventItem.getAttendees().size() > 0) {
-								eventMembersTemp = parseGoogleEventMembers(eventItem.getAttendees(),user.getUserId());
+								eventMembersTemp = parseGoogleEventMembers(eventItem.getAttendees(),userId);
 							} else {
 								EventMember eventMember = new EventMember();
 								eventMember.setName(user.getName());

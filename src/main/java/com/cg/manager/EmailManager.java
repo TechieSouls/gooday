@@ -32,7 +32,7 @@ public class EmailManager {
 	           StringBuffer sb = new StringBuffer();
 	           sb.append("Hi "+user.getName()+",").append("\n");
 	           sb.append("We received a request to reset the password for your account. Please click on the link below or paste this into your browser to complete the process. This link is valid for one hour.").append("\n");
-	           sb.append("http://cenes.test2.redblink.net/reset-password.html?resetToken="+user.getResetToken()).append("\n");
+	           sb.append("http://ec2-18-216-7-227.us-east-2.compute.amazonaws.com/reset-password.html?resetToken="+user.getResetToken()).append("\n");
 	           sb.append("If you did not ask to change your password, please ignore this email and your account will remain unchanged.").append("\n");
 	           message.setText(sb.toString());    
 	           //send message  
