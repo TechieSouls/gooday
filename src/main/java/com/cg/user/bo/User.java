@@ -32,7 +32,7 @@ public class User extends CgGeneral{
 	private String username;
 	
 	@ApiModelProperty(required=true)
-	@Column(unique=true,nullable=true)
+	//@Column(unique=true,nullable=true)
 	private String email;
 	//@JsonIgnore
 	@ApiModelProperty(required=true)
