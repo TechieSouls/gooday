@@ -207,8 +207,6 @@ public class ReminderManager {
 					JSONObject payloadObj = new JSONObject();
 					payloadObj.put("notificationTypeTitle",reminder.getTitle());
 					payloadObj.put("notificationTypeId",reminder.getReminderId());
-					payloadObj.put("notificationLocation",reminder.getLocation());
-					payloadObj.put("notificationTime",reminder.getReminderTime());
 					payloadObj.put("notificationType",NotificationType.Reminder.toString());
 					if (iosSet.getKey().equals("old")) {
 						payloadObj.put("notificationTypeStatus","Old");
