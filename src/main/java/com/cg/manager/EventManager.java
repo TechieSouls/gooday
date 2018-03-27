@@ -772,7 +772,7 @@ public class EventManager {
 							event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
 						}
 					}
-					event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
+					event.setProcessed(EventProcessedStatus.Processed.ordinal());
 					
 					List<EventMember> members = new ArrayList<>();
 					EventMember eventMember = new EventMember();
