@@ -43,7 +43,7 @@ public class ReminderController {
 			if (reminder.getReminderMembers() != null) {
 				for (ReminderMember  member : reminder.getReminderMembers()) {
 					if (reminder.getCreatedById().equals(member.getMemberId())) {
-						reminder.setStatus("Accept");
+						member.setStatus("Accept");
 						ownerExists = true;
 						break;
 					}
