@@ -57,7 +57,7 @@ public class EmailManager {
 		// check the authentication
 		session = Session.getInstance(props, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
-				return new PasswordAuthentication(from, "Frodo2234");
+				return new PasswordAuthentication(from, "Cenes1234");
 			}
 		});
 	}
