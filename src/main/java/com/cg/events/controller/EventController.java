@@ -883,6 +883,7 @@ public class EventController {
 	@RequestMapping(value = "/api/user/syncdevicecalendar", method = RequestMethod.POST)
 	public ResponseEntity<Map<String,Object>> syncDeviceCalendar(@RequestBody Map<String,List<Event>> eventMap) {
 		System.out.println("[Syncing Device Calendar : Date : "+new Date()+" STARTS]");
+		System.out.println("syncdevicecalendar : "+eventMap);
 		Map<String,Object> response = new HashMap<>();
 		try {
 			if (eventMap.containsKey("data")) {
