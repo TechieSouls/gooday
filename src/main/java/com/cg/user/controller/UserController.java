@@ -491,6 +491,8 @@ public class UserController {
 			eventTimeSlotManager.deleteEventTimeSlotsByUserIdScheduleAs(userId, "MeTime");
 		}
 		
+		Long starTimeMillis = new Date().getTime();
+		System.out.println("[METIME EVENTS : STARTS TIME "+starTimeMillis+"]");
 		System.out.println("[METIME EVENTS : STARTS]");
 		Map<String,Integer> dayOfWeekMap = new HashMap<>();
 		dayOfWeekMap.put("Sunday", 1);
@@ -552,12 +554,21 @@ public class UserController {
 				}
 			}
 			
+			List<RecurringEvent> recurringEvents = new ArrayList<>();
 			for (Entry<String,RecurringEvent> entryMap : recurringEventMap.entrySet()) {
-				recurringManager.saveRecurringEvent(entryMap.getValue());
+				RecurringEvent recurringEvent = recurringManager.saveRecurringEvent(entryMap.getValue());
+				recurringEvents.add(recurringEvent);
+			}
+			
+			//Generating time slots for MeTimeEvents
+			if (recurringEvents.size() > 0) {
+				recurringManager.generateSlotsForRecurringEventList(recurringEvents);
 			}
 			
 			responseObject.put("status", "success");
 			responseObject.put("saved", "true");
+			Long endTimeMillis = new Date().getTime();
+			System.out.println("[METIME EVENTS TOTAL TIME TAKEN : ENDS "+(endTimeMillis - starTimeMillis)/1000+"]");
 			System.out.println("[METIME EVENTS : ENDS]");
 
 			return new ResponseEntity<String>(responseObject.toString(),HttpStatus.OK);

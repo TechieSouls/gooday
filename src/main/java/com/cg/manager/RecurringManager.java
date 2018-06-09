@@ -9,17 +9,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.cg.events.bo.Event;
-import com.cg.events.bo.RecurringEvent;
-import com.cg.events.bo.RecurringPattern;
 import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.events.bo.Event.ScheduleEventAs;
+import com.cg.events.bo.RecurringEvent;
+import com.cg.events.bo.RecurringEvent.RecurringEventProcessStatus;
+import com.cg.events.bo.RecurringPattern;
 import com.cg.events.repository.RecurringPatternRepository;
 import com.cg.repository.RecurringEventRepository;
+import com.cg.service.EventService;
 
 @Service
 public class RecurringManager {
 	
-	private static int generateEventsUptoOneYear = 12*4; 
+	//Each day exists 4 times in a month. 1*4 means 1 month events
+	//private static int generateEventsUptoOneYear = 12*4;
+	private static int generateEventsUptoOneYear = 2*4;//Genearting for two months for now
 	
 	@Autowired
 	RecurringPatternRepository recurringPatternRepository;
@@ -27,6 +31,8 @@ public class RecurringManager {
 	@Autowired
 	RecurringEventRepository recurringEventRepository;
 	
+	@Autowired
+	EventService eventService;
 	
 	public List<RecurringEvent> getMoreThanTwoMonthsOldRecurringPattern() {
 		return recurringEventRepository.findBySlotsGeneratedUptoAndCurrentTimeDifference();
@@ -173,16 +179,78 @@ public class RecurringManager {
 		return event;
 	}
 	
+	public void generateSlotsForRecurringEventList(List<RecurringEvent> recurringEvents) {
+		if (recurringEvents != null && recurringEvents.size() > 0) {
+			for (RecurringEvent recurringEvent : recurringEvents) {
+				RecurringEventThread recurringPatternThread = new RecurringEventThread();
+				recurringPatternThread.setRecurringEvent(recurringEvent);
+				recurringPatternThread.run();
+			}
+		}
+	}
 	
+	public void processRecurringEvent(RecurringEvent recurringEvent) {
+
+		List<RecurringPattern> patterns = recurringEvent.getRecurringPatterns();
+		if (patterns != null && patterns.size() > 0) {
+			for (RecurringPattern pattern : patterns) {
+				processRecurringPatter(recurringEvent, pattern);
+			}
+		}
+		recurringEvent.setProcessed(RecurringEventProcessStatus.processed.ordinal());
+		recurringEvent.setUpdateTimestamp(new Date());
+		eventService.saveUpdateRecurringEvent(recurringEvent);
+	}
+	
+	public void processRecurringPatter(RecurringEvent recurringEvent, RecurringPattern pattern) {
+		Calendar currentCal = Calendar.getInstance();
+		currentCal.setTime(new Date());
+		if (pattern.getDayOfWeek() != null) {//Event to be occurred Daily
+			List<Event> dailyEvents = handleDailyEventLogic(currentCal,recurringEvent,pattern);
+			if (dailyEvents != null && dailyEvents.size() > 0) {
+				eventService.saveEventsBatch(dailyEvents);
+				System.out.println("Saving Daily Events Batch Size : "+dailyEvents.size());
+				Event event = dailyEvents.get(dailyEvents.size()-1);
+				
+				Calendar generatedUptoCal = Calendar.getInstance();
+				generatedUptoCal.setTime(event.getStartTime());
+				generatedUptoCal.add(Calendar.DAY_OF_MONTH,1);
+				pattern.setSlotsGeneratedUpto(generatedUptoCal.getTime());
+			}
+		} else if (pattern.getMonthOfYear() != null) {//Event to be occurred Yearly
+			List<Event> yearlyEvents = handleYearlyEventLogic(currentCal,recurringEvent,pattern);
+			if (yearlyEvents != null && yearlyEvents.size() > 0) {
+				eventService.saveEventsBatch(yearlyEvents);
+				System.out.println("Saving Yearly Events Batch Size : "+yearlyEvents.size());
+			}
+		}
+	}
 	public void deleteRecurringEventsByUserId(Long userId) {
 		recurringEventRepository.deleteByCreatedById(userId);
 	}
 	
-	public void saveRecurringEvent(RecurringEvent recurringEvent) {
-		recurringEventRepository.save(recurringEvent);
+	public RecurringEvent saveRecurringEvent(RecurringEvent recurringEvent) {
+		return recurringEventRepository.save(recurringEvent);
 	}
 	
 	public List<RecurringEvent> findRecurringEventsByCreatedById(Long createdById) {
 		return recurringEventRepository.findByCreatedById(createdById);
-	}	
+	}
+	
+	class RecurringEventThread implements Runnable {
+		private RecurringEvent recurringEvent;
+		
+		public RecurringEvent getRecurringEvent() {
+			return recurringEvent;
+		}
+
+		public void setRecurringEvent(RecurringEvent recurringEvent) {
+			this.recurringEvent = recurringEvent;
+		}
+
+		@Override
+		public void run() {
+			processRecurringEvent(recurringEvent);
+		}
+	}
 }

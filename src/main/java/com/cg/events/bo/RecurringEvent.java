@@ -17,6 +17,15 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.Cascade;
 
+/**
+ * This Object will hold the Event that is to be occurred recurrlly.
+ * If there is a task that is done regularly like GYM, Swimming, Sleep, Walk etc
+ * this object will hold this entry.
+ * 
+ * @author mandeep
+ *
+ */
+
 @Entity
 @Table(name="recurring_events")
 public class RecurringEvent {

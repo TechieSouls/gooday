@@ -1,17 +1,12 @@
 package com.cg.jobs;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.cg.events.bo.Event;
 import com.cg.events.bo.RecurringEvent;
-import com.cg.events.bo.RecurringEvent.RecurringEventProcessStatus;
-import com.cg.events.bo.RecurringPattern;
 import com.cg.manager.RecurringManager;
 import com.cg.service.EventService;
 
@@ -33,36 +28,7 @@ public class RecurringEventUpdaterJob {
 		//Find All Recurring Patterns
 		if (recurringEvents != null && recurringEvents.size() > 0) {
 			for (RecurringEvent recurringEvent : recurringEvents) {
-				List<RecurringPattern> patterns = recurringEvent.getRecurringPatterns();
-				if (patterns != null && patterns.size() > 0) {
-					for (RecurringPattern pattern : patterns) {
-						Calendar currentCal = Calendar.getInstance();
-						currentCal.setTime(new Date());
-							
-							if (pattern.getDayOfWeek() != null) {//Event to be occurred Daily
-								List<Event> dailyEvents = recurringManager.handleDailyEventLogic(currentCal,recurringEvent,pattern);
-								if (dailyEvents != null && dailyEvents.size() > 0) {
-									eventService.saveEventsBatch(dailyEvents);
-									System.out.println("Saving Daily Events Batch Size : "+dailyEvents.size());
-									Event event = dailyEvents.get(dailyEvents.size()-1);
-									
-									Calendar generatedUptoCal = Calendar.getInstance();
-									generatedUptoCal.setTime(event.getStartTime());
-									generatedUptoCal.add(Calendar.DAY_OF_MONTH,1);
-									pattern.setSlotsGeneratedUpto(generatedUptoCal.getTime());
-								}
-							} else if (pattern.getMonthOfYear() != null) {//Event to be occurred Yearly
-								List<Event> yearlyEvents = recurringManager.handleYearlyEventLogic(currentCal,recurringEvent,pattern);
-								if (yearlyEvents != null && yearlyEvents.size() > 0) {
-									eventService.saveEventsBatch(yearlyEvents);
-									System.out.println("Saving Yearly Events Batch Size : "+yearlyEvents.size());
-								}
-							}
-					}
-				}
-				recurringEvent.setProcessed(RecurringEventProcessStatus.processed.ordinal());
-				recurringEvent.setUpdateTimestamp(new Date());
-				eventService.saveUpdateRecurringEvent(recurringEvent);
+				//recurringManager.processRecurringEvent(recurringEvent);
 			}
 		}
 		
