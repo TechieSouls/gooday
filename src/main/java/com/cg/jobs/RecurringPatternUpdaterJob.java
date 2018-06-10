@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.cg.events.bo.Event;
@@ -22,7 +23,7 @@ public class RecurringPatternUpdaterJob {
 	@Autowired
 	EventService eventService;
 	
-	//@Scheduled(cron="0 0/1 * * * *")
+	@Scheduled(cron="0 0/1 * * * *")
 	public void runRecurringPatternUpdaterJob() {
 		System.out.println("[Date : "+new Date()+", Daily RecurringPatternUpdaterJob STARTS]");
 
