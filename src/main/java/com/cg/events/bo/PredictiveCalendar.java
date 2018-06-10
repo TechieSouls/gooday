@@ -2,6 +2,7 @@ package com.cg.events.bo;
 
 public class PredictiveCalendar {
 
+	private String readableDate;
 	private Long date;
 	private Integer totalFriends;
 	private Integer attendingFriends;
@@ -29,6 +30,12 @@ public class PredictiveCalendar {
 	}
 	public void setPredictivePercentage(Integer predictivePercentage) {
 		this.predictivePercentage = predictivePercentage;
+	}
+	public String getReadableDate() {
+		return readableDate;
+	}
+	public void setReadableDate(String readableDate) {
+		this.readableDate = readableDate;
 	}
 	@Override
 	public String toString() {

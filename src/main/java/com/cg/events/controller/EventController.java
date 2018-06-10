@@ -619,6 +619,7 @@ public class EventController {
 						for (EventTimeSlot userEts : userTimeSlots) {
 							//System.out.println("User Id : "+userEts.getUserId()+", Status : "+userEts.getStatus());
 							//if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime())) && userEts.getStatus().equals(TimeSlotStatus.Free.toString())) {
+							//System.out.println(CenesUtils.hhmm.format(userEts.getStartTime()));
 							if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime()))){
 								if (CenesUtils.yyyyMMdd.format(eventStartTime).equals(CenesUtils.yyyyMMdd.format(eventEndTime))) {
 									freeFriends.add(userEts.getUserId());
@@ -642,6 +643,7 @@ public class EventController {
 						float predictivePercentage = Math.abs((Float.valueOf(totalFriendsComing) / Float.valueOf(totalFriends)) * 100);
 						
 						PredictiveCalendar pc = new PredictiveCalendar();
+						pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTimeInMillis()));
 						pc.setDate(cal.getTimeInMillis());
 						pc.setTotalFriends(totalFriends);
 						pc.setAttendingFriends(totalFriendsComing);
@@ -651,6 +653,7 @@ public class EventController {
 					} else {//No Fried is busy
 						
 						PredictiveCalendar pc = new PredictiveCalendar();
+						pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTimeInMillis()));
 						pc.setDate(cal.getTimeInMillis());
 						pc.setTotalFriends(totalFriends);
 						pc.setAttendingFriends(totalFriends);
