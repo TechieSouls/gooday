@@ -23,7 +23,7 @@ public class RecurringManager {
 	
 	//Each day exists 4 times in a month. 1*4 means 1 month events
 	//private static int generateEventsUptoOneYear = 12*4;
-	private static int generateEventsUptoOneYear = 2*4;//Genearting for two months for now
+	private static int generateEventsUptoOneYear = 12*4;//Genearting for two months for now
 	
 	@Autowired
 	RecurringPatternRepository recurringPatternRepository;
