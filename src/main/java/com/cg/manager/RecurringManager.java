@@ -216,6 +216,7 @@ public class RecurringManager {
 				generatedUptoCal.setTime(event.getStartTime());
 				generatedUptoCal.add(Calendar.DAY_OF_MONTH,1);
 				pattern.setSlotsGeneratedUpto(generatedUptoCal.getTime());
+				pattern.setRecurringEventId(recurringEvent.getRecurringEventId());
 			}
 		} else if (pattern.getMonthOfYear() != null) {//Event to be occurred Yearly
 			List<Event> yearlyEvents = handleYearlyEventLogic(currentCal,recurringEvent,pattern);
@@ -224,6 +225,7 @@ public class RecurringManager {
 				System.out.println("Saving Yearly Events Batch Size : "+yearlyEvents.size());
 			}
 		}
+		recurringPatternRepository.save(pattern);
 	}
 	public void deleteRecurringEventsByUserId(Long userId) {
 		recurringEventRepository.deleteByCreatedById(userId);
