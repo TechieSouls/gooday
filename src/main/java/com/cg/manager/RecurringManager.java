@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.mockito.internal.verification.Times;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +18,14 @@ import com.cg.events.bo.RecurringPattern;
 import com.cg.events.repository.RecurringPatternRepository;
 import com.cg.repository.RecurringEventRepository;
 import com.cg.service.EventService;
+import com.cg.threads.TimeSlotThread;
 
 @Service
 public class RecurringManager {
 	
 	//Each day exists 4 times in a month. 1*4 means 1 month events
 	//private static int generateEventsUptoOneYear = 12*4;
-	private static int generateEventsUptoOneYear = 12*4;//Genearting for two months for now
+	private static int generateEventsUptoOneYear = 8*4;//Generating for two months for now
 	
 	@Autowired
 	RecurringPatternRepository recurringPatternRepository;
@@ -34,7 +36,10 @@ public class RecurringManager {
 	@Autowired
 	EventService eventService;
 	
-	public List<RecurringEvent> getMoreThanTwoMonthsOldRecurringPattern() {
+	@Autowired
+	EventTimeSlotManager timeSlotManager;
+	
+	public List<RecurringEvent> getMoreThanFourMonthsOldRecurringPattern() {
 		return recurringEventRepository.findBySlotsGeneratedUptoAndCurrentTimeDifference();
 	}
 	
@@ -206,10 +211,34 @@ public class RecurringManager {
 		Calendar currentCal = Calendar.getInstance();
 		currentCal.setTime(new Date());
 		if (pattern.getDayOfWeek() != null) {//Event to be occurred Daily
+			generateEventsUptoOneYear = 3*4;
 			List<Event> dailyEvents = handleDailyEventLogic(currentCal,recurringEvent,pattern);
 			if (dailyEvents != null && dailyEvents.size() > 0) {
 				eventService.saveEventsBatch(dailyEvents);
 				System.out.println("Saving Daily Events Batch Size : "+dailyEvents.size());
+				
+				List<Event> eventsToAllocateToThread = new ArrayList<>();
+				int trackElementsTraversed = 0;
+				for (Event event : dailyEvents) {
+					eventsToAllocateToThread.add(event);
+					trackElementsTraversed += 1;
+					if (dailyEvents.size() == trackElementsTraversed) {
+						TimeSlotThread timeSlotThread = new TimeSlotThread();
+						timeSlotThread.setTimeSlotManager(timeSlotManager);
+						timeSlotThread.setEvents(eventsToAllocateToThread);
+						timeSlotThread.run();
+						eventsToAllocateToThread = new ArrayList<>();
+					} else {
+						if (eventsToAllocateToThread.size() == 10) {
+							TimeSlotThread timeSlotThread = new TimeSlotThread();
+							timeSlotThread.setTimeSlotManager(timeSlotManager);
+							timeSlotThread.setEvents(eventsToAllocateToThread);
+							timeSlotThread.run();
+							eventsToAllocateToThread = new ArrayList<>();
+						}
+					}
+				}
+				
 				Event event = dailyEvents.get(dailyEvents.size()-1);
 				
 				Calendar generatedUptoCal = Calendar.getInstance();

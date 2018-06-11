@@ -27,7 +27,7 @@ public interface RecurringEventRepository extends JpaRepository<RecurringEvent, 
 	@Query("delete from RecurringEvent re where re.createdById = :createdById")
 	public void deleteByCreatedById(@Param("createdById") Long createdById);
 
-	@Query("select re from RecurringEvent re JOIN re.recurringPatterns rp where DATEDIFF(DATE(rp.slotsGeneratedUpto) , DATE(now())) < 60 group by re.recurringEventId")
+	@Query("select re from RecurringEvent re JOIN re.recurringPatterns rp where DATEDIFF(DATE(rp.slotsGeneratedUpto) , DATE(now())) < 120 group by re.recurringEventId")
 	public List<RecurringEvent> findBySlotsGeneratedUptoAndCurrentTimeDifference(); 
 
 }

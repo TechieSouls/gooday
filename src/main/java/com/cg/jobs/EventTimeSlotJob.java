@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.cg.events.bo.Event;
 import com.cg.manager.EventTimeSlotManager;
+import com.cg.threads.TimeSlotThread;
 
 @Service
 public class EventTimeSlotJob {
@@ -35,12 +36,14 @@ public class EventTimeSlotJob {
 				trackElementsTraversed += 1;
 				if (events.size() == trackElementsTraversed) {
 					TimeSlotThread timeSlotThread = new TimeSlotThread();
+					timeSlotThread.setTimeSlotManager(timeSlotManager);
 					timeSlotThread.setEvents(eventsToAllocateToThread);
 					timeSlotThread.run();
 					eventsToAllocateToThread = new ArrayList<>();
 				} else {
 					if (eventsToAllocateToThread.size() == 10) {
 						TimeSlotThread timeSlotThread = new TimeSlotThread();
+						timeSlotThread.setTimeSlotManager(timeSlotManager);
 						timeSlotThread.setEvents(eventsToAllocateToThread);
 						timeSlotThread.run();
 						eventsToAllocateToThread = new ArrayList<>();
@@ -75,7 +78,7 @@ public class EventTimeSlotJob {
 		}
 	}
 	
-	class TimeSlotThread implements Runnable {
+	/*class TimeSlotThread implements Runnable {
 		private List<Event> events;
 		
 		public List<Event> getEvents() {
@@ -89,7 +92,7 @@ public class EventTimeSlotJob {
 		public void run() {
 			timeSlotManager.saveEventsInSlots(events);
 		}
-	}
+	}*/
 	
 	class EventMemberTimeSlotThread implements Runnable {
 		private List<Event> events;

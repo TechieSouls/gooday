@@ -27,7 +27,7 @@ public class RecurringPatternUpdaterJob {
 	public void runRecurringPatternUpdaterJob() {
 		System.out.println("[Date : "+new Date()+", Daily RecurringPatternUpdaterJob STARTS]");
 
-		List<RecurringEvent> recurringEvents = recurringManager.getMoreThanTwoMonthsOldRecurringPattern();
+		List<RecurringEvent> recurringEvents = recurringManager.getMoreThanFourMonthsOldRecurringPattern();
 		//Find All Recurring Patterns
 		if (recurringEvents != null && recurringEvents.size() > 0) {
 			for (RecurringEvent recurringEvent : recurringEvents) {
