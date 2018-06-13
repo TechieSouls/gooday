@@ -211,7 +211,7 @@ public class RecurringManager {
 		Calendar currentCal = Calendar.getInstance();
 		currentCal.setTime(new Date());
 		if (pattern.getDayOfWeek() != null) {//Event to be occurred Daily
-			generateEventsUptoOneYear = 3*4;
+			generateEventsUptoOneYear = 6*4;
 			List<Event> dailyEvents = handleDailyEventLogic(currentCal,recurringEvent,pattern);
 			if (dailyEvents != null && dailyEvents.size() > 0) {
 				eventService.saveEventsBatch(dailyEvents);
