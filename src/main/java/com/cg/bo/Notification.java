@@ -15,6 +15,7 @@ public class Notification extends CgGeneral{
 	
 	public enum NotificationType {Event,Gathering,Reminder};
 	public enum NotificationTypeStatus {New,Old}
+	public enum NotificationReadStatus {Read,UnRead}
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
@@ -41,6 +42,11 @@ public class Notification extends CgGeneral{
 	
 	@Column(name="notification_type_id")
 	private Long notificationTypeId;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name="read_status")
+	private NotificationReadStatus readStatus;
+	
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name="notification_type_status")
@@ -129,5 +135,13 @@ public class Notification extends CgGeneral{
 	public void setNotificationTypeStatus(
 			NotificationTypeStatus notificationTypeStatus) {
 		this.notificationTypeStatus = notificationTypeStatus;
+	}
+
+	public NotificationReadStatus getReadStatus() {
+		return readStatus;
+	}
+
+	public void setReadStatus(NotificationReadStatus readStatus) {
+		this.readStatus = readStatus;
 	}
 }
