@@ -25,7 +25,7 @@ public class RecurringManager {
 	
 	//Each day exists 4 times in a month. 1*4 means 1 month events
 	//private static int generateEventsUptoOneYear = 12*4;
-	private static int generateEventsUptoOneYear = 12*4;//Generating for two months for now
+	private static int generateEventsUptoOneYear = 6*4;//Generating for two months for now
 	
 	@Autowired
 	RecurringPatternRepository recurringPatternRepository;
@@ -211,7 +211,7 @@ public class RecurringManager {
 		Calendar currentCal = Calendar.getInstance();
 		currentCal.setTime(new Date());
 		if (pattern.getDayOfWeek() != null) {//Event to be occurred Daily
-			generateEventsUptoOneYear = 6*4;
+			generateEventsUptoOneYear = 12*4;
 			List<Event> dailyEvents = handleDailyEventLogic(currentCal,recurringEvent,pattern);
 			if (dailyEvents != null && dailyEvents.size() > 0) {
 				eventService.saveEventsBatch(dailyEvents);

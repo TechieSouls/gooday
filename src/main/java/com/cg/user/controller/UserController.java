@@ -539,6 +539,7 @@ public class UserController {
 					RecurringPattern recurringPattern = new RecurringPattern();
 					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
 					recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
+					//System.out.println(startCal.get(Calendar.DAY_OF_WEEK));
 					//recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
 					recurringPatterns.add(recurringPattern);
 					
@@ -550,7 +551,9 @@ public class UserController {
 					List<RecurringPattern> recurringPatterns = recurringEvent.getRecurringPatterns();
 					RecurringPattern recurringPattern = new RecurringPattern();
 					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
-					recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
+					//recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
+					recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
+					//System.out.println(startCal.get(Calendar.DAY_OF_WEEK));
 					recurringPatterns.add(recurringPattern);
 				}
 			}
