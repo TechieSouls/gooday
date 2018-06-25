@@ -45,7 +45,7 @@ public class Notification extends CgGeneral{
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name="read_status")
-	private NotificationReadStatus readStatus;
+	private NotificationReadStatus readStatus = NotificationReadStatus.UnRead;
 	
 	
 	@Enumerated(EnumType.STRING)
