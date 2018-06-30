@@ -49,7 +49,7 @@ public class RefreshToken {
 	private String emailId;
 	
 	@ManyToOne
-	@JoinColumn(name="user_id")
+	@JoinColumn(name="user_id",updatable=false,insertable=false)
 	private User user;
 	
 
