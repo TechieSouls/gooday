@@ -35,6 +35,7 @@ public class GoogleService {
 	private String calendar_list_api = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ");
 	
+	//anot Used
 	public List<GoogleEvents> getCalenderEventsOld(String accessToken) {
 		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
 		List<String> calendars = googleCalendarList(accessToken);
@@ -142,7 +143,7 @@ public class GoogleService {
 	}
 	
 	
-	public List<GoogleEvents> getCalenderEvents(String accessToken) {
+	public List<GoogleEvents> getCalenderEvents(boolean isNextSyncRequest, String accessToken) {
 		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
 				
 				Calendar minTimeCal = Calendar.getInstance();
@@ -157,11 +158,17 @@ public class GoogleService {
 				maxTimeCal.add(Calendar.MONTH, 3);
 				
 				String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
-				String recurringEventsAPI = events_list_api_str+"?access_token="+accessToken+"&future_events=true&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				
+				String tokenParam = "accessToken="+accessToken;
+				if (isNextSyncRequest) {
+					tokenParam = "syncToken="+accessToken;
+				}
+				
+				String recurringEventsAPI = events_list_api_str+"?"+tokenParam+"&future_events=true&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
 				JSONObject calResponse = doGoogleCalendarRestRequest(recurringEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
 				
-				String normalEventsAPI = events_list_api_str+"?access_token="+accessToken+"&future_events=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				String normalEventsAPI = events_list_api_str+"?"+tokenParam+"&future_events=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
 				calResponse = doGoogleCalendarRestRequest(normalEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
 				
@@ -244,6 +251,10 @@ public class GoogleService {
 				GoogleEvents events = new GoogleEvents();
 				events.setItems(items);
 				events.setTimeZone(calResponse.getString("timeZone"));
+				if (calResponse.has("nextSyncToken")) {
+					events.setNextSyncToken(calResponse.getString("nextSyncToken"));
+
+				}
 				events.setErrorCode(0);
 				events.setErrorDetail(null);
 				if (events != null && events.getErrorDetail() == null) {

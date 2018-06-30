@@ -8,6 +8,8 @@ public class GoogleEvents {
 	private List<GoogleEventItem> items;
 	private int errorCode;
 	private String errorDetail;
+	private String nextSyncToken;
+	private String summary;
 	
 	public String getTimeZone() {
 		return timeZone;
@@ -32,5 +34,17 @@ public class GoogleEvents {
 	}
 	public void setErrorDetail(String errorDetail) {
 		this.errorDetail = errorDetail;
+	}
+	public String getNextSyncToken() {
+		return nextSyncToken;
+	}
+	public void setNextSyncToken(String nextSyncToken) {
+		this.nextSyncToken = nextSyncToken;
+	}
+	public String getSummary() {
+		return summary;
+	}
+	public void setSummary(String summary) {
+		this.summary = summary;
 	}
 }

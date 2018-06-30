@@ -19,6 +19,8 @@ import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
+import com.cg.bo.RefreshToken;
+import com.cg.bo.RefreshToken.AccountType;
 import com.cg.dto.HomeScreenDto;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.Event.EventProcessedStatus;
@@ -39,6 +41,7 @@ import com.cg.events.bo.OutlookEvents;
 import com.cg.events.repository.EventRepository;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
+import com.cg.repository.RefreshTokenRepository;
 import com.cg.repository.ReminderRepository;
 import com.cg.service.EventService;
 import com.cg.service.FacebookService;
@@ -64,6 +67,9 @@ public class EventManager {
 	
 	@Autowired
 	EventRepository eventRepository;
+	
+	@Autowired
+	RefreshTokenRepository refreshTokenRepository;
 	
 	public Event createEvent(Event event) {
 
@@ -404,13 +410,12 @@ public class EventManager {
 		return members;
 	}
 
-	public List<Event> syncGoogleEvents(String accessToken,User user) {
+	public List<Event> syncGoogleEvents(boolean isNextSyncRequest, String accessToken,User user) {
 		List<Event> events = new ArrayList<>();
 		
 		try {
 			GoogleService gs = new GoogleService();
-			List<GoogleEvents> googleEventsCalendarList = gs
-					.getCalenderEvents(accessToken);
+			List<GoogleEvents> googleEventsCalendarList = gs.getCalenderEvents(isNextSyncRequest,accessToken);
 			if (googleEventsCalendarList != null
 					&& googleEventsCalendarList.size() > 0) {
 				for (GoogleEvents googleEvents : googleEventsCalendarList) {
@@ -827,5 +832,13 @@ public class EventManager {
 	
 	public List<Event> findEventsByEventMemberId(Long userId) {
 		return eventService.findEventsByStartDateAndUserId(userId);
+	}
+	
+	public List<RefreshToken> getAllGoogleSyncTokens() {
+		return refreshTokenRepository.findByAccountType(AccountType.Google);
+	}
+	
+	public List<RefreshToken> getAllOutlookGoogleSyncTokens() {
+		return refreshTokenRepository.findByAccountType(AccountType.Outlook);
 	}
 }

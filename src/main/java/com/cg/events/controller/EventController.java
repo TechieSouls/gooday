@@ -200,6 +200,7 @@ public class EventController {
 		try {
 			
 			Event event = eventService.findEventById(gatehringId);
+			eventService.deleteEventTimeSlotsByEventId(event.getEventId());
 			if (event.getRecurringEventId() != null) {
 				eventService.deleteEventsByRecurringId(event.getRecurringEventId());
 			} else {
@@ -410,7 +411,7 @@ public class EventController {
 		eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
 		
 		System.out.println("[ Syncing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
-		List<Event> events = eventManager.syncGoogleEvents(accessToken, user);
+		List<Event> events = eventManager.syncGoogleEvents(false, accessToken, user);
 		if (events == null) {
 			Event errorEvent = new Event();
 			errorEvent.setErrorCode(ErrorCode.INTERNAL_ERROR.ordinal());

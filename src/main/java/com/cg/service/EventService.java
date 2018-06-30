@@ -171,4 +171,8 @@ public class EventService {
 	public void updateEventMemberPictureByUserId(String picture,Long userId) {
 		eventMemberRepository.updateEventMemberForPictureByEventMemberId(picture,userId);
 	}
+	
+	public void deleteEventTimeSlotsByEventId(Long eventId) {
+		eventTimeSlotRepository.delete(eventId);
+	}
 }
