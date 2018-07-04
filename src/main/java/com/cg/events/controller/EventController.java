@@ -200,7 +200,11 @@ public class EventController {
 		try {
 			
 			Event event = eventService.findEventById(gatehringId);
-			eventService.deleteEventTimeSlotsByEventId(event.getEventId());
+			try {
+				eventService.deleteEventTimeSlotsByEventId(event.getEventId());
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
 			if (event.getRecurringEventId() != null) {
 				eventService.deleteEventsByRecurringId(event.getRecurringEventId());
 			} else {
