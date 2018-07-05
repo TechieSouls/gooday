@@ -173,6 +173,6 @@ public class EventService {
 	}
 	
 	public void deleteEventTimeSlotsByEventId(Long eventId) {
-		eventTimeSlotRepository.delete(eventId);
+		eventTimeSlotRepository.deleteByEventId(eventId);
 	}
 }
