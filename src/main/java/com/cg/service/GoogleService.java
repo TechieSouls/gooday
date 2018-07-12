@@ -1,30 +1,16 @@
 package com.cg.service;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
 
 import com.cg.bo.GoogleCountries;
-import com.cg.bo.GoogleCountryItem;
 import com.cg.events.bo.GoogleEventAttendees;
 import com.cg.events.bo.GoogleEventItem;
 import com.cg.events.bo.GoogleEvents;
@@ -52,10 +38,16 @@ public class GoogleService {
 				maxTimeCal.set(Calendar.MINUTE, 0);
 				maxTimeCal.set(Calendar.SECOND, 0);
 				maxTimeCal.add(Calendar.MONTH, 3);
+				//String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/"+URLEncoder.encode(calendarId)+"/events";
+				//String calenderAPI = events_list_api_str+"?access_token="+accessToken+"&future_events=true&singleEvents=true&timeMax="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+
 				String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/"+URLEncoder.encode(calendarId)+"/events";
-				String calenderAPI = events_list_api_str+"?access_token="+accessToken+"&future_events=true&singleEvents=true&timeMax="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				String calenderAPI = events_list_api_str+"?future_events=true&singleEvents=true&timeMax="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+
 				try {
-					JSONObject calResponse = doGoogleCalendarRestRequest(calenderAPI,"GET");
+					//JSONObject calResponse = doGoogleCalendarRestRequest(calenderAPI,"GET");
+					HttpService httpService = new HttpService();
+					JSONObject calResponse = httpService.getRequestWithAuthorization(calenderAPI, "GET", accessToken);
 					if (calResponse != null && calResponse.has("items")) {
 						List<GoogleEventItem> items = new ArrayList<>();
 						JSONArray itemsArray = calResponse.getJSONArray("items");
@@ -145,7 +137,9 @@ public class GoogleService {
 	
 	public List<GoogleEvents> getCalenderEvents(boolean isNextSyncRequest, String accessToken) {
 		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
-				
+		List<String> calendars = googleCalendarList(accessToken);
+		if (calendars != null && calendars.size() > 0) {
+			for (String calendarId : calendars) {
 				Calendar minTimeCal = Calendar.getInstance();
 				minTimeCal.set(Calendar.HOUR_OF_DAY, 0);
 				minTimeCal.set(Calendar.MINUTE, 0);
@@ -157,22 +151,27 @@ public class GoogleService {
 				maxTimeCal.set(Calendar.SECOND, 0);
 				maxTimeCal.add(Calendar.MONTH, 3);
 				
-				String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+				String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/"+URLEncoder.encode(calendarId)+"/events";
 				
-				String tokenParam = "accessToken="+accessToken;
+				String tokenParam = "";//"access_token="+accessToken;
 				if (isNextSyncRequest) {
-					tokenParam = "syncToken="+accessToken;
+					tokenParam = "&syncToken="+accessToken;
 				}
 				
-				String recurringEventsAPI = events_list_api_str+"?"+tokenParam+"&future_events=true&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
-				JSONObject calResponse = doGoogleCalendarRestRequest(recurringEventsAPI,"GET");
+				HttpService httpService = null;
+				
+				String recurringEventsAPI = events_list_api_str+"?future_events=true"+tokenParam+"&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				httpService = new HttpService();
+				JSONObject calResponse = httpService.getRequestWithAuthorization(recurringEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(recurringEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
 				
-				String normalEventsAPI = events_list_api_str+"?"+tokenParam+"&future_events=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
-				calResponse = doGoogleCalendarRestRequest(normalEventsAPI,"GET");
+				httpService = new HttpService();
+				String normalEventsAPI = events_list_api_str+"?future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				calResponse = httpService.getRequestWithAuthorization(normalEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(normalEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
-				
-			return googleCalendarEvents;
+			}
+		}	
+		return googleCalendarEvents;
 	}
 	
 	public List<GoogleEvents> parseGoogleEventsResponse(JSONObject calResponse,Boolean isRecurringRequest) {
@@ -271,13 +270,17 @@ public class GoogleService {
 	
 	public List<String> googleCalendarList(String accessToken) {
 		List<String> calendarListIds = new ArrayList<>();
-		String calenderListAPI = calendar_list_api+"?access_token="+accessToken;
-		JSONObject calendarListObj = doGoogleCalendarRestRequest(calenderListAPI, "GET");
+		//String calenderListAPI = calendar_list_api+"?access_token="+accessToken;
+		//JSONObject calendarListObj = doGoogleCalendarRestRequest(calenderListAPI, "GET");
+		
+		HttpService httpService = new HttpService();
+		JSONObject calendarListObj = httpService.getRequestWithAuthorization(calendar_list_api, "GET",accessToken );
 		if (calendarListObj != null && !calendarListObj.has("ErrorCode")) {
 			try {
 				JSONArray calendarListArray = (JSONArray)calendarListObj.get("items");
 				for (int i = 0; i < calendarListArray.length(); i++) {
 					JSONObject calObj = (JSONObject)calendarListArray.get(i);
+					System.out.println(calObj.toString());
 					calendarListIds.add(calObj.getString("id"));
 				}
 			} catch(Exception e) {
@@ -291,7 +294,8 @@ public class GoogleService {
 	public GoogleEvents getCountryHolidayEvents(String calendarId) {
 		String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/"+URLEncoder.encode(calendarId)+"/events?key="+CenesUtils.googleAPIKey;
 		try {
-			JSONObject holidayCalendarObj = doGoogleCalendarRestRequest(events_list_api_str,"GET");
+			HttpService httpService = new HttpService();
+			JSONObject holidayCalendarObj = httpService.doGoogleCalendarRestRequest(events_list_api_str,"GET");
 			if (holidayCalendarObj == null) {
 				return null;
 			}
@@ -324,120 +328,5 @@ public class GoogleService {
 		String placeApi = "http://cenes.test2.redblink.net/assets/countries-info.json";
 		GoogleCountries gc = null;//doGoogleCountriesRestRequest(placeApi,HttpMethod.GET,null);
 		return gc;
-	}
-	
-	public <T> GoogleCountries doGoogleCountriesRestRequest(String url, HttpMethod method, T body){
-		try {
-			URL obj = new URL(url);
-			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-			con.setRequestMethod("GET");
-			int responseCode = con.getResponseCode();
-			System.out.println(con.getContent().toString());
-			if (responseCode == 200) {
-
-				System.out.println("Response Code : " + responseCode);
-
-				BufferedReader in = new BufferedReader(new InputStreamReader(
-						con.getInputStream()));
-				String inputLine;
-				StringBuffer response = new StringBuffer();
-
-				while ((inputLine = in.readLine()) != null) {
-					response.append(inputLine);
-				}
-				in.close();
-				org.primefaces.json.JSONObject jObject = new org.primefaces.json.JSONObject(
-						response.toString());
-				JSONArray jsonArray =  (JSONArray) jObject.get("Response");
-				GoogleCountries googleCountries = new GoogleCountries();
-				List<GoogleCountryItem> items = new ArrayList<>();
-				for (int i=0; i < jsonArray.length(); i++) {
-					JSONObject countryObj = (JSONObject)jsonArray.get(i);
-					GoogleCountryItem gci = new GoogleCountryItem();
-					gci.setName(countryObj.getString("Name"));
-					gci.setFlag(countryObj.getString("Flag"));
-					gci.setLatitude(countryObj.getString("Latitude"));
-					gci.setLongitude(countryObj.getString("Longitude"));
-					items.add(gci);
-				}
-				googleCountries.setResponse(items);
-				googleCountries.setIsSuccess(true);
-				return googleCountries;
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	
-	public <T> GoogleEvents doGoogleEventsRestRequest(String url, HttpMethod method, T body){
-		System.out.println("["+new Date()+" Making Request,url : "+url);
-		RestTemplate restTemplate = new RestTemplate();
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(new MediaType[]{MediaType.APPLICATION_JSON}));
-		HttpEntity<T> entity = new HttpEntity<T>(body, headers);
-		GoogleEvents orderEntity = null;
-		try{
-			orderEntity = restTemplate.exchange(url,method, entity, GoogleEvents.class).getBody();
-		}catch (HttpClientErrorException e) {
-		      System.out.println("GoogleService ErrorCode: "+e.getStatusCode());
-		      System.out.println("GoogleService ErrorMessage: "+e.getResponseBodyAsString());
-		      //throw e;
-		      orderEntity = new GoogleEvents();
-		      orderEntity.setErrorCode(e.getStatusCode().ordinal());
-		      orderEntity.setErrorDetail(e.getMessage());
-		      return orderEntity;
-		}catch (HttpServerErrorException e) {
-		      System.out.println("GoogleService ErrorCode: "+e.getStatusCode());
-		      System.out.println("GoogleService ErrorMessage: "+e.getResponseBodyAsString());
-		      //throw e;
-		      orderEntity = new GoogleEvents();
-		      orderEntity.setErrorCode(e.getStatusCode().ordinal());
-		      orderEntity.setErrorDetail(e.getMessage());
-		      return orderEntity;
-		}
-		System.out.println("["+new Date()+" Request Complete");
-		return orderEntity;
-	}
-	
-	public JSONObject doGoogleCalendarRestRequest(String url, String method){
-		System.out.println("["+new Date()+" Making Google Calendar List Request,url : "+url);
-		JSONObject jObject = null;
-		try {
-			URL obj = new URL(url);
-			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-			con.setRequestMethod(method);
-			int responseCode = con.getResponseCode();
-			System.out.println(con.getContent().toString());
-			if (responseCode == 200) {
-
-				System.out.println("Response Code : " + responseCode);
-
-				BufferedReader in = new BufferedReader(new InputStreamReader(
-						con.getInputStream()));
-				String inputLine;
-				StringBuffer response = new StringBuffer();
-
-				while ((inputLine = in.readLine()) != null) {
-					response.append(inputLine);
-				}
-				in.close();
-				jObject = new JSONObject(response.toString());
-				
-				return jObject;
-			}
-		} catch(Exception e) {
-			e.printStackTrace();
-			jObject = new JSONObject();
-			try {
-				jObject.put("ErrorCode",102);
-				jObject.put("ErrorDetail",e.getMessage());
-			} catch(Exception e1){
-				e1.printStackTrace();
-			}
-		}
-		System.out.println("["+new Date()+" Google Calendar List Request Complete");
-		return jObject;
 	}
 }
