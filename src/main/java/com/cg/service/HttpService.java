@@ -27,6 +27,7 @@ public class HttpService {
 
 	public JSONObject getRequestWithAuthorization(String url, String method, String token){
 		System.out.println("["+new Date()+" Making Google Calendar List Request,url : "+url);
+		System.out.println("["+new Date()+" Access Token : "+token);
 		JSONObject jObject = null;
 		try {
 			URL obj = new URL(url);
