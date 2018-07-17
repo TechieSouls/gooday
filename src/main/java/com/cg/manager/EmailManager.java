@@ -17,7 +17,7 @@ import com.cg.user.bo.User;
 public class EmailManager {
 	
     // Sender's email ID needs to be mentioned
-	private static String from = "no-reply@cenesgroup.com";
+	private static String from = "support@cenesgroup.com";
 	private Session session = null;
 	
 	public void sendForgotPasswordLink(User user) {
