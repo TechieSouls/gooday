@@ -210,6 +210,7 @@ public class EventController {
 			} else {
 				eventService.deleteGathering(gatehringId);
 			}
+			notificationManager.deleteNotificationByNotificationTypeId(event.getEventId());
 			deleteResponse.put("success",true);
 			deleteResponse.put("message","Gathering deleted Successfully");
 			deleteResponse.put("errorCode",0);
