@@ -202,7 +202,7 @@ public class NotificationManager {
 
 		Event event = eventManager.findEventByEventId(eventMember.getEventId());
 		pushMessage = pushMessage.replace("[username]",eventMember.getName()).replace("[title]", event.getTitle());
-		sendPushForAcceptAndDeclineRequest(pushMessage,event.getCreatedById(),eventMember.getName());
+		sendPushForAcceptAndDeclineRequest(pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
 	}
 
 	public void sendReminderAcceptDeclinedPush(ReminderMember reminderMember) {
@@ -215,7 +215,7 @@ public class NotificationManager {
 
 		Reminder reminder = reminderManager.findReminderByReminderId(reminderMember.getReminderId());
 		pushMessage = pushMessage.replace("[username]",reminderMember.getName()).replace("[title]", reminder.getTitle());
-		sendPushForAcceptAndDeclineRequest(pushMessage,reminder.getCreatedById(),reminderMember.getName());
+		sendPushForAcceptAndDeclineRequest(pushMessage,reminder.getCreatedById(),reminderMember.getName(),Notification.NotificationType.Reminder);
 	}
 	
 	public void sendReminderCompletedPush(Reminder reminder,User user) {
@@ -328,7 +328,7 @@ public class NotificationManager {
 			}
 		}
 	}
-	public void sendPushForAcceptAndDeclineRequest(String pushMessage,Long organizerId,String receipentName) {
+	public void sendPushForAcceptAndDeclineRequest(String pushMessage,Long organizerId,String receipentName,Notification.NotificationType type) {
 		JSONArray toAndroidArray = new JSONArray();
 		List toIosArray = new ArrayList<>();
 		
@@ -345,9 +345,15 @@ public class NotificationManager {
 		
 		try {
 			if (toAndroidArray.length() > 0) {
+				
+				JSONObject payloadObj = new JSONObject();
+				payloadObj.put("notificationType",type.toString());
+				payloadObj.put("notificationTypeStatus","AcceptAndDecline");
+				
 				JSONObject notifyObj = new JSONObject();
 				notifyObj.put("title", receipentName);
 				notifyObj.put("body", pushMessage);
+				notifyObj.put("payload", payloadObj);
 				
 				PushNotificationService.sendAndroidPush(toAndroidArray,notifyObj);
 			}
