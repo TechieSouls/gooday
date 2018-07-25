@@ -218,7 +218,7 @@ public class ReminderManager {
 					JSONObject alert = new JSONObject();
 					alert.put("title",fromUser.getName()+pushMessage+reminder.getTitle());
 					payloadObj.put("alert",alert);
-					
+					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 					notifyObj.put("aps", payloadObj);
 					PushNotificationService.sendIosPushNotification(iosSet.getValue(),notifyObj);
 				}

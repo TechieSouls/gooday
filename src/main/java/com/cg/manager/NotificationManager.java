@@ -181,7 +181,8 @@ public class NotificationManager {
 				JSONObject alert = new JSONObject();
 				alert.put("title",fromUser.getName()+pushMessage+event.getTitle());
 				payloadObj.put("alert",alert);
-				
+				payloadObj.put("sound","cenes-notification-ringtone.aiff");
+
 				notifyObj.put("aps", payloadObj);
 				PushNotificationService.sendIosPushNotification(iosSet.getValue(),notifyObj);
 			}
@@ -266,7 +267,7 @@ public class NotificationManager {
 					JSONObject alert = new JSONObject();
 					alert.put("title","Reminder : "+pushMessage);
 					payloadObj.put("alert",alert);
-					
+					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 					notifyObj.put("aps", payloadObj);
 					PushNotificationService.sendIosPushNotification(toIosArray,notifyObj);
 				}
@@ -319,7 +320,8 @@ public class NotificationManager {
 					JSONObject alert = new JSONObject();
 					alert.put("title","Reminder : "+pushMessage);
 					payloadObj.put("alert",alert);
-					
+					payloadObj.put("sound","cenes-notification-ringtone.aiff");
+
 					notifyObj.put("aps", payloadObj);
 					PushNotificationService.sendIosPushNotification(toIosArray,notifyObj);
 				}
@@ -368,7 +370,8 @@ public class NotificationManager {
 				JSONObject alert = new JSONObject();
 				alert.put("title",pushMessage);
 				payloadObj.put("alert",alert);
-				
+				payloadObj.put("sound","cenes-notification-ringtone.aiff");
+
 				notifyObj.put("aps", payloadObj);
 				PushNotificationService.sendIosPushNotification(toIosArray,notifyObj);
 			}
