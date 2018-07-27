@@ -181,6 +181,7 @@ public class NotificationManager {
 				JSONObject alert = new JSONObject();
 				alert.put("title",fromUser.getName()+pushMessage+event.getTitle());
 				payloadObj.put("alert",alert);
+				payloadObj.put("badge",1);
 				payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
 				notifyObj.put("aps", payloadObj);
@@ -267,6 +268,7 @@ public class NotificationManager {
 					JSONObject alert = new JSONObject();
 					alert.put("title","Reminder : "+pushMessage);
 					payloadObj.put("alert",alert);
+					payloadObj.put("badge",1);
 					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 					notifyObj.put("aps", payloadObj);
 					PushNotificationService.sendIosPushNotification(toIosArray,notifyObj);
@@ -320,6 +322,7 @@ public class NotificationManager {
 					JSONObject alert = new JSONObject();
 					alert.put("title","Reminder : "+pushMessage);
 					payloadObj.put("alert",alert);
+					payloadObj.put("badge",1);
 					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
 					notifyObj.put("aps", payloadObj);
@@ -370,6 +373,7 @@ public class NotificationManager {
 				JSONObject alert = new JSONObject();
 				alert.put("title",pushMessage);
 				payloadObj.put("alert",alert);
+				payloadObj.put("badge",1);
 				payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
 				notifyObj.put("aps", payloadObj);
@@ -411,6 +415,7 @@ public class NotificationManager {
 			JSONObject alert = new JSONObject();
 			alert.put("title","Mandy called you to his event Welcome");
 			//alert.put("content-available",1);
+			payloadObj.put("badge",1);
 			payloadObj.put("alert",alert);
 			notifyObj.put("aps", payloadObj);
 			
