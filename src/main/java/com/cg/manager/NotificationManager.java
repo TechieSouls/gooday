@@ -57,6 +57,18 @@ public class NotificationManager {
 		notificationRepository.deleteByNotificationTypeId(notificationTypeId);
 	}
 	
+	public Long findNotificationCountsByReceipientIdAndReadStatus(Long receipientId,Notification.NotificationReadStatus readStatus) {
+		List<Object> notificationCounts = notificationRepository.findCountsByRecepientIdAndReadStatus(receipientId, readStatus);
+		for (Object object : notificationCounts) {
+			if(object!=null){
+				return (Long)object;
+			} else {
+				return 0l;
+			}
+		}
+		return 0l;
+	}
+	
 	public void sendGatheringNotification(Event event) {
 		User fromUser = userService.findUserById(event.getCreatedById());
 		if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
@@ -181,7 +193,7 @@ public class NotificationManager {
 				JSONObject alert = new JSONObject();
 				alert.put("title",fromUser.getName()+pushMessage+event.getTitle());
 				payloadObj.put("alert",alert);
-				payloadObj.put("badge",1);
+				//payloadObj.put("badge",1);
 				payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
 				notifyObj.put("aps", payloadObj);
@@ -268,7 +280,7 @@ public class NotificationManager {
 					JSONObject alert = new JSONObject();
 					alert.put("title","Reminder : "+pushMessage);
 					payloadObj.put("alert",alert);
-					payloadObj.put("badge",1);
+					//payloadObj.put("badge",1);
 					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 					notifyObj.put("aps", payloadObj);
 					PushNotificationService.sendIosPushNotification(toIosArray,notifyObj);
@@ -322,7 +334,7 @@ public class NotificationManager {
 					JSONObject alert = new JSONObject();
 					alert.put("title","Reminder : "+pushMessage);
 					payloadObj.put("alert",alert);
-					payloadObj.put("badge",1);
+					//payloadObj.put("badge",1);
 					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
 					notifyObj.put("aps", payloadObj);
@@ -373,7 +385,7 @@ public class NotificationManager {
 				JSONObject alert = new JSONObject();
 				alert.put("title",pushMessage);
 				payloadObj.put("alert",alert);
-				payloadObj.put("badge",1);
+				//payloadObj.put("badge",1);
 				payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
 				notifyObj.put("aps", payloadObj);
@@ -415,7 +427,7 @@ public class NotificationManager {
 			JSONObject alert = new JSONObject();
 			alert.put("title","Mandy called you to his event Welcome");
 			//alert.put("content-available",1);
-			payloadObj.put("badge",1);
+			//payloadObj.put("badge",1);
 			payloadObj.put("alert",alert);
 			notifyObj.put("aps", payloadObj);
 			
