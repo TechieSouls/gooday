@@ -15,11 +15,13 @@ import org.springframework.stereotype.Service;
 import com.cg.bo.Notification;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.bo.Notification.NotificationTypeStatus;
+import com.cg.bo.NotificationCountData;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventMember.MemberStatus;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
+import com.cg.repository.NotificationCountDataRepository;
 import com.cg.repository.NotificationRepository;
 import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
@@ -40,6 +42,9 @@ public class NotificationManager {
 	
 	@Autowired
 	ReminderManager reminderManager;
+	
+	@Autowired
+	NotificationCountDataRepository notificationCountDataRepository;
 	
 	public Notification saveNotification(Notification notification) {
 		return notificationRepository.save(notification);
@@ -138,7 +143,7 @@ public class NotificationManager {
 							if (notificationAlreadySent) {
 								mapKey = "old";
 							}
-							toIosArray.add(userDevice.getDeviceToken());
+							toIosArray.add(userDevice);
 							iOSMap.put(mapKey, toIosArray);
 						}
 					}
@@ -176,28 +181,33 @@ public class NotificationManager {
 		try {
 			for (Entry<String,List> iosSet : iOSMap.entrySet()) {
 				
-				String pushMessage = " sent you an invitation ";
-				JSONObject notifyObj = new JSONObject();
-				
-				JSONObject payloadObj = new JSONObject();
-				payloadObj.put("notificationTypeTitle",event.getTitle());
-				payloadObj.put("notificationTypeId",event.getEventId());
-				payloadObj.put("notificationType",NotificationType.Gathering.toString());
-				if (iosSet.getKey().equals("old")) {
-					payloadObj.put("notificationTypeStatus","Old");
-					pushMessage = " updated an invitation ";
-				} else {
-					payloadObj.put("notificationTypeStatus","New");
-				}
-				
-				JSONObject alert = new JSONObject();
-				alert.put("title",fromUser.getName()+pushMessage+event.getTitle());
-				payloadObj.put("alert",alert);
-				payloadObj.put("badge",1);
-				payloadObj.put("sound","cenes-notification-ringtone.aiff");
+				for (UserDevice userDevice : (List<UserDevice>)iosSet.getValue()) {
+					String pushMessage = " sent you an invitation ";
+					JSONObject notifyObj = new JSONObject();
+					
+					JSONObject payloadObj = new JSONObject();
+					payloadObj.put("notificationTypeTitle",event.getTitle());
+					payloadObj.put("notificationTypeId",event.getEventId());
+					payloadObj.put("notificationType",NotificationType.Gathering.toString());
+					if (iosSet.getKey().equals("old")) {
+						payloadObj.put("notificationTypeStatus","Old");
+						pushMessage = " updated an invitation ";
+					} else {
+						payloadObj.put("notificationTypeStatus","New");
+					}
+					
+					JSONObject alert = new JSONObject();
+					alert.put("title",fromUser.getName()+pushMessage+event.getTitle());
+					payloadObj.put("alert",alert);
+					payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
-				notifyObj.put("aps", payloadObj);
-				PushNotificationService.sendIosPushNotification(iosSet.getValue(),notifyObj);
+					notifyObj.put("aps", payloadObj);
+					
+					List tokenList = new ArrayList();
+					tokenList.add(userDevice.getDeviceToken());
+					PushNotificationService.sendIosPushNotification(tokenList,notifyObj);
+				}
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -394,6 +404,21 @@ public class NotificationManager {
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public int getBadgeCountsByUserId(Long userId) {
+		int badgeCount = 0;
+		NotificationCountData ncd = notificationCountDataRepository.findByUserId(userId);
+		if (ncd == null) {
+			ncd = new NotificationCountData();
+			badgeCount = 1;
+		} else {
+			badgeCount = ncd.getBadgeCount() + 1;
+		}
+		ncd.setBadgeCount(badgeCount);
+		ncd.setUserId(userId);
+		notificationCountDataRepository.save(ncd);
+		return badgeCount;
 	}
 	
 	public void sendTestingNotificationToAndroid() {
