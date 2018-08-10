@@ -285,15 +285,23 @@ public class NotificationManager {
 
 			try {
 				if (toIosArray.size() > 0) {
-					JSONObject notifyObj = new JSONObject();
-					JSONObject payloadObj = new JSONObject();
-					JSONObject alert = new JSONObject();
-					alert.put("title","Reminder : "+pushMessage);
-					payloadObj.put("alert",alert);
-					payloadObj.put("badge",1);
-					payloadObj.put("sound","cenes-notification-ringtone.aiff");
-					notifyObj.put("aps", payloadObj);
-					PushNotificationService.sendIosPushNotification(toIosArray,notifyObj);
+					
+					List<UserDevice> iosUserDevices = toIosArray;
+					for (UserDevice userDevice : iosUserDevices) {
+						JSONObject notifyObj = new JSONObject();
+						JSONObject payloadObj = new JSONObject();
+						JSONObject alert = new JSONObject();
+						alert.put("title","Reminder : "+pushMessage);
+						payloadObj.put("alert",alert);
+						payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+						payloadObj.put("sound","cenes-notification-ringtone.aiff");
+						notifyObj.put("aps", payloadObj);
+						
+						List iosDeviceTokenList = new ArrayList();
+						iosDeviceTokenList.add(userDevice.getDeviceToken());
+						PushNotificationService.sendIosPushNotification(iosDeviceTokenList,notifyObj);
+					}
+					
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
@@ -317,7 +325,7 @@ public class NotificationManager {
 							if ("android".equals(userDevice.getDeviceType())){
 								toAndroidArray.put(userDevice.getDeviceToken());
 							} else if ("ios".equals(userDevice.getDeviceType())){
-								toIosArray.add(userDevice.getDeviceToken());
+								toIosArray.add(userDevice);
 							}
 						}
 					}
@@ -339,16 +347,23 @@ public class NotificationManager {
 
 			try {
 				if (toIosArray.size() > 0) {
-					JSONObject notifyObj = new JSONObject();
-					JSONObject payloadObj = new JSONObject();
-					JSONObject alert = new JSONObject();
-					alert.put("title","Reminder : "+pushMessage);
-					payloadObj.put("alert",alert);
-					payloadObj.put("badge",1);
-					payloadObj.put("sound","cenes-notification-ringtone.aiff");
+					List<UserDevice> userDevices = toIosArray;
+					for (UserDevice userDevice : userDevices) {
+						JSONObject notifyObj = new JSONObject();
+						JSONObject payloadObj = new JSONObject();
+						JSONObject alert = new JSONObject();
+						alert.put("title","Reminder : "+pushMessage);
+						payloadObj.put("alert",alert);
+						payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+						payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
-					notifyObj.put("aps", payloadObj);
-					PushNotificationService.sendIosPushNotification(toIosArray,notifyObj);
+						notifyObj.put("aps", payloadObj);
+						
+						List userDeviceTokenList = new ArrayList();
+						userDeviceTokenList.add(userDevice.getDeviceToken());
+						PushNotificationService.sendIosPushNotification(userDeviceTokenList,notifyObj);
+					}
+					
 				}
 			} catch(Exception e) {
 				e.printStackTrace();
@@ -365,7 +380,7 @@ public class NotificationManager {
 				if ("android".equals(userDevice.getDeviceType())){
 					toAndroidArray.put(userDevice.getDeviceToken());
 				} else if ("ios".equals(userDevice.getDeviceType())){
-					toIosArray.add(userDevice.getDeviceToken());
+					toIosArray.add(userDevice);
 				}
 			}
 		}
@@ -390,16 +405,25 @@ public class NotificationManager {
 
 		try {
 			if (toIosArray.size() > 0) {
-				JSONObject notifyObj = new JSONObject();
-				JSONObject payloadObj = new JSONObject();
-				JSONObject alert = new JSONObject();
-				alert.put("title",pushMessage);
-				payloadObj.put("alert",alert);
-				payloadObj.put("badge",1);
-				payloadObj.put("sound","cenes-notification-ringtone.aiff");
+				
+				List<UserDevice> iosUserDevices = toIosArray;
+				for (UserDevice userDevice : iosUserDevices) {
+					JSONObject notifyObj = new JSONObject();
+					JSONObject payloadObj = new JSONObject();
+					JSONObject alert = new JSONObject();
+					alert.put("title",pushMessage);
+					payloadObj.put("alert",alert);
+					payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
-				notifyObj.put("aps", payloadObj);
-				PushNotificationService.sendIosPushNotification(toIosArray,notifyObj);
+					notifyObj.put("aps", payloadObj);
+					
+					List deviceTokenList = new ArrayList();
+					deviceTokenList.add(userDevice.getDeviceToken());
+					
+					PushNotificationService.sendIosPushNotification(deviceTokenList,notifyObj);
+				}
+				
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
