@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.cg.bo.NotificationCountData;
 
@@ -15,6 +16,7 @@ public interface NotificationCountDataRepository extends JpaRepository<Notificat
 	NotificationCountData findByUserId(Long userId);
 	
 	@Modifying
+	@Transactional
     @Query("UPDATE NotificationCountData ncd SET ncd.badgeCount = 0 WHERE ncd.userId = :userId")
     int setBadgeCountsToZero(@Param("userId") Long userId);
 }
