@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import com.cg.bo.Notification;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.bo.Notification.NotificationTypeStatus;
+import com.cg.constant.CgConstants;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
 import com.cg.repository.ReminderMemberRepository;
@@ -175,16 +176,16 @@ public class ReminderManager {
 					String pushMessage = " sent you a reminder ";
 					
 					JSONObject payloadObj = new JSONObject();
-					payloadObj.put("notificationTypeTitle",reminder.getTitle());
-					payloadObj.put("notificationTypeId",reminder.getReminderId());
+					payloadObj.put(CgConstants.notificationTypeTitle,reminder.getTitle());
+					payloadObj.put(CgConstants.notificationTypeId,reminder.getReminderId());
 					//payloadObj.put("notificationLocation",reminder.getLocation());
 					//payloadObj.put("notificationTime",reminder.getReminderTime());
-					payloadObj.put("notificationType",NotificationType.Reminder.toString());
+					payloadObj.put(CgConstants.notificationType,NotificationType.Reminder.toString());
 					if (androidSet.getKey().equals("old")) {
-						payloadObj.put("notificationTypeStatus","Old");
+						payloadObj.put(CgConstants.notificationTypeStatus,"Old");
 						pushMessage = " updated a reminder ";
 					} else {
-						payloadObj.put("notificationTypeStatus","New");
+						payloadObj.put(CgConstants.notificationTypeStatus,"New");
 					}
 					
 					JSONObject notifyObj = new JSONObject();
@@ -207,14 +208,14 @@ public class ReminderManager {
 						JSONObject notifyObj = new JSONObject();
 						
 						JSONObject payloadObj = new JSONObject();
-						payloadObj.put("notificationTypeTitle",reminder.getTitle());
-						payloadObj.put("notificationTypeId",reminder.getReminderId());
-						payloadObj.put("notificationType",NotificationType.Reminder.toString());
+						payloadObj.put(CgConstants.notificationTypeTitle,reminder.getTitle());
+						payloadObj.put(CgConstants.notificationTypeId,reminder.getReminderId());
+						payloadObj.put(CgConstants.notificationType,NotificationType.Reminder.toString());
 						if (iosSet.getKey().equals("old")) {
-							payloadObj.put("notificationTypeStatus","Old");
+							payloadObj.put(CgConstants.notificationTypeStatus,"Old");
 							pushMessage = " updated a reminder ";
 						} else {
-							payloadObj.put("notificationTypeStatus","New");
+							payloadObj.put(CgConstants.notificationTypeStatus,"New");
 						}
 						
 						JSONObject alert = new JSONObject();

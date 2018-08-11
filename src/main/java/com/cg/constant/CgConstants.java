@@ -35,4 +35,11 @@ public class CgConstants {
 			return errorCode;
 		}
 	}
+	
+	public static String notificationTypeTitle = "title";
+	public static String notificationTypeId = "id";
+	public static String notificationType = "type";
+	public static String notificationTypeStatus = "status";
+	
+	
 }

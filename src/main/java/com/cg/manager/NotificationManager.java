@@ -16,6 +16,7 @@ import com.cg.bo.Notification;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.bo.Notification.NotificationTypeStatus;
 import com.cg.bo.NotificationCountData;
+import com.cg.constant.CgConstants;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventMember.MemberStatus;
@@ -157,14 +158,14 @@ public class NotificationManager {
 				String pushMessage = " sent you an invitation ";
 				
 				JSONObject payloadObj = new JSONObject();
-				payloadObj.put("notificationTypeTitle",event.getTitle());
-				payloadObj.put("notificationTypeId",event.getEventId());
-				payloadObj.put("notificationType",NotificationType.Gathering.toString());
+				payloadObj.put(CgConstants.notificationTypeTitle,event.getTitle());
+				payloadObj.put(CgConstants.notificationTypeId,event.getEventId());
+				payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
 				if (androidSet.getKey().equals("old")) {
-					payloadObj.put("notificationTypeStatus","Old");
+					payloadObj.put(CgConstants.notificationTypeStatus,"Old");
 					pushMessage = " updated an invitation ";
 				} else {
-					payloadObj.put("notificationTypeStatus","New");
+					payloadObj.put(CgConstants.notificationTypeStatus,"New");
 				}
 				
 				JSONObject notifyObj = new JSONObject();
@@ -186,14 +187,14 @@ public class NotificationManager {
 					JSONObject notifyObj = new JSONObject();
 					
 					JSONObject payloadObj = new JSONObject();
-					payloadObj.put("notificationTypeTitle",event.getTitle());
-					payloadObj.put("notificationTypeId",event.getEventId());
-					payloadObj.put("notificationType",NotificationType.Gathering.toString());
+					payloadObj.put(CgConstants.notificationTypeTitle,event.getTitle());
+					payloadObj.put(CgConstants.notificationTypeId,event.getEventId());
+					payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
 					if (iosSet.getKey().equals("old")) {
-						payloadObj.put("notificationTypeStatus","Old");
+						payloadObj.put(CgConstants.notificationTypeStatus,"Old");
 						pushMessage = " updated an invitation ";
 					} else {
-						payloadObj.put("notificationTypeStatus","New");
+						payloadObj.put(CgConstants.notificationTypeStatus,"New");
 					}
 					
 					JSONObject alert = new JSONObject();
@@ -389,8 +390,8 @@ public class NotificationManager {
 			if (toAndroidArray.length() > 0) {
 				
 				JSONObject payloadObj = new JSONObject();
-				payloadObj.put("notificationType",type.toString());
-				payloadObj.put("notificationTypeStatus","AcceptAndDecline");
+				payloadObj.put(CgConstants.notificationTypeTitle,type.toString());
+				payloadObj.put(CgConstants.notificationTypeStatus,"AcceptAndDecline");
 				
 				JSONObject notifyObj = new JSONObject();
 				notifyObj.put("title", receipentName);
