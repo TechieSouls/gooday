@@ -15,6 +15,6 @@ public interface NotificationCountDataRepository extends JpaRepository<Notificat
 	NotificationCountData findByUserId(Long userId);
 	
 	@Modifying
-    @Query("UPDATE NotificationCountData ncd SET ncd.badgeCount = 0 WHERE badgeCount.userId = :userId")
+    @Query("UPDATE NotificationCountData ncd SET ncd.badgeCount = 0 WHERE ncd.userId = :userId")
     int setBadgeCountsToZero(@Param("userId") Long userId);
 }
