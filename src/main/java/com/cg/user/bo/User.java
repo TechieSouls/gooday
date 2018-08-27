@@ -62,6 +62,9 @@ public class User extends CgGeneral{
 	
 	@Column(name="gender")
 	private String gender;
+
+	@Column(name="phone")
+	private String phone;	
 	
 	@Column(name="reset_token")
 	private String resetToken;
@@ -185,5 +188,13 @@ public class User extends CgGeneral{
 
 	public void setResetTokenCreatedAt(Date resetTokenCreatedAt) {
 		this.resetTokenCreatedAt = resetTokenCreatedAt;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
 	}
 }

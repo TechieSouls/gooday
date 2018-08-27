@@ -15,6 +15,8 @@ public interface UserRepository extends CrudRepository<User, Long> {
 	User findUserByFacebookID(String facebookID);
 	User findUserByEmail(String email);
 	User findUserByEmailAndPassword(String email,String password);
+	User findByPhone(String phone);
+	
 	
 	@Query("select u from User u where resetToken =:resetToken and HOUR(TIMEDIFF(resetTokenCreatedAt,now())) <= 1")
 	User findByResetTokenAndResetTokenCreatedAt(@Param("resetToken") String resetToken);

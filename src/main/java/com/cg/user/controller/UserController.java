@@ -67,12 +67,14 @@ import com.cg.manager.EventTimeSlotManager;
 import com.cg.manager.RecurringManager;
 import com.cg.repository.CenesPropertyValueRepository;
 import com.cg.repository.UserAvailabilityRepository;
+import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
 import com.cg.service.FacebookService;
 import com.cg.service.UserService;
 import com.cg.stateless.security.TokenAuthenticationService;
 import com.cg.user.bo.User;
+import com.cg.user.bo.UserContact;
 import com.cg.user.bo.UserDevice;
 import com.cg.utils.CenesUtils;
 import com.google.common.collect.Sets;
@@ -102,6 +104,9 @@ public class UserController {
 	@Autowired
 	UserFriendRepository userFriendRepository;
 
+	@Autowired
+	UserContactRepository userContactRepository;
+	
 	@Autowired
 	UserService userService;
 	
@@ -479,7 +484,6 @@ public class UserController {
 		return new ResponseEntity<List<User>>(userFriends,HttpStatus.OK);
 	}
 	
-	
 	@RequestMapping(value = "/api/user/metime", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<String> saveMeTime(@RequestBody MeTime meTime) {
@@ -744,6 +748,18 @@ public class UserController {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	@RequestMapping(value = "/api/user/phonefriends", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<List<UserContact>> getUserPhoneFriends(@RequestParam("user_id") Long userId) {
+		List<UserContact> friends = (List)userContactRepository.findByUserId(userId);
+		return new ResponseEntity<List<UserContact>>(friends,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/api/syncContacts", method = RequestMethod.POST)
+	public void syncUserContacts(@RequestBody Map<String,Object> contactsMap) {
+		userService.syncPhoneContacts(contactsMap);
 	}
 	
 	@Autowired
