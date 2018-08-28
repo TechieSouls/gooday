@@ -1,6 +1,8 @@
 package com.cg.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -81,17 +83,18 @@ public class UserService {
 	public void syncPhoneContacts(Map<String,Object> phoneContacts) {
 		
 		Long userId = Long.valueOf(phoneContacts.get("userId").toString());
-		Map<String,String> contacts = (Map<String,String>)phoneContacts.get("contacts");
+		List<Map<String,String>> contacts = (List<Map<String,String>>)phoneContacts.get("contacts");
 		
 		contacts = filterUserContactsWhichAreNotCenesMember(contacts,userId);		
 		
 		Map<String,String> threadContacts = null;
 		int index = 1;
-		for (Entry<String, String> contactSet : contacts.entrySet()) {
+		for (Map<String, String> contactMap : contacts) {
 			if (index == 1) {
 				threadContacts = new HashMap<String,String>();
 			}
-			threadContacts.put(contactSet.getKey(),contactSet.getValue());
+			Entry<String,String> contactMapEntrySet = contactMap.entrySet().iterator().next();
+			threadContacts.put(contactMapEntrySet.getKey(),contactMapEntrySet.getValue());
 			if ((threadContacts.size() % 10 == 0) || (index == contacts.size()  && threadContacts.size() % 10 > 0)) {
 				PhoneConatctsTask phoneConatctsTask = new PhoneConatctsTask();
 				phoneConatctsTask.setContacts(threadContacts);
@@ -106,13 +109,21 @@ public class UserService {
 		}
 	}
 	
-	public Map<String,String> filterUserContactsWhichAreNotCenesMember(Map<String,String> phoneContacts,Long userId) {
+	public List<Map<String,String>> filterUserContactsWhichAreNotCenesMember(List<Map<String,String>> phoneContacts,Long userId) {
+		List<Map<String,String>> phoneContactsToRemove = new ArrayList<>();
 		List<UserContact> userContacts = userContactRepository.findByUserId(userId);
 		for (UserContact userContact : userContacts) {
-			if (phoneContacts.containsKey(userContact.getPhone())) {
-				phoneContacts.remove(userContact.getPhone());
+			
+			Iterator<Map<String,String>> it = phoneContacts.iterator();
+			while (it.hasNext()) {
+				Map<String,String> value = it.next();
+				if (value.containsKey(userContact.getPhone())) {
+					//phoneContacts.remove(value);
+					phoneContactsToRemove.add(value);
+				}
 			}
 		}
+		phoneContacts.removeAll(phoneContactsToRemove);
 		return phoneContacts;
 	}
  	
