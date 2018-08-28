@@ -74,11 +74,16 @@ public class UserService {
 	public User saveUser(User user) {
 		return userRepository.save(user);
 	}
-	
+
+	/**
+	 * Method to Sync the user phone contacts.
+	 * */
 	public void syncPhoneContacts(Map<String,Object> phoneContacts) {
 		
 		Long userId = Long.valueOf(phoneContacts.get("userId").toString());
 		Map<String,String> contacts = (Map<String,String>)phoneContacts.get("contacts");
+		
+		contacts = filterUserContactsWhichAreNotCenesMember(contacts,userId);		
 		
 		Map<String,String> threadContacts = null;
 		int index = 1;
@@ -101,6 +106,16 @@ public class UserService {
 		}
 	}
 	
+	public Map<String,String> filterUserContactsWhichAreNotCenesMember(Map<String,String> phoneContacts,Long userId) {
+		List<UserContact> userContacts = userContactRepository.findByUserId(userId);
+		for (UserContact userContact : userContacts) {
+			if (phoneContacts.containsKey(userContact.getPhone())) {
+				phoneContacts.remove(userContact.getPhone());
+			}
+		}
+		return phoneContacts;
+	}
+ 	
 	class PhoneConatctsTask implements Runnable {
 		
 		private UserRepository userRepository;
