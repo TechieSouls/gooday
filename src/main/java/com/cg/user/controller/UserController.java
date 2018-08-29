@@ -75,6 +75,7 @@ import com.cg.service.UserService;
 import com.cg.stateless.security.TokenAuthenticationService;
 import com.cg.user.bo.User;
 import com.cg.user.bo.UserContact;
+import com.cg.user.bo.UserContact.CenesMember;
 import com.cg.user.bo.UserDevice;
 import com.cg.utils.CenesUtils;
 import com.google.common.collect.Sets;
@@ -187,6 +188,15 @@ public class UserController {
 				user.setErrorCode(ErrorCodes.EmailAlreadyTaken.getErrorCode());
 				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken.toString());
 				System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : Email Already Exists");
+				
+				List<UserContact> userContactInOtherContacts = userContactRepository.findByPhone(user.getPhone());
+				if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+					for (UserContact userContact : userContactInOtherContacts) {
+						userContact.setCenesMember(CenesMember.yes);
+					}
+					userContactRepository.save(userContactInOtherContacts);
+				}
+				
 				return new ResponseEntity<User>(user, HttpStatus.OK);
 			}
 			System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : User Details -> "+userInfo.toString());
