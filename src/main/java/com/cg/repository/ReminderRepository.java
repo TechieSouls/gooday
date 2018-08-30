@@ -29,7 +29,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long>{
 	@Query("select r from Reminder r JOIN r.reminderMembers rm where rm.memberId = :userId and (rm.status = 'Accept' or rm.status is null) order by r.reminderTime asc")
 	List<Reminder> findAllUserRemidners(@Param("userId") Long userId);
 	
-	@Query("select r from Reminder r where r.reminderTime is not null and r.reminderTime >= now() and TIMESTAMPDIFF(MINUTE,now(),r.reminderTime) = 1 order by r.reminderTime asc")
+	@Query("select r from Reminder r where r.reminderTime is not null and  r.status = 'Start' and r.reminderTime >= now() and TIMESTAMPDIFF(MINUTE,now(),r.reminderTime) = 1 order by r.reminderTime asc")
 	List<Reminder> findAllRemindersWithTimeDifferenceEqualToOne();
 	
 	@Query("select r from Reminder r where r.reminderTime is null and DATE(r.reminderTime) <= DATE(now()) and r.status = 'Finish' order by r.reminderTime asc")
