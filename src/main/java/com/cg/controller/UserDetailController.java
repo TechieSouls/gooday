@@ -7,6 +7,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,10 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.enums.CgEnums.AuthenticateType;
+import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserRepository;
 import com.cg.stateless.security.TokenAuthenticationService;
 import com.cg.stateless.security.UserService;
 import com.cg.user.bo.User;
+import com.cg.user.bo.UserContact;
+import com.cg.user.bo.UserContact.CenesMember;
 import com.google.common.collect.Sets;
 
 @RestController
@@ -47,6 +51,9 @@ public class UserDetailController {
 	
 	@Autowired
 	TokenAuthenticationService tokenAuthenticationService;
+	
+	@Autowired
+	UserContactRepository userContactRepository;
 
 	@Value("${cenes.salt}")
 	private String salt;
@@ -65,6 +72,8 @@ public class UserDetailController {
 			HttpServletResponse response,
 			@RequestBody User user) {
 		
+		String phone = user.getPhone();
+		
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user");
 		if (user.getAuthType() == AuthenticateType.email && user.getEmail() != null) {
 			String password = new Md5PasswordEncoder().encodePassword(user.getPassword(), salt);
@@ -79,6 +88,19 @@ public class UserDetailController {
 			user = new User();
 			user.setErrorCode(HttpStatus.BAD_REQUEST.ordinal());
 			user.setErrorDetail(HttpStatus.BAD_REQUEST.name());
+		} else if (user != null) {
+			if (user.getPhone() == null) {
+				user.setPhone(phone);
+			
+				List<UserContact> userContactInOtherContacts = userContactRepository.findByPhone(user.getPhone());
+				if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+					for (UserContact userContact : userContactInOtherContacts) {
+						userContact.setCenesMember(CenesMember.yes);
+					}
+					userContactRepository.save(userContactInOtherContacts);
+				}
+				userRepository.save(user);
+			}
 		}
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user "+user.toString());	
 		user.setPassword(null);
