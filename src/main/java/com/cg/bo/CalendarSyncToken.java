@@ -14,17 +14,17 @@ import javax.persistence.Table;
 import com.cg.user.bo.User;
 
 @Entity
-@Table(name="refresh_tokens")
-public class RefreshToken {
+@Table(name="calendar_sync_tokens")
+public class CalendarSyncToken {
 
 	public enum AccountType {Google,Outlook}
 	
-	public RefreshToken(Long userId, AccountType accountType) {
+	public CalendarSyncToken(Long userId, AccountType accountType) {
 		this.userId = userId;
 		this.accountType = accountType;
 	}
 	
-	public RefreshToken(Long userId, AccountType accountType, String refreshTokenString) {
+	public CalendarSyncToken(Long userId, AccountType accountType, String refreshTokenString) {
 		this.userId = userId;
 		this.accountType = accountType;
 		this.refreshTokenString = refreshTokenString;
