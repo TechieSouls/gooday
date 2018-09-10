@@ -19,8 +19,8 @@ import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
-import com.cg.bo.RefreshToken;
-import com.cg.bo.RefreshToken.AccountType;
+import com.cg.bo.CalendarSyncToken;
+import com.cg.bo.CalendarSyncToken.AccountType;
 import com.cg.dto.HomeScreenDto;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.Event.EventProcessedStatus;
@@ -41,7 +41,7 @@ import com.cg.events.bo.OutlookEvents;
 import com.cg.events.repository.EventRepository;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
-import com.cg.repository.RefreshTokenRepository;
+import com.cg.repository.CalendarSyncTokenRepository;
 import com.cg.repository.ReminderRepository;
 import com.cg.service.EventService;
 import com.cg.service.FacebookService;
@@ -69,7 +69,7 @@ public class EventManager {
 	EventRepository eventRepository;
 	
 	@Autowired
-	RefreshTokenRepository refreshTokenRepository;
+	CalendarSyncTokenRepository refreshTokenRepository;
 	
 	public Event createEvent(Event event) {
 
@@ -834,11 +834,11 @@ public class EventManager {
 		return eventService.findEventsByStartDateAndUserId(userId);
 	}
 	
-	public List<RefreshToken> getAllGoogleSyncTokens() {
+	public List<CalendarSyncToken> getAllGoogleSyncTokens() {
 		return refreshTokenRepository.findByAccountType(AccountType.Google);
 	}
 	
-	public List<RefreshToken> getAllOutlookGoogleSyncTokens() {
+	public List<CalendarSyncToken> getAllOutlookGoogleSyncTokens() {
 		return refreshTokenRepository.findByAccountType(AccountType.Outlook);
 	}
 }
