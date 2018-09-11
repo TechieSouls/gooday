@@ -193,6 +193,7 @@ public class UserController {
 				if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
 					for (UserContact userContact : userContactInOtherContacts) {
 						userContact.setCenesMember(CenesMember.yes);
+						userContact.setFriendId(user.getUserId());
 					}
 					userContactRepository.save(userContactInOtherContacts);
 				}
