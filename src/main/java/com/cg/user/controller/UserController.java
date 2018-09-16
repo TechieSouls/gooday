@@ -71,6 +71,7 @@ import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
 import com.cg.service.FacebookService;
+import com.cg.service.TwilioService;
 import com.cg.service.UserService;
 import com.cg.stateless.security.TokenAuthenticationService;
 import com.cg.user.bo.User;
@@ -771,6 +772,20 @@ public class UserController {
 	@RequestMapping(value = "/api/syncContacts", method = RequestMethod.POST)
 	public void syncUserContacts(@RequestBody Map<String,Object> contactsMap) {
 		userService.syncPhoneContacts(contactsMap);
+	}
+	
+	@RequestMapping(value = "/api/sendVerificationCode", method = RequestMethod.POST)
+	public ResponseEntity<?> sendPhoneVerificationCode(@RequestBody Map<String,String> phoneMap) {
+		TwilioService ts = new TwilioService();
+		Map<String, Object> response = ts.sendVerificationCode(phoneMap.get("countryCode").toString(), phoneMap.get("phone").toString());
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/api/checkVerificationCode", method = RequestMethod.POST)
+	public ResponseEntity<?> checkPhoneVerificationCode(@RequestBody Map<String,String> phoneMap) {
+		TwilioService ts = new TwilioService();
+		Map<String, Object> response = ts.checkVerificationCode(phoneMap.get("countryCode").toString(), phoneMap.get("phone").toString(), phoneMap.get("code").toString());
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
 	@Autowired

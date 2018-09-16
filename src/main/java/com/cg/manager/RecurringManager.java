@@ -68,25 +68,25 @@ public class RecurringManager {
 				startCal.set(Calendar.MINUTE, tempCal.get(Calendar.MINUTE));
 				startCal.set(Calendar.SECOND, 0);
 				startCal.set(Calendar.MILLISECOND, 0);
-				System.out.println("Start Time : "+startCal.getTime());
+				//System.out.println("Start Time : "+startCal.getTime());
 				
 				
-				System.out.println("Recurring Event Time : "+recurringEvent.getEndTime());
+				//System.out.println("Recurring Event Time : "+recurringEvent.getEndTime());
 				tempCal = Calendar.getInstance();
 				tempCal.setTimeInMillis(recurringEvent.getEndTime().getTime());
-				System.out.println("Temp End Cal : "+tempCal.getTime());
+				//System.out.println("Temp End Cal : "+tempCal.getTime());
 				
 				Calendar recrringStartCal = Calendar.getInstance();
 				recrringStartCal.setTimeInMillis(recurringEvent.getStartTime().getTime());
-				System.out.println("Recurring Start Date : "+recrringStartCal.getTime());
+				//System.out.println("Recurring Start Date : "+recrringStartCal.getTime());
 				
 				Calendar recrringEndCal = Calendar.getInstance();
 				recrringEndCal.setTimeInMillis(recurringEvent.getEndTime().getTime());
-				System.out.println("Recurring End Date : "+recrringEndCal.getTime());
+				//System.out.println("Recurring End Date : "+recrringEndCal.getTime());
 				
 				
 				
-				System.out.println(tempCal.getTime());
+				//System.out.println(tempCal.getTime());
 				
 				Calendar endCal = Calendar.getInstance();
 				endCal.setTime(new Date());
@@ -100,7 +100,7 @@ public class RecurringManager {
 				endCal.set(Calendar.MINUTE, tempCal.get(Calendar.MINUTE));
 				endCal.set(Calendar.SECOND, 0);
 				endCal.set(Calendar.MILLISECOND, 0);
-				System.out.println("End Time : "+endCal.getTime());
+				//System.out.println("End Time : "+endCal.getTime());
 				
 				//Create Events for Recurring Events:
 				Event event = populateEventObject(recurringEvent,startCal.getTime(),endCal.getTime(),ScheduleEventAs.MeTime.toString());
