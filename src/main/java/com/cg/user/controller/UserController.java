@@ -774,14 +774,14 @@ public class UserController {
 		userService.syncPhoneContacts(contactsMap);
 	}
 	
-	@RequestMapping(value = "/api/sendVerificationCode", method = RequestMethod.POST)
+	@RequestMapping(value = "/api/guest/sendVerificationCode", method = RequestMethod.POST)
 	public ResponseEntity<?> sendPhoneVerificationCode(@RequestBody Map<String,String> phoneMap) {
 		TwilioService ts = new TwilioService();
 		Map<String, Object> response = ts.sendVerificationCode(phoneMap.get("countryCode").toString(), phoneMap.get("phone").toString());
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/api/checkVerificationCode", method = RequestMethod.POST)
+	@RequestMapping(value = "/api/guest/checkVerificationCode", method = RequestMethod.POST)
 	public ResponseEntity<?> checkPhoneVerificationCode(@RequestBody Map<String,String> phoneMap) {
 		TwilioService ts = new TwilioService();
 		Map<String, Object> response = ts.checkVerificationCode(phoneMap.get("countryCode").toString(), phoneMap.get("phone").toString(), phoneMap.get("code").toString());
