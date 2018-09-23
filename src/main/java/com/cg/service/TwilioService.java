@@ -36,7 +36,7 @@ public class TwilioService {
 	}*/
 	
 	public Map<String,Object> sendVerificationCode(String countryCode, String phone) {
-		
+		System.out.println(countryCode+" - "+phone);
 		Map<String,Object> response = new HashMap<>();
 		response.put("success", true);
 		
