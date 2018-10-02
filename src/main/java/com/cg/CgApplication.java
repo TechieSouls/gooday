@@ -9,6 +9,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +54,15 @@ public class CgApplication {
 
 		SpringApplication.run(CgApplication.class, args);
 	}
+	
+	@Bean
+	  public FilterRegistrationBean tokenFilter() {
+	      final FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+	      registrationBean.setFilter(new CorsFilter());
+	      registrationBean.addUrlPatterns("/api/*");
+
+	      return registrationBean;
+	  }
 
 	@Bean
 	public Docket petApi() {
