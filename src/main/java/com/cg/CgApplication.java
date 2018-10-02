@@ -54,15 +54,6 @@ public class CgApplication {
 
 		SpringApplication.run(CgApplication.class, args);
 	}
-	
-	@Bean
-	  public FilterRegistrationBean tokenFilter() {
-	      final FilterRegistrationBean registrationBean = new FilterRegistrationBean();
-	      registrationBean.setFilter(new CorsFilter());
-	      registrationBean.addUrlPatterns("/api/*");
-
-	      return registrationBean;
-	  }
 
 	@Bean
 	public Docket petApi() {
