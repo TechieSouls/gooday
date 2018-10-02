@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import com.thetransactioncompany.cors.CORSFilter;
 
-@Service
 public class CorsFilter extends CORSFilter {
 
 	@Override
