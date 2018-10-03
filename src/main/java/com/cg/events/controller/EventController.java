@@ -22,6 +22,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletResponse;
+
 import okhttp3.internal.framed.ErrorCode;
 
 import org.primefaces.json.JSONArray;
@@ -226,11 +228,14 @@ public class EventController {
 		return new ResponseEntity<Map<String,Object>>(deleteResponse,HttpStatus.OK);
 	}
 	
+	
 	@ApiOperation(value = "Fetch Event By Its Id", notes = "Fecth event by id", code = 200, httpMethod = "GET", produces = "application/json")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Event fetched successfuly", response = Event.class) })
 	@RequestMapping(value = "/api/event/{eventId}", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<Map<String,Object>> getEventById(@PathVariable("eventId") Long eventId) {
+	public ResponseEntity<Map<String,Object>> getEventById(@PathVariable("eventId") Long eventId, HttpServletResponse httpResponse) {
+
+		httpResponse.addHeader("Access-Control-Allow-Origin", "*");
 
 		Map<String,Object> response = new HashMap<>();
 		Event event = new Event();
@@ -408,7 +413,7 @@ public class EventController {
 	@ResponseBody
 	public ResponseEntity<List<Event>> getGoogleEvents(
 			@RequestParam("access_token") String accessToken,
-			@RequestParam("user_id") Long userId) {
+			@RequestParam("user_id") Long userId, String refreshToken) {
 
 		User user = userService.findUserById(userId);
 		
