@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.cg.stateless.security.StatelessAuthenticationFilter;
@@ -33,7 +34,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.exceptionHandling()
-				.and()
+				.and().addFilterBefore(new CorsFilter(), ChannelProcessingFilter.class)
 				.anonymous()
 				.and()
 				.servletApi()
@@ -78,7 +79,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 								tokenAuthenticationService),
 						UsernamePasswordAuthenticationFilter.class);
 	}
-
+	
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth)
 			throws Exception {
