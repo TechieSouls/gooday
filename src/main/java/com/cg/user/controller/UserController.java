@@ -177,6 +177,16 @@ public class UserController {
 					user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
 					user.setToken(establishUserAndLogin(httpServletResponse, user));
 					userInfo = userService.saveUser(user);
+					
+					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhone(user.getPhone());
+					if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+						for (UserContact userContact : userContactInOtherContacts) {
+							userContact.setCenesMember(CenesMember.yes);
+							userContact.setFriendId(user.getUserId());
+						}
+						userContactRepository.save(userContactInOtherContacts);
+					}
+					
 				} catch(Exception e) {
 					e.printStackTrace();
 					user.setPassword(null);
@@ -189,15 +199,6 @@ public class UserController {
 				user.setErrorCode(ErrorCodes.EmailAlreadyTaken.getErrorCode());
 				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken.toString());
 				System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : Email Already Exists");
-				
-				List<UserContact> userContactInOtherContacts = userContactRepository.findByPhone(user.getPhone());
-				if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
-					for (UserContact userContact : userContactInOtherContacts) {
-						userContact.setCenesMember(CenesMember.yes);
-						userContact.setFriendId(user.getUserId());
-					}
-					userContactRepository.save(userContactInOtherContacts);
-				}
 				
 				return new ResponseEntity<User>(user, HttpStatus.OK);
 			}
