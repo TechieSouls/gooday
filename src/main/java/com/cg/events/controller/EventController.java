@@ -233,9 +233,7 @@ public class EventController {
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Event fetched successfuly", response = Event.class) })
 	@RequestMapping(value = "/api/event/{eventId}", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<Map<String,Object>> getEventById(@PathVariable("eventId") Long eventId, HttpServletResponse httpResponse) {
-
-		httpResponse.addHeader("Access-Control-Allow-Origin", "*");
+	public ResponseEntity<Map<String,Object>> getEventById(@PathVariable("eventId") Long eventId) {
 
 		Map<String,Object> response = new HashMap<>();
 		Event event = new Event();
