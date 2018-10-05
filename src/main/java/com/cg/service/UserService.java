@@ -85,6 +85,9 @@ public class UserService {
 		Long userId = Long.valueOf(phoneContacts.get("userId").toString());
 		List<Map<String,String>> contacts = (List<Map<String,String>>)phoneContacts.get("contacts");
 		
+		System.out.println("Contacts List Size : "+contacts.size());
+		System.out.println("Contacts Data : "+contacts.toString());
+		
 		contacts = filterUserContactsWhichAreNotCenesMember(contacts,userId);		
 		
 		Map<String,String> threadContacts = null;
