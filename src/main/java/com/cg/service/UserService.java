@@ -144,9 +144,10 @@ public class UserService {
 		public void run() {
 			for (Entry<String, String> contactSet : getContacts().entrySet()) {
 				UserContact userContact = new UserContact(); 
-				User user = this.userRepository.findByPhone(contactSet.getKey());
+				List<User> users = this.userRepository.findByPhone(contactSet.getKey());
 				UserContact.CenesMember cenesMember = CenesMember.no;
-				if (user != null) {
+				if (users != null && users.size() > 0) {
+					User user = users.get(0);
 					cenesMember = CenesMember.yes;
 					userContact.setFriendId(user.getUserId());
 				}
