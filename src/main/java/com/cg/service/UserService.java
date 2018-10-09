@@ -115,6 +115,13 @@ public class UserService {
 	public List<Map<String,String>> filterUserContactsWhichAreNotCenesMember(List<Map<String,String>> phoneContacts,Long userId) {
 		List<Map<String,String>> phoneContactsToRemove = new ArrayList<>();
 		List<UserContact> userContacts = userContactRepository.findByUserId(userId);
+		
+		System.out.println("Deleting Contacts");
+		userContacts = contactsWhichAreDeleted(userContacts, phoneContacts);
+		
+		System.out.println("Updating Contacts");
+		contactsWhichAreModified(userContacts, phoneContacts);
+		
 		for (UserContact userContact : userContacts) {
 			
 			Iterator<Map<String,String>> it = phoneContacts.iterator();
@@ -130,6 +137,47 @@ public class UserService {
 		return phoneContacts;
 	}
  	
+	//This method will be called to delete the contacts from database
+	//if they are not found in contacts list
+	public List<UserContact> contactsWhichAreDeleted(List<UserContact> dbContacts, List<Map<String,String>> phoneContacts) {
+		List<UserContact> contactsDeleted = new ArrayList<>();
+		for (UserContact userContact : dbContacts) {
+			Iterator<Map<String,String>> it = phoneContacts.iterator();
+			while (it.hasNext()) {
+				Map<String,String> value = it.next();
+				if (value.containsKey(userContact.getPhone())) {
+					contactsDeleted.add(userContact);
+					dbContacts.remove(userContact);
+					break;
+				}
+			}
+		}
+		if (contactsDeleted.size() > 0) {
+			this.userContactRepository.delete(contactsDeleted);
+		}
+		return dbContacts;
+	}
+	
+	//This method will modified the contacts whose name has been changed.
+	public void contactsWhichAreModified(List<UserContact> dbContacts, List<Map<String,String>> phoneContacts) {
+		List<UserContact> contactsModified = new ArrayList<>();
+		for (UserContact userContact : dbContacts) {
+			Iterator<Map<String,String>> it = phoneContacts.iterator();
+			while (it.hasNext()) {
+				Map<String,String> value = it.next();
+				if (value.containsKey(userContact.getPhone())) {
+					if (!value.get(userContact.getPhone()).equals(userContact.getName())) {
+						contactsModified.add(userContact);
+						break;
+					}
+				}
+			}
+		}
+		if (contactsModified.size() > 0) {
+			this.userContactRepository.save(contactsModified);
+		}
+	}
+	
 	class PhoneConatctsTask implements Runnable {
 		
 		private UserRepository userRepository;
