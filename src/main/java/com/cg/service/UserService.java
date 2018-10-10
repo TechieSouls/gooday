@@ -140,22 +140,29 @@ public class UserService {
 	//This method will be called to delete the contacts from database
 	//if they are not found in contacts list
 	public List<UserContact> contactsWhichAreDeleted(List<UserContact> dbContacts, List<Map<String,String>> phoneContacts) {
+		List<UserContact> tempContactList = new ArrayList<>();
 		List<UserContact> contactsDeleted = new ArrayList<>();
 		for (UserContact userContact : dbContacts) {
+			
+			boolean contactDeleted = true;
 			Iterator<Map<String,String>> it = phoneContacts.iterator();
 			while (it.hasNext()) {
 				Map<String,String> value = it.next();
 				if (value.containsKey(userContact.getPhone())) {
-					contactsDeleted.add(userContact);
-					dbContacts.remove(userContact);
+					tempContactList.add(userContact);
+					contactDeleted = false;
 					break;
 				}
+			}
+			
+			if (contactDeleted) {
+				contactsDeleted.add(userContact);
 			}
 		}
 		if (contactsDeleted.size() > 0) {
 			this.userContactRepository.delete(contactsDeleted);
 		}
-		return dbContacts;
+		return tempContactList;
 	}
 	
 	//This method will modified the contacts whose name has been changed.
@@ -167,6 +174,7 @@ public class UserService {
 				Map<String,String> value = it.next();
 				if (value.containsKey(userContact.getPhone())) {
 					if (!value.get(userContact.getPhone()).equals(userContact.getName())) {
+						userContact.setName(value.get(userContact.getPhone()));
 						contactsModified.add(userContact);
 						break;
 					}
