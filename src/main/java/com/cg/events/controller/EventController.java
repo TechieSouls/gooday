@@ -414,7 +414,7 @@ public class EventController {
 			@RequestParam("access_token") String accessToken,
 			@RequestParam("user_id") Long userId, String refreshToken) {
 
-		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Outlook);
+		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Google);
 		if (calendarSyncToken == null) {
 			calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Google, refreshToken);
 			eventManager.saveCalendarSyncToken(calendarSyncToken);
