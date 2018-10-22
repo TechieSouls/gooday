@@ -841,4 +841,12 @@ public class EventManager {
 	public List<CalendarSyncToken> getAllOutlookGoogleSyncTokens() {
 		return refreshTokenRepository.findByAccountType(AccountType.Outlook);
 	}
+	
+	public CalendarSyncToken findCalendarSyncTokenByUserIdAndAccountType(Long userId, CalendarSyncToken.AccountType accountType) {
+		return refreshTokenRepository.findByUserIdAndAccountType(userId, accountType);
+	}
+	
+	public void saveCalendarSyncToken(CalendarSyncToken calendarSyncToken) {
+		refreshTokenRepository.save(calendarSyncToken);
+	}
 }

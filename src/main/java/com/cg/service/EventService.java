@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CenesProperty;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
@@ -20,6 +21,7 @@ import com.cg.events.repository.EventMemberRepository;
 import com.cg.events.repository.EventRepository;
 import com.cg.events.repository.EventTimeSlotRepository;
 import com.cg.events.repository.RecurringPatternRepository;
+import com.cg.repository.CalendarSyncTokenRepository;
 import com.cg.repository.CenesPropertyRepository;
 import com.cg.repository.CenesPropertyValueRepository;
 import com.cg.repository.RecurringEventRepository;
@@ -51,6 +53,8 @@ public class EventService {
 	@Autowired
 	EventTimeSlotRepository eventTimeSlotRepository;
 	
+	@Autowired
+	CalendarSyncTokenRepository calendarSyncTokenRepository;
 	
 	public List<RecurringEvent> findUnProcessRecurringEvents() {
 		List<RecurringEvent> recurringEvents = recurringEventRepository.findUnprocessedEvents(RecurringEventProcessStatus.unprocessed.ordinal());
@@ -175,4 +179,9 @@ public class EventService {
 	public void deleteEventTimeSlotsByEventId(Long eventId) {
 		eventTimeSlotRepository.deleteByEventId(eventId);
 	}
+	
+	public CalendarSyncToken findCalendarSyncTokenByUserIdAndAccountType(Long userId, CalendarSyncToken.AccountType accountType) {
+		return calendarSyncTokenRepository.findByUserIdAndAccountType(userId, accountType);
+	}
+	
 }

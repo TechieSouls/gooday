@@ -42,6 +42,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CenesProperty;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
@@ -413,6 +414,12 @@ public class EventController {
 			@RequestParam("access_token") String accessToken,
 			@RequestParam("user_id") Long userId, String refreshToken) {
 
+		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Outlook);
+		if (calendarSyncToken == null) {
+			calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Google, refreshToken);
+			eventManager.saveCalendarSyncToken(calendarSyncToken);
+		}
+		
 		User user = userService.findUserById(userId);
 		
 		eventManager.deleteEventsByCreatedByIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
@@ -750,11 +757,17 @@ public class EventController {
 	@ResponseBody
 	public ResponseEntity<List<Event>> getOutlookEvents(
 			@RequestParam("access_token") String accessToken,
-			@RequestParam("user_id") Long userId) {
+			@RequestParam("user_id") Long userId, String refreshToken) {
 		System.out.println("[ Syncing Outlook Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
 		User user = userService.findUserById(userId);
 		List<Event> events = null;
 		try {
+			
+			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Outlook);
+			if (calendarSyncToken == null) {
+				calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Outlook, refreshToken);
+				eventManager.saveCalendarSyncToken(calendarSyncToken);
+			}
 			
 			eventManager.deleteEventsByCreatedByIdSource(userId, Event.EventSource.Outlook.toString());
 			eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(userId, Event.EventSource.Outlook.toString());
@@ -794,11 +807,17 @@ public class EventController {
 	@ResponseBody
 	public ResponseEntity<List<Event>> syncIosOutlookEvents(
 			@RequestParam("access_token") String accessToken,
-			@RequestParam("user_id") Long userId) {
+			@RequestParam("user_id") Long userId, String refreshToken) {
 		System.out.println("[ Syncing Outlook Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
 		User user = userService.findUserById(userId);
 		List<Event> events = null;
 		try {
+			
+			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Outlook);
+			if (calendarSyncToken == null) {
+				calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Outlook, refreshToken);
+				eventManager.saveCalendarSyncToken(calendarSyncToken);
+			}
 			
 			eventManager.deleteEventsByCreatedByIdSource(userId, Event.EventSource.Outlook.toString());
 			eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(userId, Event.EventSource.Outlook.toString());

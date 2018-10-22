@@ -16,5 +16,6 @@ public interface CalendarSyncTokenRepository extends JpaRepository<CalendarSyncT
 	public void deleteByUserIdAndAccountType(Long userId, AccountType accountType);
 	public List<CalendarSyncToken> findByUserId(Long userId);
 	public CalendarSyncToken findByUserIdAndEmailId(Long userId,String email);
+	public CalendarSyncToken findByUserIdAndAccountType(Long userId,AccountType accountType);
 	public void deleteByUserIdAndEmailId(Long userId,String email);
 }

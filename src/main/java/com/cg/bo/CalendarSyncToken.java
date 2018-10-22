@@ -19,27 +19,31 @@ public class CalendarSyncToken {
 
 	public enum AccountType {Google,Outlook}
 	
+	public CalendarSyncToken() {
+		
+	}
+	
 	public CalendarSyncToken(Long userId, AccountType accountType) {
 		this.userId = userId;
 		this.accountType = accountType;
 	}
 	
-	public CalendarSyncToken(Long userId, AccountType accountType, String refreshTokenString) {
+	public CalendarSyncToken(Long userId, AccountType accountType, String refreshToken) {
 		this.userId = userId;
 		this.accountType = accountType;
-		this.refreshTokenString = refreshTokenString;
+		this.refreshToken = refreshToken;
 	}
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
-	@Column(name="refresh_token_id")
+	@Column(name="calendar_sync_token_id")
 	private Long refreshTokenId;
 	
 	@Column(name="user_id")
 	private Long userId;
 	
-	@Column(name="refresh_token_str")
-	private String refreshTokenString;
+	@Column(name="refresh_token")
+	private String refreshToken;
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name="account_type")
@@ -69,12 +73,12 @@ public class CalendarSyncToken {
 		this.userId = userId;
 	}
 
-	public String getRefreshTokenString() {
-		return refreshTokenString;
+	public String getRefreshToken() {
+		return refreshToken;
 	}
 
-	public void setRefreshTokenString(String refreshTokenString) {
-		this.refreshTokenString = refreshTokenString;
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
 	}
 
 	public AccountType getAccountType() {
