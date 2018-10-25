@@ -69,6 +69,7 @@ import com.cg.repository.ReminderRepository;
 import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
 import com.cg.service.EventService;
+import com.cg.service.GoogleService;
 import com.cg.service.OutlookService;
 import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
@@ -412,12 +413,25 @@ public class EventController {
 	@ResponseBody
 	public ResponseEntity<List<Event>> getGoogleEvents(
 			@RequestParam("access_token") String accessToken,
-			@RequestParam("user_id") Long userId, String refreshToken) {
+			@RequestParam("user_id") Long userId, String serverAuthCode) {
 
 		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Google);
 		if (calendarSyncToken == null) {
-			calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Google, refreshToken);
-			eventManager.saveCalendarSyncToken(calendarSyncToken);
+			System.out.println("[Google Sync] Date : "+new Date()+" Getting Refresh Token Response from AuthCode");
+			GoogleService googleService = new GoogleService();
+			JSONObject authCodeResponse = googleService.getRefreshTokenFromCode(serverAuthCode);
+			System.out.println("[Google Sync] Date : "+new Date()+" Response from AuthCode : "+authCodeResponse.toString());
+			if (authCodeResponse != null) {
+				try {
+					System.out.println("[Google Sync] Date : "+new Date()+" Saving Refresh Token : "+authCodeResponse.toString());
+
+					String refreshToken = authCodeResponse.getString("refresh_token");
+					calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Google, refreshToken);
+					eventManager.saveCalendarSyncToken(calendarSyncToken);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		
 		User user = userService.findUserById(userId);
@@ -436,6 +450,48 @@ public class EventController {
 		}
 		System.out.println("[ Syncing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
 		return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/api/google/refreshEvents", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<List<Event>> getGoogleEvents(Long userId) {
+
+		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Google);
+
+		if (calendarSyncToken != null) {
+			System.out.println("[Google Sync] Date : "+new Date()+" Getting Access Token Response from RefreshToken");
+			GoogleService googleService = new GoogleService();
+			JSONObject refreshTokenResponse = googleService.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+			System.out.println("[Google Sync] Date : "+new Date()+" Response from Refresh Token : "+refreshTokenResponse.toString());
+			if (refreshTokenResponse != null) {
+				try {
+					String accessToken = refreshTokenResponse.getString("access_token");
+
+					User user = userService.findUserById(userId);
+					eventManager.deleteEventsByCreatedByIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
+					eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
+					
+					System.out.println("[ Syncing Google Refreshing Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
+					List<Event> events = eventManager.syncGoogleEvents(false, accessToken, user);
+					if (events == null) {
+						Event errorEvent = new Event();
+						errorEvent.setErrorCode(ErrorCode.INTERNAL_ERROR.ordinal());
+						errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
+						events = new ArrayList<>();
+						events.add(errorEvent);
+					}
+					System.out.println("[ Refreshing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
+					return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
+					
+					
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		System.out.println("[ Syncing Google Events ENDS]");
+		return new ResponseEntity<List<Event>>(new ArrayList<>(), HttpStatus.OK);
 	}
 
 	// Method to get Google events from API.

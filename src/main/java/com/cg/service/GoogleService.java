@@ -1,5 +1,9 @@
 package com.cg.service;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -7,7 +11,10 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import org.primefaces.json.JSONArray;
+import org.primefaces.json.JSONException;
 import org.primefaces.json.JSONObject;
 
 import com.cg.bo.GoogleCountries;
@@ -19,6 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GoogleService {
 	private String calendar_list_api = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
+	private String clientId = "212716305349-dqqjgf3njkqt9s3ucied3bit42po3m39.apps.googleusercontent.com";
+	private String clientSecret = "aaHR0dPqd57brx15We1sr1LE";
+	
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ");
 	
 	//anot Used
@@ -324,9 +334,154 @@ public class GoogleService {
 		return null;
 	}
 	
+	public String httpPostQueryString(String apiUrl, String postStr) {
+		try {
+			URL obj = new URL(apiUrl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+			//add request header
+			con.setRequestMethod("POST");
+			//con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+			con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+			// Send post request
+			con.setDoOutput(true);
+			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes(postStr);
+			wr.flush();
+			wr.close();
+
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'POST' request to URL : " + apiUrl);
+			System.out.println("Post parameters : " + postStr);
+			System.out.println("Response Code : " + responseCode);
+
+			BufferedReader in = new BufferedReader(
+			        new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			
+			//print result
+			System.out.println(response.toString());
+			return response.toString();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public JSONObject getRefreshTokenFromCode(String serverAuthCode) {
+		
+		String authUrl = "https://accounts.google.com/o/oauth2/token";
+		String postParams = "code="+serverAuthCode;
+		postParams += "&client_id="+clientId;
+		postParams += "&client_secret="+clientSecret;
+		postParams += "&grant_type=authorization_code";
+		postParams += "&redirect_uri=";
+		
+		String authResponse = httpPostQueryString(authUrl, postParams);
+		if (authResponse != null) {
+			try {
+				JSONObject resp = new JSONObject(authResponse);
+				return resp;
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return null;
+	}
+	
+	public JSONObject getAccessTokenFromRefreshToken(String refreshToken) {
+		
+		String authUrl = "https://www.googleapis.com/oauth2/v4/token";
+		String postParams = "refresh_token="+refreshToken;
+		postParams += "&client_id="+clientId;
+		postParams += "&client_secret="+clientSecret;
+		postParams += "&grant_type=refresh_token";
+		
+
+		String authResponse = httpPostQueryString(authUrl, postParams);
+		if (authResponse != null) {
+			try {
+				JSONObject resp = new JSONObject(authResponse);
+				return resp;
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	public void getAccessTokenFromRefreshTokenBkp(String refreshToken) {
+		
+		String url = "https://www.googleapis.com/oauth2/v4/token";
+		//String url = "https://accounts.google.com/o/oauth2/token";
+		try {
+			URL obj = new URL(url);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+			//add request header
+			con.setRequestMethod("POST");
+			//con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+			con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+			String urlParameters = "code=4/gQA9i17zvlDMc1n557AolilRVxs32xPt7PLehE1tbZ3SUqx5LU0mqSJ5WiMWTUCiZOBVi8jP0OhDVPwWZ5ux15A&"
+					+ "client_id=212716305349-dqqjgf3njkqt9s3ucied3bit42po3m39.apps.googleusercontent.com&"
+					+ "client_secret=aaHR0dPqd57brx15We1sr1LE&grant_type=authorization_code";
+			
+			// Send post request
+			con.setDoOutput(true);
+			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes(urlParameters);
+			wr.flush();
+			wr.close();
+
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'POST' request to URL : " + url);
+			System.out.println("Post parameters : " + urlParameters);
+			System.out.println("Response Code : " + responseCode);
+
+			BufferedReader in = new BufferedReader(
+			        new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			
+			//print result
+			System.out.println(response.toString());
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 	public GoogleCountries getCountries() {
 		String placeApi = "http://cenes.test2.redblink.net/assets/countries-info.json";
 		GoogleCountries gc = null;//doGoogleCountriesRestRequest(placeApi,HttpMethod.GET,null);
 		return gc;
 	}
+	/*public static void main(String[] args) {
+		GoogleService gs = new GoogleService();
+		
+		String code = "4/gQAMvMDxd-8HMgUURTzygIbqipG4q8zQU_IYpiDxsWvqJQHKMm66V0Qx4T420PD3aj0j8muMsLRU1rRfL66zcy0";
+		
+		gs.getRefreshTokenFromCode(code);
+		
+		String refToken = "1/FJyHUGLkgKxPd7doia2IHtI13txoC6h43_bHzdAV7m8";
+		gs.getAccessTokenFromRefreshToken(refToken);
+	}*/
 }
