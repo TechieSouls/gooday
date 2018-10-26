@@ -1,9 +1,12 @@
 package com.cg.service;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -12,6 +15,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import org.primefaces.json.JSONObject;
 import org.springframework.http.HttpEntity;
@@ -28,6 +33,8 @@ import com.cg.events.bo.OutlookEvents;
 
 public class OutlookService {
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
+	private String clientId = "0b228193-26f2-4837-b791-ffd7eab7441e";
+	
 	public List<OutlookEvents> getOutlookCalenderEvents (String accessToken) {
 		List<OutlookEvents> outlookCalenderEvents = new ArrayList<>();
 		Date date = new Date();
@@ -233,4 +240,105 @@ public class OutlookService {
 	
 	}
 	
+	public String httpPostQueryStr(String apiUrl, String queryStr) {
+		StringBuffer response = new StringBuffer();
+
+		try {
+			URL obj = new URL(apiUrl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+			//add reuqest header
+			con.setRequestMethod("POST");
+			con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+			con.setDoOutput(true);
+
+			OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+
+			writer.write(queryStr);
+			writer.flush();
+
+			String line;
+			BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+
+			while ((line = reader.readLine()) != null) {
+				response.append(line);
+			}
+			System.out.println(response.toString());
+
+			writer.close();
+			reader.close();     
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return response.toString();
+	}
+	
+	public JSONObject getAccessTokenFromRefreshToken(String refreshToken) {
+		
+		String apiUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+		String queryStr = "client_id="+clientId+"&grant_type=refresh_token&refresh_token="+refreshToken;
+		String response = httpPostQueryStr(apiUrl, queryStr);
+		if (response != null) {
+			try {
+				JSONObject jsonObject = new JSONObject(response);
+				return jsonObject;
+			} catch (Exception e) {
+				// TODO: handle exception
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	
+	
+	/*public static void main(String[] args) {
+		
+		String apiUrl = "https://login.windows.net/common/oauth2/token";
+		String queryStr = "grant_type=refresh_token&"
+				+ "refresh_token=MCTZ!cpBmnvHsZcMTIzELS6DB9qw5RPZWt23M2wpQb3D6kuGGpZ11UpzEzwnKZmo9zZrK4tNyri9kMGsyB5SVfZjLH2uEAmUE*oz1b8g*7fbKI1TOQbh8iExdS1QC50XsJf3VCuDJp6nc9WP4rBdtAKRr8hEQMqCPSqVxE33MsUWKYEHeq8Q*zUDtt4KtTCMPAvcXpKxVKyt9n7PhxaUa2zRoyE90HSDM22P3tAmNKPi02cbw7FGFG!xDzhIC4Fz6R9LQOpr78Mk9LOvFA2b1HYNlCarVH6rLQ!4ot4NZy8ZzUTyxYzN1hODsDUFrQZVOGp76UxYXWbwwMQoFr9!z*ILICTLwLY7XWIAzi1iqny1q&"
+				+ "client_id=0b228193-26f2-4837-b791-ffd7eab7441e&"
+				+ "client_secret=jnnjJDIN8291)ymgMOC9|}$";
+		try {
+			URL obj = new URL(apiUrl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+			//add reuqest header
+			con.setRequestMethod("POST");
+			con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+
+			// Send post request
+			con.setDoOutput(true);
+			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes(queryStr);
+			wr.flush();
+			wr.close();
+
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'POST' request to URL : " + apiUrl);
+			System.out.println("Post parameters : " + queryStr);
+			System.out.println("Response Code : " + responseCode);
+
+			BufferedReader in = new BufferedReader(
+			        new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			
+			//print result
+			System.out.println(response.toString());
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}*/
+	
+	/*public static void main(String[] args) {
+		OutlookService os = new OutlookService();
+		String refreshToken = "MCWzjiOS1Xanp6JdlUnpSWB6fSuOkGj5U29pUNSRfBwwQBHyjEaAnuYWXVGB4QJB!PA1aT632COanl4W2feK2BlSEav72G5*vyMwNiPElXpw7pY9Az7eC4sWmM92ADH0BaHkcurxlHcbeVShmiwRA70Pre75eODrdfYnQkVs6O64!QeUEeuL0hT9KQenUtPcck8gvto0c8IqOksoH1w!9O5yKWMIiCOcRbOnJWTT51VQIxH*YkJPv1!nlOFelZfSz8tKqU0ZVXMZTTNXiY2VCpUtWJJSxPAzTX86rQcNMFtUytUl85hVIMPbPNBlqIpHyaxatKuAwqYYmF7kKfuBjg1uxn4qU!ym3hMlnx5BBs2ic";
+		os.getAccessTokenFromRefreshToken(refreshToken);
+	}*/
 }

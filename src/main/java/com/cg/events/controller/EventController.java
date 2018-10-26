@@ -859,6 +859,57 @@ public class EventController {
 		return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
 	}
 	
+	
+	// Method to get Outlook events from API.
+		@RequestMapping(value = "/api/outlook/refreshevents", method = RequestMethod.GET)
+		@ResponseBody
+		public ResponseEntity<List<Event>> refreshOutlookEvents(Long userId) {
+			System.out.println("[ Refreshing Outlook Events - User Id : " + userId+ "]");
+			
+			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Outlook);
+
+			if (calendarSyncToken != null) {
+				System.out.println("[Outlook Sync] Date : "+new Date()+" Getting Access Token Response from RefreshToken");
+				OutlookService outlookService = new OutlookService();
+				JSONObject refreshTokenResponse = outlookService.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+				System.out.println("[Outlook Sync] Date : "+new Date()+" Response from Refresh Token : "+refreshTokenResponse.toString());
+				if (refreshTokenResponse != null) {
+					try {
+						String accessToken = refreshTokenResponse.getString("access_token");
+						
+						User user = userService.findUserById(userId);
+						List<Event> events = null;
+						try {
+							eventManager.deleteEventsByCreatedByIdSource(userId, Event.EventSource.Outlook.toString());
+							eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(userId, Event.EventSource.Outlook.toString());
+							
+							OutlookService os = new OutlookService();
+							List<OutlookEvents> outlookEventList = os.getOutlookCalenderEvents(accessToken);
+							if (outlookEventList != null && outlookEventList.size() > 0) {
+								System.out.println("Outlook Calendar events size : "+outlookEventList.size());
+								events = eventManager.populateOutlookEventsInCenes(outlookEventList,user);
+								System.out.println("Events to Sync : "+events.size());
+
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							Event errorEvent = new Event();
+							errorEvent.setErrorCode(ErrorCode.INTERNAL_ERROR.ordinal());
+							errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
+							List<Event> errorEvents = new ArrayList<>();
+							errorEvents.add(errorEvent);
+							return new ResponseEntity<List<Event>>(errorEvents,
+									HttpStatus.INTERNAL_SERVER_ERROR);
+						}
+						return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			return null;
+		}
+	
 	@RequestMapping(value = "/api/iosoutlook/events", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<List<Event>> syncIosOutlookEvents(
