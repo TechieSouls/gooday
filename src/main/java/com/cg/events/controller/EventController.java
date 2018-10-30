@@ -413,24 +413,30 @@ public class EventController {
 	@ResponseBody
 	public ResponseEntity<List<Event>> getGoogleEvents(
 			@RequestParam("access_token") String accessToken,
-			@RequestParam("user_id") Long userId, String serverAuthCode) {
+			@RequestParam("user_id") Long userId, String serverAuthCode, String refreshToken) {
 
 		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Google);
 		if (calendarSyncToken == null) {
 			System.out.println("[Google Sync] Date : "+new Date()+" Getting Refresh Token Response from AuthCode");
 			GoogleService googleService = new GoogleService();
-			JSONObject authCodeResponse = googleService.getRefreshTokenFromCode(serverAuthCode);
-			System.out.println("[Google Sync] Date : "+new Date()+" Response from AuthCode : "+authCodeResponse.toString());
-			if (authCodeResponse != null) {
-				try {
-					System.out.println("[Google Sync] Date : "+new Date()+" Saving Refresh Token : "+authCodeResponse.toString());
+			
+			if (serverAuthCode != null) {
+				JSONObject authCodeResponse = googleService.getRefreshTokenFromCode(serverAuthCode);
+				System.out.println("[Google Sync] Date : "+new Date()+" Response from AuthCode : "+authCodeResponse.toString());
+				if (authCodeResponse != null) {
+					try {
+						System.out.println("[Google Sync] Date : "+new Date()+" Saving Refresh Token : "+authCodeResponse.toString());
 
-					String refreshToken = authCodeResponse.getString("refresh_token");
-					calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Google, refreshToken);
-					eventManager.saveCalendarSyncToken(calendarSyncToken);
-				} catch(Exception e) {
-					e.printStackTrace();
-				}
+						String refToken = authCodeResponse.getString("refresh_token");
+						calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Google, refToken);
+						eventManager.saveCalendarSyncToken(calendarSyncToken);
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
+				} 
+			} else if (refreshToken != null) {
+				calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Google, refreshToken);
+				eventManager.saveCalendarSyncToken(calendarSyncToken);
 			}
 		}
 		
