@@ -462,6 +462,7 @@ public class EventController {
 	@ResponseBody
 	public ResponseEntity<List<Event>> getGoogleEvents(Long userId) {
 
+		System.out.println("[Google Refresh : User ID : "+userId+"]");	
 		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Google);
 
 		if (calendarSyncToken != null) {
@@ -469,8 +470,9 @@ public class EventController {
 			GoogleService googleService = new GoogleService();
 			JSONObject refreshTokenResponse = googleService.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
 			System.out.println("[Google Sync] Date : "+new Date()+" Response from Refresh Token : "+refreshTokenResponse.toString());
-			if (refreshTokenResponse != null) {
-				try {
+			try {
+				if (refreshTokenResponse != null) {
+				
 					String accessToken = refreshTokenResponse.getString("access_token");
 
 					User user = userService.findUserById(userId);
@@ -488,12 +490,11 @@ public class EventController {
 					}
 					System.out.println("[ Refreshing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
 					return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
-					
-					
-				} catch(Exception e) {
-					e.printStackTrace();
 				}
-			}
+			} catch(Exception e) {
+				e.printStackTrace();
+				return new ResponseEntity<List<Event>>(new ArrayList<>(), HttpStatus.OK);
+			}	
 		}
 		
 		System.out.println("[ Syncing Google Events ENDS]");
