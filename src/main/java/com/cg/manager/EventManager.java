@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.cg.bo.CenesProperty;
@@ -19,6 +22,7 @@ import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
+import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CalendarSyncToken.AccountType;
 import com.cg.dto.HomeScreenDto;
@@ -46,9 +50,13 @@ import com.cg.repository.ReminderRepository;
 import com.cg.service.EventService;
 import com.cg.service.FacebookService;
 import com.cg.service.GoogleService;
+import com.cg.service.OutlookService;
 import com.cg.service.UserService;
+import com.cg.threads.EventThread;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
+
+import okhttp3.internal.framed.ErrorCode;
 
 @Service
 public class EventManager {
@@ -70,6 +78,13 @@ public class EventManager {
 	
 	@Autowired
 	CalendarSyncTokenRepository refreshTokenRepository;
+	
+	@Autowired
+	EventTimeSlotManager eventTimeSlotManager;
+	
+	@Autowired
+	EventThread eventThread;
+	
 	
 	public Event createEvent(Event event) {
 
@@ -806,6 +821,150 @@ public class EventManager {
 			e.printStackTrace();
 		}
 		return events;
+	}
+	
+	public Map<String,Object> syncDeviceCalendar(Map<String,List<Event>> eventMap) {
+		System.out.println("[Syncing Device Calendar : Date : "+new Date()+" STARTS]");
+		System.out.println("syncdevicecalendar : "+eventMap);
+		Map<String,Object> response = new HashMap<>();
+		try {
+			if (eventMap.containsKey("data")) {
+				Event event = eventMap.get("data").get(0);
+				User user = userService.findUserById(event.getCreatedById());
+				
+				deleteEventsByCreatedByIdSource(user.getUserId(), Event.EventSource.Apple.toString());
+				eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(user.getUserId(), Event.EventSource.Apple.toString());
+				
+				List<Event> deviceEvents = eventMap.get("data");
+				for (Event deviceEvent : deviceEvents) {
+					List<EventMember> members = new ArrayList<>();
+					
+					EventMember eventMember = new EventMember();
+					eventMember.setName(user.getName());
+					eventMember.setPicture(user.getPhoto());
+					eventMember.setStatus(MemberStatus.Going.toString());
+					eventMember.setSource(EventSource.Apple.toString());
+					if (user.getEmail() != null) {
+						eventMember.setSourceEmail(user.getEmail());
+					}
+					eventMember.setUserId(user.getUserId());
+					members.add(eventMember);
+					deviceEvent.setEventMembers(members);
+				}
+				eventService.saveEventsBatch(eventMap.get("data"));
+			}
+			response.put("success", true);
+			response.put("errorCode", 0);
+			response.put("errorDetail", null);
+		} catch(Exception e){
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail", ErrorCodes.InternalServerError.toString());
+		}
+		System.out.println("[Syncing Device Calendar : Date : "+new Date()+" ENDS]");
+		return response;
+	}
+	
+	public void refreshGoogleEvents(Long userId) {
+
+		// TODO Auto-generated method stub
+		System.out.println("[Google Refresh : User ID : " + userId + "]");
+		CalendarSyncToken calendarSyncToken = findCalendarSyncTokenByUserIdAndAccountType(userId,
+				CalendarSyncToken.AccountType.Google);
+
+		if (calendarSyncToken != null) {
+			System.out.println(
+					"[Google Sync] Date : " + new Date() + " Getting Access Token Response from RefreshToken");
+			GoogleService googleService = new GoogleService();
+			JSONObject refreshTokenResponse = googleService
+					.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+			System.out.println("[Google Sync] Date : " + new Date() + " Response from Refresh Token : "
+					+ refreshTokenResponse.toString());
+			try {
+				if (refreshTokenResponse != null) {
+
+					String accessToken = refreshTokenResponse.getString("access_token");
+
+					User user = userService.findUserById(userId);
+					deleteEventsByCreatedByIdSourceScheduleAs(userId,
+							Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+					eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId,
+							Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+
+					System.out.println("[ Syncing Google Refreshing Events - User Id : " + userId
+							+ ", Access Token : " + accessToken + "]");
+					List<Event> events = syncGoogleEvents(false, accessToken, user);
+					if (events == null) {
+						Event errorEvent = new Event();
+						errorEvent.setErrorCode(ErrorCode.INTERNAL_ERROR.ordinal());
+						errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
+						events = new ArrayList<>();
+						events.add(errorEvent);
+					}
+					System.out.println("[ Refreshing Google Events - User Id : " + userId + ", Access Token : "
+							+ accessToken + "]");
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println("[ Syncing Google Events ENDS]");
+	}
+	
+	public void refreshOutlookEvent(Long userId) {
+
+		// TODO Auto-generated method stub
+		System.out.println("[ Refreshing Outlook Events - User Id : " + userId + "]");
+
+		CalendarSyncToken calendarSyncToken = findCalendarSyncTokenByUserIdAndAccountType(userId,
+				CalendarSyncToken.AccountType.Outlook);
+
+		if (calendarSyncToken != null) {
+			System.out.println(
+					"[Outlook Sync] Date : " + new Date() + " Getting Access Token Response from RefreshToken");
+			OutlookService outlookService = new OutlookService();
+			JSONObject refreshTokenResponse = outlookService
+					.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+			System.out.println("[Outlook Sync] Date : " + new Date() + " Response from Refresh Token : "
+					+ refreshTokenResponse.toString());
+			if (refreshTokenResponse != null) {
+				try {
+					String accessToken = refreshTokenResponse.getString("access_token");
+
+					User user = userService.findUserById(userId);
+					List<Event> events = null;
+					try {
+						deleteEventsByCreatedByIdSource(userId, Event.EventSource.Outlook.toString());
+						eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(userId,
+								Event.EventSource.Outlook.toString());
+
+						OutlookService os = new OutlookService();
+						List<OutlookEvents> outlookEventList = os.getOutlookCalenderEvents(accessToken);
+						if (outlookEventList != null && outlookEventList.size() > 0) {
+							System.out.println("Outlook Calendar events size : " + outlookEventList.size());
+							events = populateOutlookEventsInCenes(outlookEventList, user);
+							System.out.println("Events to Sync : " + events.size());
+
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						Event errorEvent = new Event();
+						errorEvent.setErrorCode(ErrorCode.INTERNAL_ERROR.ordinal());
+						errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
+						List<Event> errorEvents = new ArrayList<>();
+						errorEvents.add(errorEvent);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		System.out.println("[ Syncing Outlook Events ENDS]");
+	}
+	
+	public void runSyncThread(Long userId, Map<String, List<Event>> eventMap, Map<String, Object> phoneContacts) {
+		eventThread.runEventThread(userId, eventMap, phoneContacts);
 	}
 	
 	public void updateTimeSlotsToFreeByEvent(Event event) {
