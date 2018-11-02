@@ -94,6 +94,23 @@ public class UserService {
 		Long userId = Long.valueOf(phoneContacts.get("userId").toString());
 		List<Map<String,String>> contacts = (List<Map<String,String>>)phoneContacts.get("contacts");
 		
+		Map<String,String> uniqueContactMap = new HashMap<>();
+		for (Map<String,String> tempContact: contacts) {
+			for (Entry<String, String> tempEntryMap: tempContact.entrySet()) {
+				if (!uniqueContactMap.containsKey(tempEntryMap.getKey())) {
+					uniqueContactMap.put(tempEntryMap.getKey(), tempEntryMap.getValue());
+				}
+			}
+		}
+		
+		List<Map<String,String>> tempContacts = new ArrayList<>();
+		for (Entry<String, String> tempUniqueEntryMap: uniqueContactMap.entrySet()) {
+			Map<String, String> tempUniqueMap = new HashMap<>();
+			tempUniqueMap.put(tempUniqueEntryMap.getKey(), tempUniqueEntryMap.getValue());
+			tempContacts.add(tempUniqueMap);
+		}
+		contacts = tempContacts;
+		
 		System.out.println("Contacts List User : "+userId);
 		System.out.println("Contacts List Size : "+contacts.size());
 		System.out.println("Contacts Data : "+contacts.toString());
@@ -221,7 +238,13 @@ public class UserService {
 				userContact.setName(contactSet.getValue());
 				userContact.setUserId(getUserId());
 				userContact.setCenesMember(cenesMember);
-				this.userContactRepository.save(userContact);
+				try {
+					this.userContactRepository.save(userContact);
+				} catch (Exception e) {
+					// TODO: handle exception
+					e.printStackTrace();
+					System.out.println("-------------"+userContact.getName());
+				}
 			}
 		}
 
