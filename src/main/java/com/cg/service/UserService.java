@@ -76,6 +76,15 @@ public class UserService {
 	public User saveUser(User user) {
 		return userRepository.save(user);
 	}
+	
+	public User findUserByPhone(String phone) {
+		List<User> users = userRepository.findByPhone(phone);
+		if (users == null || users.size() == 0) {
+			return null;
+		}
+		
+		return users.get(0);
+	}
 
 	/**
 	 * Method to Sync the user phone contacts.
@@ -85,6 +94,7 @@ public class UserService {
 		Long userId = Long.valueOf(phoneContacts.get("userId").toString());
 		List<Map<String,String>> contacts = (List<Map<String,String>>)phoneContacts.get("contacts");
 		
+		System.out.println("Contacts List User : "+userId);
 		System.out.println("Contacts List Size : "+contacts.size());
 		System.out.println("Contacts Data : "+contacts.toString());
 		
