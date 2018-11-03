@@ -103,7 +103,7 @@ public class OutlookService {
 			con.setRequestMethod(method);
 			con.setRequestProperty("Accept", "application/json");
 			con.setRequestProperty("Authorization", "Bearer " + accessToken);
-			con.setRequestProperty("Prefer", "outlook.timezone=\"Pacific Standard Time\"");
+			//con.setRequestProperty("Prefer", "outlook.timezone=\"Pacific Standard Time\"");
 			int responseCode = con.getResponseCode();
 			System.out.println(con.getContent().toString());
 			if (responseCode == 200) {
@@ -340,5 +340,13 @@ public class OutlookService {
 		OutlookService os = new OutlookService();
 		String refreshToken = "MCWzjiOS1Xanp6JdlUnpSWB6fSuOkGj5U29pUNSRfBwwQBHyjEaAnuYWXVGB4QJB!PA1aT632COanl4W2feK2BlSEav72G5*vyMwNiPElXpw7pY9Az7eC4sWmM92ADH0BaHkcurxlHcbeVShmiwRA70Pre75eODrdfYnQkVs6O64!QeUEeuL0hT9KQenUtPcck8gvto0c8IqOksoH1w!9O5yKWMIiCOcRbOnJWTT51VQIxH*YkJPv1!nlOFelZfSz8tKqU0ZVXMZTTNXiY2VCpUtWJJSxPAzTX86rQcNMFtUytUl85hVIMPbPNBlqIpHyaxatKuAwqYYmF7kKfuBjg1uxn4qU!ym3hMlnx5BBs2ic";
 		os.getAccessTokenFromRefreshToken(refreshToken);
+	}*/
+	
+	/*public static void main(String[] args) {
+		
+		String accessToken = "EwAgA61DBAAUcSSzoTJJsy+XrnQXgAKO5cj4yc8AAV2zfWEFS69wDDqjHCypIDm3fX2I/C8KuKT8NFInGbq3qH98TTTqVzmdUTyKhOI9xKFAUSnFYNF+JSE6FGgdj/9L875qaSIOydLKTQmWTm/Ml309Am3QZSVEbt7WevU80KbeW3ppPBFtt5TJ4AQKnb1cEruPvM9mEHYew2hqVXRFXv9/1GejRLSEWVUQ1N2XUtiQrwfI3vJbNWly7E1GXuMC/v71G4RIC3CFN5bp/3oLzFtB2QpReXa8kqNU+iN58QYe76HTyvAwbkP3FrKIjFTqQl4Ad4dH3f9+4CT2MxrmjwOjmlYn1ffhXL5ldFUFtqt7+D33A/Q0h5f6wKIr36oDZgAACFuV/RWfmNOM8AGzTeS8w/+MYvg5S21R/vNZhfzLPvBWVLKSUZkxu9txxLChh1KF4FeJEosgu2UutGLSUAbI1kLurOu3AAk3F2Cj3FzwMD/Hdw/814ony1uqeWYYDS5mur3q7WSR2lIQlzdQdWUfLacGg4dzat7YqhZ/ZBvQl5IPaNa3IRojb9Qpm+/0cl/vBoa2ntJ/PCWgnifcxk6XR4nm7hSnqfv4D3t1ccJ1/Lw7CwrC4ujJwCBYgxlPY+v2YnKQLGD5O4TD4F3Umw136FSXrypwKSacFsxUmK5kDe20nqRnJRnuTj6Ig6v3vEYR5qR/P+gQeMHQx03jIIfSZa9usJJb1o8SkS+2rCIsTNXwwDctK93Gw2WK/sXlRTqrdYE7lV9yXdmJZPvIyosceGo/rUeXhuk72Etx9phxvCIAkdgNswj9tWu6yPwcH0ka6QiTrf8eChc4+NfgwBSyeck819kZhIUpO5g5kBM4IM0/VASIqFYs4YL5E2aZXayB2FVLth80FOEa2h+mnlQszdortTHsyJDFThqpOsIjwG6XmmOf2Yt4DrgcMdN9jokY+xpXdnzktWDcJsaspdyEeABPqrOs2Pp2lXvHM/DogiVYvfV1g4MoFoVsD/Lxwz+f8LveDThR0dMf14yTSl8ouTec9l48cywWSvYOIgI=";
+		
+		OutlookService os = new OutlookService();
+		os.getOutlookCalenderEvents(accessToken);
 	}*/
 }
