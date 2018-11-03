@@ -12,4 +12,6 @@ public interface UserContactRepository extends JpaRepository<UserContact, Long>{
 
 	List<UserContact> findByUserId(Long userId);
 	List<UserContact> findByPhone(String phone);
+	List<UserContact> findByUserIdOrderByNameAsc(Long userId);
+
 }

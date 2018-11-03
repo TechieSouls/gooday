@@ -71,6 +71,7 @@ import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
 import com.cg.service.FacebookService;
+import com.cg.service.OutlookService;
 import com.cg.service.TwilioService;
 import com.cg.service.UserService;
 import com.cg.stateless.security.TokenAuthenticationService;
@@ -766,7 +767,7 @@ public class UserController {
 	@RequestMapping(value = "/api/user/phonefriends", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<List<UserContact>> getUserPhoneFriends(@RequestParam("user_id") Long userId) {
-		List<UserContact> friends = (List)userContactRepository.findByUserId(userId);
+		List<UserContact> friends = (List)userContactRepository.findByUserIdOrderByNameAsc(userId);
 		return new ResponseEntity<List<UserContact>>(friends,HttpStatus.OK);
 	}
 	
@@ -788,6 +789,36 @@ public class UserController {
 		Map<String, Object> response = ts.checkVerificationCode(phoneMap.get("countryCode").toString(), phoneMap.get("phone").toString(), phoneMap.get("code").toString());
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value = "/api/guest/findUserByEmailOrPhone", method = RequestMethod.GET)
+	public User findUserByEmailOrPhone(String emailOrPhone) {
+		if (emailOrPhone.contains("@")) {
+			return this.userService.findUserByEmail(emailOrPhone);
+		} else {
+			String phone = emailOrPhone.replaceAll("\\s", "").replaceAll("\\(", "").replaceAll("\\)", "").replaceAll("-", "");
+			return this.userService.findUserByPhone(phone);
+		}
+	}
+	
+	@RequestMapping(value = "/api/guest/outlookAuthCode", method = RequestMethod.GET)
+	public String outlookAuthCode(String code) {
+		System.out.println(code);
+		
+		String api = "https://login.windows.net/common/oauth2/token";
+		String queryStr = "grant_type=authorization_code&code="+code+"&redirect_uri=&"
+				+ "client_id=0b228193-26f2-4837-b791-ffd7eab7441e&client_secret=jnnjJDIN8291)ymgMOC9|}$";
+		
+		OutlookService os = new OutlookService();
+		os.httpPostQueryStr(api, queryStr);
+		
+		return code;
+	}
+	
+	@RequestMapping(value = "/api/guest/outlookRefreshToken", method = RequestMethod.POST)
+	public void getOutlookAuthCode(@RequestBody Map<String, Object> response) {
+		
+		System.out.println(response);
+	}	
 	
 	@Autowired
 	TokenAuthenticationService tokenAuthenticationService;
