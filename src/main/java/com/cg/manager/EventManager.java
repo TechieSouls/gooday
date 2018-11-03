@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 
 import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -634,7 +635,12 @@ public class EventManager {
 							}
 							if (startDate != null) {
 								String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
-								event.setStartTime(CenesUtils.yyyyMMddTHHmmss.parse(startDateStr));
+								
+								TimeZone pacificTimeZone = TimeZone.getTimeZone("America/Los_Angeles");
+								long currentTime = CenesUtils.yyyyMMddTHHmmss.parse(startDateStr).getTime();
+								long convertedTime = currentTime + pacificTimeZone.getOffset(currentTime);
+								
+								event.setStartTime(new Date(convertedTime));
 							}
 						}
 						
@@ -649,7 +655,12 @@ public class EventManager {
 							}
 							if (endDate != null) {
 								String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
-								event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+								
+								TimeZone pacificTimeZone = TimeZone.getTimeZone("America/Los_Angeles");
+								long currentTime = CenesUtils.yyyyMMddTHHmmss.parse(endDateStr).getTime();
+								long convertedTime = currentTime + pacificTimeZone.getOffset(currentTime);
+								
+								event.setEndTime(new Date(convertedTime));
 							} else {
 								if (startDate != null) {
 									endDate = startDate;
