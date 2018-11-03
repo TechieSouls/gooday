@@ -634,13 +634,10 @@ public class EventManager {
 								startDate = outlookFormat.parse((String) eventItem.getStart().get("DateTime"));
 							}
 							if (startDate != null) {
+								TimeZone tzTo = TimeZone.getTimeZone("PST");
+								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
 								String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
-								
-								TimeZone pacificTimeZone = TimeZone.getTimeZone("America/Los_Angeles");
-								long currentTime = CenesUtils.yyyyMMddTHHmmss.parse(startDateStr).getTime();
-								long convertedTime = currentTime + pacificTimeZone.getOffset(currentTime);
-								
-								event.setStartTime(new Date(convertedTime));
+								event.setStartTime(CenesUtils.yyyyMMddTHHmmss.parse(startDateStr));
 							}
 						}
 						
@@ -654,13 +651,10 @@ public class EventManager {
 								endDate = outlookFormat.parse((String) eventItem.getEnd().get("DateTime"));
 							}
 							if (endDate != null) {
+								TimeZone tzTo = TimeZone.getTimeZone("PST");
+								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
 								String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
-								
-								TimeZone pacificTimeZone = TimeZone.getTimeZone("America/Los_Angeles");
-								long currentTime = CenesUtils.yyyyMMddTHHmmss.parse(endDateStr).getTime();
-								long convertedTime = currentTime + pacificTimeZone.getOffset(currentTime);
-								
-								event.setEndTime(new Date(convertedTime));
+								event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
 							} else {
 								if (startDate != null) {
 									endDate = startDate;
