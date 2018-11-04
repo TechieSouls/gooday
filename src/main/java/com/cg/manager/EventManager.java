@@ -642,8 +642,10 @@ public class EventManager {
 								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
 								String startDateStrTemp = CenesUtils.yyyyMMddTHHmmss.format(outlookDate);
 								System.out.println("Outlook Date : "+startDateStrTemp);
-								System.out.println("PST DAte : "+new Date(startDateStrTemp));
-								event.setStartTime(new Date(startDateStrTemp));
+								
+								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+								System.out.println("PST DAte : "+sdf.parse(startDateStrTemp));
+								event.setStartTime(sdf.parse(startDateStrTemp));
 							}
 						}
 						
@@ -663,7 +665,8 @@ public class EventManager {
 								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
 								String endDateStrTemp = CenesUtils.yyyyMMddTHHmmss.format(outlookDate);
 								System.out.println("Outlook Date : "+endDateStrTemp);
-								System.out.println("PST DAte : "+new Date(endDateStrTemp));
+								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+								System.out.println("PST DAte : "+sdf.parse(endDateStrTemp));
 								event.setEndTime(new Date(endDateStrTemp));
 							} else {
 								if (startDate != null) {
