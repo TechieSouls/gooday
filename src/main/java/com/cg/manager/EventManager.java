@@ -646,7 +646,7 @@ public class EventManager {
 								
 								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 								System.out.println("PST DAte : "+sdf.parse(startDateStrTemp));
-								event.setStartTime(CenesUtils.yyyyMMddTHHmmss.parse(startDateStr));
+								event.setStartTime(startDate);
 							}
 						}
 						
