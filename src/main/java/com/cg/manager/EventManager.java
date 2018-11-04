@@ -1,5 +1,6 @@
 package com.cg.manager;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -634,10 +635,13 @@ public class EventManager {
 								startDate = outlookFormat.parse((String) eventItem.getStart().get("DateTime"));
 							}
 							if (startDate != null) {
+
+								String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
+								Date outlookDate = CenesUtils.yyyyMMddTHHmmss.parse(startDateStr);
 								TimeZone tzTo = TimeZone.getTimeZone("PST");
 								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
-								String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
-								event.setStartTime(CenesUtils.yyyyMMddTHHmmss.parse(startDateStr));
+								String startDateStrTemp = CenesUtils.yyyyMMddTHHmmss.format(outlookDate);
+								event.setStartTime(CenesUtils.yyyyMMddTHHmmss.parse(startDateStrTemp));
 							}
 						}
 						
@@ -651,10 +655,12 @@ public class EventManager {
 								endDate = outlookFormat.parse((String) eventItem.getEnd().get("DateTime"));
 							}
 							if (endDate != null) {
+								String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
+								Date outlookDate = CenesUtils.yyyyMMddTHHmmss.parse(endDateStr);
 								TimeZone tzTo = TimeZone.getTimeZone("PST");
 								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
-								String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
-								event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+								String endDateStrTemp = CenesUtils.yyyyMMddTHHmmss.format(outlookDate);
+								event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStrTemp));
 							} else {
 								if (startDate != null) {
 									endDate = startDate;
@@ -1013,4 +1019,25 @@ public class EventManager {
 	public void saveCalendarSyncToken(CalendarSyncToken calendarSyncToken) {
 		refreshTokenRepository.save(calendarSyncToken);
 	}
+	
+	/*public static void main(String[] args) {
+		String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(new Date());
+		Date outlookDate = null;
+		try {
+			outlookDate = CenesUtils.yyyyMMddTHHmmss.parse(endDateStr);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		TimeZone tzTo = TimeZone.getTimeZone("PST");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		sdf.setTimeZone(tzTo);
+		String endDateStrTemp = sdf.format(outlookDate);
+		try {
+			System.out.println(sdf.parse(endDateStrTemp));
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}*/
 }
