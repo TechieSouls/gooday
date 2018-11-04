@@ -633,6 +633,7 @@ public class EventManager {
 							
 							if (eventItem.getStart().containsKey("DateTime")) {
 								startDate = outlookFormat.parse((String) eventItem.getStart().get("DateTime"));
+								System.out.println("Actual Date : "+startDate);
 							}
 							if (startDate != null) {
 
