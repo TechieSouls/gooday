@@ -632,21 +632,10 @@ public class EventManager {
 						if (eventItem.getStart() != null) {
 							
 							if (eventItem.getStart().containsKey("DateTime")) {
-								outlookFormat.setTimeZone(TimeZone.getTimeZone("PST"));
 								startDate = outlookFormat.parse((String) eventItem.getStart().get("DateTime"));
 								System.out.println("Actual Date : "+startDate);
 							}
 							if (startDate != null) {
-
-								String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
-								Date outlookDate = CenesUtils.yyyyMMddTHHmmss.parse(startDateStr);
-								TimeZone tzTo = TimeZone.getTimeZone("America/Los_Angeles");
-								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
-								String startDateStrTemp = CenesUtils.yyyyMMddTHHmmss.format(outlookDate);
-								System.out.println("Outlook Date : "+startDateStrTemp);
-								
-								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-								System.out.println("PST DAte : "+sdf.parse(startDateStrTemp));
 								event.setStartTime(startDate);
 							}
 						}
@@ -661,15 +650,7 @@ public class EventManager {
 								endDate = outlookFormat.parse((String) eventItem.getEnd().get("DateTime"));
 							}
 							if (endDate != null) {
-								String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
-								Date outlookDate = CenesUtils.yyyyMMddTHHmmss.parse(endDateStr);
-								TimeZone tzTo = TimeZone.getTimeZone("America/Los_Angeles");
-								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
-								String endDateStrTemp = CenesUtils.yyyyMMddTHHmmss.format(outlookDate);
-								System.out.println("Outlook Date : "+endDateStrTemp);
-								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-								System.out.println("PST DAte : "+sdf.parse(endDateStrTemp));
-								event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+								event.setEndTime(endDate);
 							} else {
 								if (startDate != null) {
 									endDate = startDate;
