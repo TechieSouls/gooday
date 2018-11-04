@@ -645,7 +645,7 @@ public class EventManager {
 								
 								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 								System.out.println("PST DAte : "+sdf.parse(startDateStrTemp));
-								event.setStartTime(sdf.parse(startDateStrTemp));
+								event.setStartTime(CenesUtils.yyyyMMddTHHmmss.parse(startDateStr));
 							}
 						}
 						
@@ -667,7 +667,7 @@ public class EventManager {
 								System.out.println("Outlook Date : "+endDateStrTemp);
 								SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 								System.out.println("PST DAte : "+sdf.parse(endDateStrTemp));
-								event.setEndTime(sdf.parse(endDateStrTemp));
+								event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
 							} else {
 								if (startDate != null) {
 									endDate = startDate;
