@@ -638,7 +638,7 @@ public class EventManager {
 
 								String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
 								Date outlookDate = CenesUtils.yyyyMMddTHHmmss.parse(startDateStr);
-								TimeZone tzTo = TimeZone.getTimeZone("PST");
+								TimeZone tzTo = TimeZone.getTimeZone("America/Los_Angeles");
 								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
 								String startDateStrTemp = CenesUtils.yyyyMMddTHHmmss.format(outlookDate);
 								System.out.println("Outlook Date : "+startDateStrTemp);
@@ -661,7 +661,7 @@ public class EventManager {
 							if (endDate != null) {
 								String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
 								Date outlookDate = CenesUtils.yyyyMMddTHHmmss.parse(endDateStr);
-								TimeZone tzTo = TimeZone.getTimeZone("PST");
+								TimeZone tzTo = TimeZone.getTimeZone("America/Los_Angeles");
 								CenesUtils.yyyyMMddTHHmmss.setTimeZone(tzTo);
 								String endDateStrTemp = CenesUtils.yyyyMMddTHHmmss.format(outlookDate);
 								System.out.println("Outlook Date : "+endDateStrTemp);
