@@ -103,17 +103,22 @@ public class UserService {
 			}
 		}
 		
+		System.out.println("Contacts List User : "+userId);
+		System.out.println("Contacts List Size : "+contacts.size());
+		System.out.println("Contacts Data : "+contacts.toString());
+		
 		List<Map<String,String>> tempContacts = new ArrayList<>();
 		for (Entry<String, String> tempUniqueEntryMap: uniqueContactMap.entrySet()) {
+			if (tempUniqueEntryMap.getValue().trim().length() == 0) {
+				continue;
+			}
 			Map<String, String> tempUniqueMap = new HashMap<>();
-			tempUniqueMap.put(tempUniqueEntryMap.getKey(), tempUniqueEntryMap.getValue());
+			tempUniqueMap.put(tempUniqueEntryMap.getKey(), tempUniqueEntryMap.getValue().trim());
 			tempContacts.add(tempUniqueMap);
 		}
 		contacts = tempContacts;
 		
-		System.out.println("Contacts List User : "+userId);
-		System.out.println("Contacts List Size : "+contacts.size());
-		System.out.println("Contacts Data : "+contacts.toString());
+
 		
 		contacts = filterUserContactsWhichAreNotCenesMember(contacts,userId);		
 		
