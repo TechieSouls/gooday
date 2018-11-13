@@ -103,7 +103,7 @@ public class OutlookService {
 			con.setRequestMethod(method);
 			con.setRequestProperty("Accept", "application/json");
 			con.setRequestProperty("Authorization", "Bearer " + accessToken);
-			con.setRequestProperty("Prefer", "outlook.timezone=\"Pacific Standard Time\"");
+			//con.setRequestProperty("Prefer", "outlook.timezone=\"Pacific Standard Time\"");
 			int responseCode = con.getResponseCode();
 			System.out.println(con.getContent().toString());
 			if (responseCode == 200) {
