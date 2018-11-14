@@ -947,6 +947,13 @@ public class EventManager {
 							events = populateOutlookEventsInCenes(outlookEventList, user);
 							System.out.println("Events to Sync : " + events.size());
 
+						} else {
+							List<OutlookEvents> iosOutlookEvents = os.getIosOutlookEvents(accessToken);
+							if (iosOutlookEvents != null && iosOutlookEvents.size() > 0) {
+								System.out.println("Outlook IOS Calendar events size : " + iosOutlookEvents.size());
+								events = populateOutlookEventsInCenes(iosOutlookEvents, user);
+								System.out.println("Outlook IOS Events to Sync : " + events.size());
+							}
 						}
 					} catch (Exception e) {
 						e.printStackTrace();
