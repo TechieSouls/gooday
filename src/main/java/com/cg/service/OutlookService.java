@@ -48,7 +48,9 @@ public class OutlookService {
 	    //OutlookEvents outlookEvents = //doOutlookEventsRestRequest(outlookApi, HttpMethod.GET, null, accessToken);
 	    JSONObject outlookJSON = doOutlookCalendarRestRequest(outlookApi, "GET", accessToken);
 	    OutlookEvents outlookEvents = parseOutlookResponse(outlookJSON);
-	    outlookCalenderEvents.add(outlookEvents);
+	    if (outlookEvents != null) {
+		    outlookCalenderEvents.add(outlookEvents);
+	    }
 		return outlookCalenderEvents;
 	}
 	
@@ -57,7 +59,9 @@ public class OutlookService {
 		String outlookApi = "https://graph.microsoft.com/v1.0/me/events";
 		JSONObject outlookJSON = doOutlookCalendarRestRequest(outlookApi, "GET", accessToken);
 	    OutlookEvents outlookEvents = parseIosOutlookEvents(outlookJSON);
-	    outlookCalenderEvents.add(outlookEvents);
+	    if (outlookEvents != null) {
+		    outlookCalenderEvents.add(outlookEvents);
+	    }
 		return outlookCalenderEvents;
 	}
 	
@@ -139,9 +143,10 @@ public class OutlookService {
 	
 	
 	public OutlookEvents parseOutlookResponse(JSONObject responseObj) {
-		OutlookEvents events = new OutlookEvents();
+		OutlookEvents events = null;
 		try {
 			if (responseObj.has("value") && responseObj.getJSONArray("value").length() > 0) {
+				events = new OutlookEvents();
 				List<OutlookEventItem> items = new ArrayList<>();
 				for (int i=0; i < responseObj.getJSONArray("value").length(); i++) {
 					
@@ -178,9 +183,6 @@ public class OutlookService {
 					items.add(item);
 				}
 				events.setValue(items);
-			} else {
-				events.setErrorCode(101);
-				events.setErrorDetail("Token Expired");
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -190,9 +192,11 @@ public class OutlookService {
 	
 	public OutlookEvents parseIosOutlookEvents(JSONObject responseObj) {
 
-		OutlookEvents events = new OutlookEvents();
+		OutlookEvents events = null;
 		try {
 			if (responseObj.has("value") && responseObj.getJSONArray("value").length() > 0) {
+				
+				events = new OutlookEvents();
 				List<OutlookEventItem> items = new ArrayList<>();
 				for (int i=0; i < responseObj.getJSONArray("value").length(); i++) {
 					
@@ -230,8 +234,8 @@ public class OutlookService {
 				}
 				events.setValue(items);
 			} else {
-				events.setErrorCode(101);
-				events.setErrorDetail("Token Expired");
+				//events.setErrorCode(101);
+				//events.setErrorDetail("Token Expired");
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
