@@ -1017,6 +1017,10 @@ public class EventManager {
 		refreshTokenRepository.save(calendarSyncToken);
 	}
 	
+	public List<Event> findEventsToSendAlerts() {
+		return eventRepository.findAllEventsWithTimeDifferenceEqualToOne();
+	}
+	
 	/*public static void main(String[] args) {
 		String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(new Date());
 		Date outlookDate = null;

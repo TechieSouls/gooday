@@ -371,6 +371,70 @@ public class NotificationManager {
 			}
 		}
 	}
+	
+	public void sendEventAlertPush(List<Event> events) {
+		for (Event event : events) {
+			JSONArray toAndroidArray = new JSONArray();
+			List toIosArray = new ArrayList<>();
+			
+			String pushMessage = event.getTitle();
+			
+			List<EventMember> eventMembers = event.getEventMembers();
+			for (EventMember eventMember : eventMembers) {
+				if (eventMember.getStatus() != null && eventMember.getStatus().equals("Accept")) {
+					
+					List<UserDevice> userDevices = userService.findUserDeviceInfoByUserId(eventMember.getEventMemberId());
+					if (userDevices != null && userDevices.size() > 0) {
+						for (UserDevice userDevice : userDevices) {
+							if ("android".equals(userDevice.getDeviceType())){
+								toAndroidArray.put(userDevice.getDeviceToken());
+							} else if ("ios".equals(userDevice.getDeviceType())){
+								toIosArray.add(userDevice);
+							}
+						}
+					}
+					
+				}
+			}
+			
+			try {
+				if (toAndroidArray.length() > 0) {
+					JSONObject notifyObj = new JSONObject();
+					notifyObj.put("title", "Gathering");
+					notifyObj.put("body", pushMessage);
+					
+					PushNotificationService.sendAndroidPush(toAndroidArray,notifyObj);
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+
+			try {
+				if (toIosArray.size() > 0) {
+					List<UserDevice> userDevices = toIosArray;
+					for (UserDevice userDevice : userDevices) {
+						JSONObject notifyObj = new JSONObject();
+						JSONObject payloadObj = new JSONObject();
+						JSONObject alert = new JSONObject();
+						alert.put("title","Gathering : "+pushMessage);
+						payloadObj.put("alert",alert);
+						payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+						payloadObj.put("sound","cenes-notification-ringtone.aiff");
+
+						notifyObj.put("aps", payloadObj);
+						
+						List userDeviceTokenList = new ArrayList();
+						userDeviceTokenList.add(userDevice.getDeviceToken());
+						PushNotificationService.sendIosPushNotification(userDeviceTokenList,notifyObj);
+					}
+					
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 	public void sendPushForAcceptAndDeclineRequest(String pushMessage,Long organizerId,String receipentName,Notification.NotificationType type) {
 		JSONArray toAndroidArray = new JSONArray();
 		List toIosArray = new ArrayList<>();

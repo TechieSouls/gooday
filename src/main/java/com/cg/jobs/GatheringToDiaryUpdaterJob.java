@@ -59,7 +59,7 @@ public class GatheringToDiaryUpdaterJob {
 		List<Event> events = eventService.findUserPastGatherings();
 		System.out.println("[Date : "+new Date()+", GatheringToDiaryUpdaterJob events to update : "+events.size()+"]");
 		if (events != null && events.size() > 0) {
-			List<Diary>  diaries = new ArrayList<>();
+			/*List<Diary>  diaries = new ArrayList<>();
 			for (Event gathering : events) {
 				
 				Diary diary = new Diary();
@@ -89,7 +89,7 @@ public class GatheringToDiaryUpdaterJob {
 				notificationManager.deleteNotificationByNotificationTypeId(gathering.getEventId());
 			}
 			System.out.println("Diaries Size : "+diaries.size());
-			diaryRepository.save(diaries);
+			diaryRepository.save(diaries); */
 			eventService.deleteEventsBatch(events);
 		}
 	}

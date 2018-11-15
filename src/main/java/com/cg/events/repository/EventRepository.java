@@ -70,6 +70,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	
 	@Query("select e from Event e JOIN e.eventMembers em where em.processed = :processed and em.status = :status")
 	List<Event> findByEventMemberUnProcessedAndStatus(@Param("processed") int processed,@Param("status") String status);
+
+	@Query("select e from Event e where e.startTime >= now() and e.scheduleAs = 'Gathering' and TIMESTAMPDIFF(MINUTE,now(),e.startTime) = 1 order by e.startTime asc")
+	List<Event> findAllEventsWithTimeDifferenceEqualToOne();
 	
 	@Modifying(clearAutomatically = true)
 	@Transactional
