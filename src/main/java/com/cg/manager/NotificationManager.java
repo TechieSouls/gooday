@@ -381,6 +381,7 @@ public class NotificationManager {
 			
 			List<EventMember> eventMembers = event.getEventMembers();
 			for (EventMember eventMember : eventMembers) {
+				System.out.println("Sending Event Alert to : "+eventMember.getEventMemberId()+", Name : "+eventMember.getName());
 				if (eventMember.getStatus() != null && eventMember.getStatus().equals("Accept")) {
 					
 					List<UserDevice> userDevices = userService.findUserDeviceInfoByUserId(eventMember.getEventMemberId());

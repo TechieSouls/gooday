@@ -40,6 +40,7 @@ public class RemindersAlertJob {
 	public void runEventsAlertJob() {
 		System.out.println("Date : "+new Date()+" Events Alert Job STARTS");
 		List<Event> events = eventManager.findEventsToSendAlerts();
+		System.out.println("Events to be notified.");
 		if (events != null && events.size() > 0) {
 			notificationManager.sendEventAlertPush(events);
 		}
