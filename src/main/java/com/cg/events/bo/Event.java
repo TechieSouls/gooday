@@ -104,6 +104,9 @@ public class Event extends CgGeneral {
 	@Column(name="is_predictive_on")
 	private Boolean isPredictiveOn = false;
 	
+	@Column(name="is_full_day")
+	private Boolean isFullDay = false;
+	
 	@Column(name="predictive_data",columnDefinition="TEXT")
 	private String predictiveData;
 
@@ -241,27 +244,29 @@ public class Event extends CgGeneral {
 		this.latitude = latitude;
 	}
 	
-	
 	public String getLongitude() {
 		return longitude;
 	}
 	public void setLongitude(String longitude) {
 		this.longitude = longitude;
 	}
+	
+	public Boolean getIsFullDay() {
+		return isFullDay;
+	}
+	public void setIsFullDay(Boolean isFullDay) {
+		this.isFullDay = isFullDay;
+	}
+
 	@Override
 	public String toString() {
-		return "Event [eventId=" + eventId + ", title=" + title + ", type="
-				+ type + ", recurringEventId=" + recurringEventId
-				+ ", location=" + location + ", latitude=" + latitude
-				+ ", longitude=" + longitude + ", description=" + description
-				+ ", createdById=" + createdById + ", source=" + source
-				+ ", sourceEventId=" + sourceEventId + ", sourceUserId="
-				+ sourceUserId + ", timezone=" + timezone + ", scheduleAs="
-				+ scheduleAs + ", eventPicture=" + eventPicture
-				+ ", eventMembers=" + eventMembers + ", startTime=" + startTime
-				+ ", endTime=" + endTime + ", isPredictiveOn=" + isPredictiveOn
-				+ ", predictiveData=" + predictiveData
-				+ ", predictiveDataForIos=" + predictiveDataForIos
-				+ ", processed=" + processed + "]";
+		return "Event [eventId=" + eventId + ", title=" + title + ", type=" + type + ", recurringEventId="
+				+ recurringEventId + ", location=" + location + ", latitude=" + latitude + ", longitude=" + longitude
+				+ ", description=" + description + ", createdById=" + createdById + ", source=" + source
+				+ ", sourceEventId=" + sourceEventId + ", sourceUserId=" + sourceUserId + ", timezone=" + timezone
+				+ ", scheduleAs=" + scheduleAs + ", eventPicture=" + eventPicture + ", eventMembers=" + eventMembers
+				+ ", startTime=" + startTime + ", endTime=" + endTime + ", isPredictiveOn=" + isPredictiveOn
+				+ ", isFullDay=" + isFullDay + ", predictiveData=" + predictiveData + ", predictiveDataForIos="
+				+ predictiveDataForIos + ", processed=" + processed + "]";
 	}
 }

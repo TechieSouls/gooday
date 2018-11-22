@@ -169,7 +169,7 @@ public class EventManager {
 				homeScreenDto.setSource(event.getSource());
 				homeScreenDto.setCreatedById(event.getCreatedById());
 				homeScreenDto.setType("Event");
-				
+				homeScreenDto.setIsFullDay(event.getIsFullDay());
 				if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
 					List<Member> members = new ArrayList<>();
 					for (EventMember eventMember : event.getEventMembers()) {
@@ -468,6 +468,7 @@ public class EventManager {
 							if (event == null) {
 								event = new Event();
 							}
+							
 							event.setSourceEventId(eventItem.getId());
 							event.setSource(EventSource.Google.toString());
 							event.setTitle(eventItem.getSummary());
@@ -487,7 +488,10 @@ public class EventManager {
 								if (eventItem.getStart().containsKey("dateTime")) {
 									startDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getStart().get("dateTime"));
 								} else if (eventItem.getStart().containsKey("date")) {
+									//Events with no hours and minutes
+									//We will mark them full day events.
 									startDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getStart().get("date"));
+									event.setIsFullDay(true);
 								}
 								if (startDate != null) {
 									String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
