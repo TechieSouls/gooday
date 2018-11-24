@@ -180,6 +180,10 @@ public class OutlookService {
 						item.setAttendees(new ArrayList<OutlookEventAttendees>());
 					}
 					
+					if (outlookJson.has("IsAllDay")) {
+						item.setIsAllDay(outlookJson.getBoolean("IsAllDay"));
+					}
+					
 					items.add(item);
 				}
 				events.setValue(items);
@@ -228,6 +232,10 @@ public class OutlookService {
 						//item.setAttendees(attendees);
 					} else {
 						item.setAttendees(new ArrayList<OutlookEventAttendees>());
+					}
+					
+					if (outlookJson.has("isAllDay")) {
+						item.setIsAllDay(outlookJson.getBoolean("isAllDay"));
 					}
 					
 					items.add(item);

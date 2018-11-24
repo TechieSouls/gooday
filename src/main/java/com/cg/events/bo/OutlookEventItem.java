@@ -7,6 +7,7 @@ public class OutlookEventItem {
 	
 	private String id;
 	private String subject;
+	private Boolean isAllDay;
 	private Map<String, String> start;
 	private Map<String, String> end;
 	private Map<String, String> location;
@@ -46,5 +47,11 @@ public class OutlookEventItem {
 	}
 	public void setAttendees(List<OutlookEventAttendees> attendees) {
 		this.attendees = attendees;
+	}
+	public Boolean getIsAllDay() {
+		return isAllDay;
+	}
+	public void setIsAllDay(Boolean isAllDay) {
+		this.isAllDay = isAllDay;
 	}
 }

@@ -1,6 +1,5 @@
 package com.cg.manager;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,22 +10,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.TimeZone;
 
 import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.cg.bo.CalendarSyncToken;
+import com.cg.bo.CalendarSyncToken.AccountType;
 import com.cg.bo.CenesProperty;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
 import com.cg.constant.CgConstants.ErrorCodes;
-import com.cg.bo.CalendarSyncToken;
-import com.cg.bo.CalendarSyncToken.AccountType;
 import com.cg.dto.HomeScreenDto;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.Event.EventProcessedStatus;
@@ -632,6 +628,11 @@ public class EventManager {
 						}
 						event.setScheduleAs(ScheduleEventAs.Event.toString());
 						event.setTimezone(eventItem.getStart().get("TimeZone"));
+						
+						if (eventItem.getIsAllDay() != null) {
+							event.setIsFullDay(eventItem.getIsAllDay());
+						}
+						
 						Date startDate = null;
 						if (eventItem.getStart() != null) {
 							
