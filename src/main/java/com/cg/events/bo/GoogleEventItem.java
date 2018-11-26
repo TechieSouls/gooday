@@ -69,4 +69,10 @@ public class GoogleEventItem {
 	public void setRecurringEventId(String recurringEventId) {
 		this.recurringEventId = recurringEventId;
 	}
+	@Override
+	public String toString() {
+		return "GoogleEventItem [id=" + id + ", status=" + status + ", summary=" + summary + ", description="
+				+ description + ", location=" + location + ", recurringEventId=" + recurringEventId + ", start=" + start
+				+ ", end=" + end + ", attendees=" + attendees + "]";
+	}
 }
