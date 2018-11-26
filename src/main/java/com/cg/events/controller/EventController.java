@@ -453,13 +453,18 @@ public class EventController {
 		eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
 		
 		System.out.println("[ Syncing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
-		List<Event> events = eventManager.syncGoogleEvents(false, accessToken, user);
-		if (events == null) {
-			Event errorEvent = new Event();
-			errorEvent.setErrorCode(ErrorCode.INTERNAL_ERROR.ordinal());
-			errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
-			events = new ArrayList<>();
-			events.add(errorEvent);
+		List<Event> events = new ArrayList<>();
+		try {
+			events = eventManager.syncGoogleEvents(false, accessToken, user);
+			if (events == null) {
+				Event errorEvent = new Event();
+				errorEvent.setErrorCode(ErrorCode.INTERNAL_ERROR.ordinal());
+				errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
+				events = new ArrayList<>();
+				events.add(errorEvent);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 		System.out.println("[ Syncing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
 		return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
