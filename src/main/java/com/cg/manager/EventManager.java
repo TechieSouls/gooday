@@ -810,6 +810,7 @@ public class EventManager {
 					eventMember.setStatus("Going");
 					eventMember.setSource("Google");
 					members.add(eventMember);
+					event.getEventMembers().clear();
 					event.setEventMembers(members);
 					
 					events.add(event);
