@@ -455,9 +455,9 @@ public class EventManager {
 							System.out.println("[User Invitee : "+isUserInvitee+"  UserId : "+userId+"]");
 							System.out.println("[Event : "+eventItem.toString()+" ]");
 							if (isUserInvitee) {
-								event = this.eventRepository.findBySourceEventId(eventItem.getId());
-								if (event != null) {
-									userId = event.getCreatedById();
+								List<Event> eventsTemp = this.eventRepository.findBySourceEventId(eventItem.getId());
+								if (eventsTemp != null && eventsTemp.size() > 0) {
+									userId = eventsTemp.get(0).getCreatedById();
 								}
 							}
 							if (event == null) {
