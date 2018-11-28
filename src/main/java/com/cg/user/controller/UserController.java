@@ -790,6 +790,14 @@ public class UserController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/api/guest/users", method = RequestMethod.GET)
+	public ResponseEntity<?> getAllCenesUsers() {
+		List<User> users = userService.findAllUsers();
+		Map<String, Object> response = new HashMap<>();
+		response.put("data", users);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
 	@RequestMapping(value = "/api/guest/findUserByEmailOrPhone", method = RequestMethod.GET)
 	public User findUserByEmailOrPhone(String emailOrPhone) {
 		if (emailOrPhone.contains("@")) {
