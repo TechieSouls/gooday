@@ -34,4 +34,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long>{
 	
 	@Query("select r from Reminder r where r.reminderTime is null and DATE(r.reminderTime) <= DATE(now()) and r.status = 'Finish' order by r.reminderTime asc")
 	List<Reminder> findCompletedReminders();
+	
+	public void deleteByCreatedById(Long createdById);
+	
 }

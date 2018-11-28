@@ -44,6 +44,10 @@ public class ReminderManager {
 		reminderRepository.delete(reminders);
 	}
 	
+	public void deleteRemindersByCreatedById(Long userId) {
+		reminderRepository.deleteByCreatedById(userId);
+	}
+	
 	public void updateReminderToFinish(Long reminderId,Long userId) {
 		
 		reminderRepository.updateReminderToFinish(reminderId);

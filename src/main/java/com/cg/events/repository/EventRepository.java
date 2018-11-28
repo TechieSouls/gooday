@@ -21,6 +21,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	
 	List<Event> findBySourceEventId(String sourceEventId);
 	
+	public void deleteByCreatedById(Long createdById);
+	
 	Event findBySourceEventIdAndCreatedById(String sourceEventId,Long createdById);
 	
 	@Query("select e from Event e where DATE(e.startTime) >= :eventDate and DATE(e.startTime) <= :endDate and e.createdById = :createdById and e.scheduleAs in ('Event','Holiday','Gathering') and e.timezone = :timezone order by e.startTime asc")

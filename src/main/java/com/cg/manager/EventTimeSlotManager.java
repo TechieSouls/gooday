@@ -185,4 +185,9 @@ public class EventTimeSlotManager {
 	public void deleteEventTimeSlotsByUserIdSourceScheduleAs(Long createdById,String source,String scheduleAs) {
 		eventTimeSlotRepository.deleteByUserIdAndSourceAndScheduleAs(createdById, source,scheduleAs);
 	}
+	
+	public void deleteEventTimeSlotsByUserId(Long userId) {
+		eventTimeSlotRepository.deleteByUserId(userId);
+	}
+	
 }

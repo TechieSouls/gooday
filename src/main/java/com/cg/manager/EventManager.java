@@ -307,6 +307,10 @@ public class EventManager {
 		eventService.deleteEventsByCreatedByIdScheduleAs(createdById, scheduleAs);
 	}
 	
+	public void deleteEventsByCreatedById(Long createdById) {
+		eventService.deleteEventsByCreatedById(createdById);
+	}
+	
 	public List<Event> syncFacebookEvents(String facebookId,String accessToken,User user) {
 		List<Event> events = new ArrayList<>();
 		

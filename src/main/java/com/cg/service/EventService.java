@@ -168,6 +168,10 @@ public class EventService {
 		eventRepository.deleteEventsByCreatedByIdAndScheduleAs(createdById, scheduleAs);
 	}
 	
+	public void deleteEventsByCreatedById(Long createdById) {
+		eventRepository.deleteByCreatedById(createdById);
+	}
+	
 	public EventMember findEventMemeberByEventMemberId(Long eventMemberId) {
 		return eventMemberRepository.findOne(eventMemberId);
 	}

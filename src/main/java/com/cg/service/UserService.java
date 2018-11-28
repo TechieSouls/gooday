@@ -86,6 +86,23 @@ public class UserService {
 		return users.get(0);
 	}
 
+	
+	public void deleteContactsByUserId(long userId) {
+		userContactRepository.deleteByUserId(userId);
+	}
+	
+	public void updateContactsByFriendIdAndUserId(Long friendId, String phone) {
+		userContactRepository.updateFrindIdByPhone(friendId, phone);
+	}
+	
+	public void deleteUserDeviceByUserId(Long userId) {
+		userDeviceRepository.deleteByUserId(userId);
+	}
+	
+	public void deleteUserByUserId(Long userId) {
+		userRepository.deleteByUserId(userId);
+	}
+	
 	/**
 	 * Method to Sync the user phone contacts.
 	 * */

@@ -37,4 +37,6 @@ public interface EventTimeSlotRepository extends  JpaRepository<EventTimeSlot, L
 	public void deleteByUserIdAndSourceAndScheduleAs(@Param("userId") Long userId,@Param("source") String source,@Param("scheduleAs") String scheduleAs);
 	
 	public void deleteByEventId(Long eventId);
+	
+	public void deleteByUserId(Long userId);
 }

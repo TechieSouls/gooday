@@ -24,4 +24,6 @@ public interface UserRepository extends CrudRepository<User, Long> {
 	
 	@Query("select u from User u where name LIKE CONCAT(:name,'%')")
 	List<User> findUserByName(@Param("name") String name);
+
+	public void deleteByUserId(Long userId);
 }

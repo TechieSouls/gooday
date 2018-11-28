@@ -800,25 +800,28 @@ public class UserController {
 		}
 	}
 	
-	@RequestMapping(value = "/api/guest/outlookAuthCode", method = RequestMethod.GET)
-	public String outlookAuthCode(String code) {
-		System.out.println(code);
+	@RequestMapping(value = "/api/deleteUserByEmail", method = RequestMethod.GET)
+	public Map<String, Object> deleteUserByEmail(String email) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		response.put("message", "User Deleted SuccessFully");
 		
-		String api = "https://login.windows.net/common/oauth2/token";
-		String queryStr = "grant_type=authorization_code&code="+code+"&redirect_uri=&"
-				+ "client_id=0b228193-26f2-4837-b791-ffd7eab7441e&client_secret=jnnjJDIN8291)ymgMOC9|}$";
+		User user = userService.findUserByEmail(email);
+		if (user == null) {
+			response.put("success", false);
+			response.put("message", "User not found");
+			return response;
+		}
 		
-		OutlookService os = new OutlookService();
-		os.httpPostQueryStr(api, queryStr);
-		
-		return code;
+		eventManager.deleteEventsByCreatedById(user.getUserId());
+		userService.deleteContactsByUserId(user.getUserId());
+		userService.updateContactsByFriendIdAndUserId(null, user.getPhone());
+		eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+		recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+		userService.deleteUserDeviceByUserId(user.getUserId());
+		userService.deleteUserByUserId(user.getUserId());
+		return response;
 	}
-	
-	@RequestMapping(value = "/api/guest/outlookRefreshToken", method = RequestMethod.POST)
-	public void getOutlookAuthCode(@RequestBody Map<String, Object> response) {
-		
-		System.out.println(response);
-	}	
 	
 	@Autowired
 	TokenAuthenticationService tokenAuthenticationService;
