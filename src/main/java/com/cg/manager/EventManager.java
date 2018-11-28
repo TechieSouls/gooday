@@ -554,12 +554,12 @@ public class EventManager {
 										+ events.size() + "]");
 						
 					} else {
-						if (googleEvents.getErrorDetail() != null) {
+						/*if (googleEvents.getErrorDetail() != null) {
 							Event event = new Event();
 							event.setErrorCode(googleEvents.getErrorCode());
 							event.setErrorDetail(googleEvents.getErrorDetail());
 							events.add(event);
-						}
+						}*/
 					}
 				}
 			}
