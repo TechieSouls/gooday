@@ -38,11 +38,6 @@ public class GoogleService {
 		if (calendars != null && calendars.size() > 0) {
 			for (String calendarId : calendars) {
 				
-				if (calendarId.indexOf("#holiday@") != -1) {
-					System.out.println("Skipping :: "+calendarId);
-					continue;
-				}
-				
 				Calendar minTimeCal = Calendar.getInstance();
 				minTimeCal.set(Calendar.HOUR_OF_DAY, 0);
 				minTimeCal.set(Calendar.MINUTE, 0);
@@ -155,6 +150,11 @@ public class GoogleService {
 		List<String> calendars = googleCalendarList(accessToken);
 		if (calendars != null && calendars.size() > 0) {
 			for (String calendarId : calendars) {
+
+				if (calendarId.indexOf("#holiday@") != -1) {
+					System.out.println("Skipping :: "+calendarId);
+					continue;
+				}
 				Calendar minTimeCal = Calendar.getInstance();
 				minTimeCal.set(Calendar.HOUR_OF_DAY, 0);
 				minTimeCal.set(Calendar.MINUTE, 0);
