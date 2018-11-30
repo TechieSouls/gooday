@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -185,6 +186,7 @@ public class EventController {
 				Event eventFromDatabase = eventManager.findEventByEventId(event.getEventId());
 				eventManager.updateTimeSlotsToFreeByEvent(eventFromDatabase);	
 			}
+			event.setDescription(URLEncoder.encode(event.getDescription()));
 			event = eventManager.createEvent(event);
 			response.put("data", event);
 		} catch (Exception e) {
