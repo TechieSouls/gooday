@@ -186,7 +186,6 @@ public class EventController {
 				Event eventFromDatabase = eventManager.findEventByEventId(event.getEventId());
 				eventManager.updateTimeSlotsToFreeByEvent(eventFromDatabase);	
 			}
-			event.setDescription(URLEncoder.encode(event.getDescription(), "UTF-8"));
 			event = eventManager.createEvent(event);
 			response.put("data", event);
 		} catch (Exception e) {
