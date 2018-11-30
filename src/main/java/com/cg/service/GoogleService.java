@@ -202,12 +202,13 @@ public class GoogleService {
 					if (!isRecurringRequest && calItem.has("recurrence")) {
 						continue;
 					}
-					
+					if (!calItem.has("summary")) {
+						continue;
+					}
 					GoogleEventItem item = new GoogleEventItem();
 					item.setId(calItem.getString("id"));
-					if (calItem.has("summary")) {
-						item.setSummary(calItem.getString("summary"));
-					}
+					
+					item.setSummary(calItem.getString("summary"));
 					if (calItem.has("description")) {
 						item.setDescription(calItem.getString("description"));
 					}
