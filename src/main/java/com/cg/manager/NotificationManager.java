@@ -382,9 +382,10 @@ public class NotificationManager {
 			List<EventMember> eventMembers = event.getEventMembers();
 			for (EventMember eventMember : eventMembers) {
 				System.out.println("Sending Event Alert to : "+eventMember.getEventMemberId()+", Name : "+eventMember.getName());
-				if (eventMember.getStatus() != null && eventMember.getStatus().equals("Going")) {
-					
+				if (eventMember.getStatus() != null && eventMember.getStatus().equals(EventMember.MemberStatus.Going.toString())) {
+					System.out.println("Condition Passed");
 					List<UserDevice> userDevices = userService.findUserDeviceInfoByUserId(eventMember.getEventMemberId());
+					System.out.println("Number of devices to send alert : "+userDevices.size());
 					if (userDevices != null && userDevices.size() > 0) {
 						for (UserDevice userDevice : userDevices) {
 							if ("android".equals(userDevice.getDeviceType())){
