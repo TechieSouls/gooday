@@ -411,6 +411,7 @@ public class NotificationManager {
 			}
 
 			try {
+				System.out.println("IOS Push to send : "+toIosArray.size());
 				if (toIosArray.size() > 0) {
 					List<UserDevice> userDevices = toIosArray;
 					for (UserDevice userDevice : userDevices) {
@@ -426,6 +427,7 @@ public class NotificationManager {
 						
 						List userDeviceTokenList = new ArrayList();
 						userDeviceTokenList.add(userDevice.getDeviceToken());
+						System.out.println("IOS Device token : "+userDevice.getDeviceToken());
 						PushNotificationService.sendIosPushNotification(userDeviceTokenList,notifyObj);
 					}
 					
