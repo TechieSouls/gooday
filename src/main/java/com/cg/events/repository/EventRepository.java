@@ -23,7 +23,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	
 	public void deleteByCreatedById(Long createdById);
 	
-	Event findBySourceEventIdAndCreatedById(String sourceEventId,Long createdById);
+	List<Event> findBySourceEventIdAndCreatedById(String sourceEventId,Long createdById);
 	
 	@Query("select e from Event e where DATE(e.startTime) >= :eventDate and DATE(e.startTime) <= :endDate and e.createdById = :createdById and e.scheduleAs in ('Event','Holiday','Gathering') and e.timezone = :timezone order by e.startTime asc")
 	List<Event> findByCreatedByIdAndStartDateAndTimeZone(@Param("createdById") Long createdById,@Param("eventDate") Date eventDate,@Param("endDate") Date endDate,@Param("timezone") String timezone);

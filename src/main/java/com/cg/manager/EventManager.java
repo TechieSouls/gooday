@@ -319,11 +319,12 @@ public class EventManager {
 				accessToken);
 		for (FacebookEventItem eventItem : facebookEvents.getData()) {
 
-			Event event = eventRepository
-					.findBySourceEventIdAndCreatedById(eventItem.getId(),
-							user.getUserId());
-			if (event == null) {
+			List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+			Event event = null;
+			if (dbevents == null || dbevents.size() == 0) {
 				event = new Event();
+			} else {
+				event = dbevents.get(0);
 			}
 			event.setCreatedById(user.getUserId());
 			event.setSourceUserId(facebookId);
@@ -465,12 +466,13 @@ public class EventManager {
 								}
 							}
 							if (event == null) {
-								event = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+								List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+								if (dbevents == null || dbevents.size() == 0) {
+									event = new Event();
+								} else {
+									event = dbevents.get(0);
+								}
 							}
-							if (event == null) {
-								event = new Event();
-							}
-							
 							event.setSourceEventId(eventItem.getId());
 							event.setSource(EventSource.Google.toString());
 							event.setTitle(eventItem.getSummary());
@@ -621,10 +623,14 @@ public class EventManager {
 			for (OutlookEvents outlookEvents : outlookEventList) {
 				if (outlookEvents.getValue() != null && outlookEvents.getValue().size() > 0) {
 					for (OutlookEventItem eventItem : outlookEvents.getValue()) {
-						Event event = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-						if (event == null) {
+						List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+						Event event = null;
+						if (dbevents == null || dbevents.size() == 0) {
 							event = new Event();
+						} else {
+							event = dbevents.get(0);
 						}
+						
 						event.setSourceEventId(eventItem.getId());
 						event.setSource(EventSource.Outlook.toString());
 						event.setTitle(eventItem.getSubject());
@@ -742,12 +748,12 @@ public class EventManager {
 			if (googleEvents != null && googleEvents.getItems() != null
 					&& googleEvents.getItems().size() > 0) {
 				for (GoogleEventItem eventItem : googleEvents.getItems()) {
-
-					Event event = this.eventRepository
-							.findBySourceEventIdAndCreatedById(
-									eventItem.getId(), user.getUserId());
-					if (event == null) {
+					Event event = null;
+					List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+					if (dbevents == null || dbevents.size() == 0) {
 						event = new Event();
+					} else {
+						event = dbevents.get(0);
 					}
 					
 					if (eventItem.getStart() != null) {
@@ -770,6 +776,7 @@ public class EventManager {
 					event.setSource(EventSource.Google.toString());
 					event.setTitle(eventItem.getSummary());
 					event.setCreatedById(user.getUserId());
+					event.setIsFullDay(true);
 					if (eventItem.getDescription() != null) {
 						event.setDescription(eventItem.getDescription());
 					}
@@ -814,7 +821,13 @@ public class EventManager {
 					eventMember.setStatus("Going");
 					eventMember.setSource("Google");
 					members.add(eventMember);
-					event.getEventMembers().clear();
+					try {
+						event.getEventMembers().clear();
+					} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+					}
+					
 					event.setEventMembers(members);
 					
 					events.add(event);
