@@ -458,7 +458,7 @@ public class NotificationManager {
 			if (toAndroidArray.length() > 0) {
 				
 				JSONObject payloadObj = new JSONObject();
-				payloadObj.put(CgConstants.notificationTypeTitle,type.toString());
+				payloadObj.put(CgConstants.notificationType,type.toString());
 				payloadObj.put(CgConstants.notificationTypeStatus,"AcceptAndDecline");
 				
 				JSONObject notifyObj = new JSONObject();
