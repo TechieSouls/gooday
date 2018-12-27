@@ -72,6 +72,9 @@ public class User extends CgGeneral{
 	@Column(name="reset_token_created_at")
 	private Date resetTokenCreatedAt;
 	
+	@Column(name="country")
+	private String country;
+	
 	@Transient
 	private Boolean isNew;
 	
