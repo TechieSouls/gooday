@@ -131,6 +131,7 @@ public class EventServiceDao {
 		
 		for (LocationDto dto: locations) {
 			if (!ldtoMap.containsKey(dto.getLocation())) {
+				ldtoMap.put(dto.getLocation(), dto);
 				distinctLocations.add(dto);
 			}
 		}
