@@ -24,6 +24,7 @@ import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.HomeScreenDto;
+import com.cg.dto.LocationDto;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.events.bo.Event.EventSource;
@@ -40,6 +41,7 @@ import com.cg.events.bo.GoogleEvents;
 import com.cg.events.bo.OutlookEventAttendees;
 import com.cg.events.bo.OutlookEventItem;
 import com.cg.events.bo.OutlookEvents;
+import com.cg.events.dao.EventServiceDao;
 import com.cg.events.repository.EventRepository;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
@@ -82,6 +84,9 @@ public class EventManager {
 	
 	@Autowired
 	EventThread eventThread;
+	
+	@Autowired
+	EventServiceDao eventServiceDao;
 	
 	
 	public Event createEvent(Event event) {
@@ -1044,6 +1049,10 @@ public class EventManager {
 	
 	public List<Event> findEventsToSendAlerts() {
 		return eventRepository.findAllEventsWithTimeDifferenceEqualToOne();
+	}
+	
+	public List<LocationDto> findEventLocationsByUserId(Long userId) {
+		return eventServiceDao.findDistinctEventLocations(userId);
 	}
 	
 	/*public static void main(String[] args) {

@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
+import com.cg.dto.LocationDto;
 import com.cg.events.bo.EventTimeSlot;
 
 @Service
@@ -99,4 +100,28 @@ public class EventServiceDao {
 		 jdbcTemplate.execute(deleteEvents);
 
 	}
+	
+	public List<LocationDto> findDistinctEventLocations(Long userId) {
+		
+		List<Object> paramenets = new ArrayList<>();
+		paramenets.add(userId);
+		paramenets.add("Gathering");
+		
+		String query = "select distinct(location) as location, event_picture as photo from events "
+				+ "where created_by_id = ? and schedule_as = ? and "
+				+ "location is not null and location != '' limit 10";
+		
+		return jdbcTemplate.query(query,
+				new RowMapper<LocationDto>() {
+					@Override
+					public LocationDto mapRow(ResultSet rs, int rownumber)
+							throws SQLException {
+						LocationDto ldto = new LocationDto();
+						ldto.setLocation(rs.getString("location"));
+						ldto.setPhoto(rs.getString("photo"));
+						return ldto;
+					}
+				},paramenets.toArray());
+	}
+	
 }
