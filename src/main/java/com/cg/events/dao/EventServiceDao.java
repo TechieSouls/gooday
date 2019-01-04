@@ -3,8 +3,10 @@ package com.cg.events.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -103,15 +105,17 @@ public class EventServiceDao {
 	
 	public List<LocationDto> findDistinctEventLocations(Long userId) {
 		
+		List<LocationDto> distinctLocations = new ArrayList<>();
+		
 		List<Object> paramenets = new ArrayList<>();
 		paramenets.add(userId);
 		paramenets.add("Gathering");
 		
-		String query = "select distinct(location) as location, event_picture as photo from events "
+		String query = "select location, event_picture as photo from events "
 				+ "where created_by_id = ? and schedule_as = ? and "
-				+ "location is not null and location != '' limit 10";
+				+ "location is not null and location != '' limit 20";
 		
-		return jdbcTemplate.query(query,
+		List<LocationDto> locations = jdbcTemplate.query(query,
 				new RowMapper<LocationDto>() {
 					@Override
 					public LocationDto mapRow(ResultSet rs, int rownumber)
@@ -122,6 +126,14 @@ public class EventServiceDao {
 						return ldto;
 					}
 				},paramenets.toArray());
+		
+		Map<String, LocationDto> ldtoMap = new HashMap<>();
+		
+		for (LocationDto dto: locations) {
+			if (!ldtoMap.containsKey(dto.getLocation())) {
+				distinctLocations.add(dto);
+			}
+		}
+		return distinctLocations;
 	}
-	
 }
