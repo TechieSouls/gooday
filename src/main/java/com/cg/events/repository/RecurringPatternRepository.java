@@ -13,4 +13,5 @@ public interface RecurringPatternRepository extends JpaRepository<RecurringPatte
 
 	public RecurringPattern findByRecurringEventId(Long recurringEventId);
 	
+	public 
 }

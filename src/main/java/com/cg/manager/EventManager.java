@@ -316,6 +316,10 @@ public class EventManager {
 		eventService.deleteEventsByCreatedById(createdById);
 	}
 	
+	public void deleteEventsByRecurringEventId(Long recurringEventId) {
+		this.eventRepository.deleteByRecurringEventId(String.valueOf(recurringEventId));
+	}
+	
 	public List<Event> syncFacebookEvents(String facebookId,String accessToken,User user) {
 		List<Event> events = new ArrayList<>();
 		

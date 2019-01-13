@@ -60,13 +60,11 @@ import com.cg.events.bo.RecurringEvent;
 import com.cg.events.bo.RecurringEvent.RecurringEventProcessStatus;
 import com.cg.events.bo.RecurringEvent.RecurringEventStatus;
 import com.cg.events.bo.RecurringPattern;
-import com.cg.events.repository.RecurringPatternRepository;
 import com.cg.manager.EmailManager;
 import com.cg.manager.EventManager;
 import com.cg.manager.EventTimeSlotManager;
 import com.cg.manager.RecurringManager;
 import com.cg.repository.CenesPropertyValueRepository;
-import com.cg.repository.UserAvailabilityRepository;
 import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
@@ -97,12 +95,6 @@ public class UserController {
 	
 	@Autowired
 	RecurringManager recurringManager;
-	
-	@Autowired
-	RecurringPatternRepository recurringPatternRepository;
-	
-	@Autowired
-	UserAvailabilityRepository userAvailabilityRepository;
 	
 	@Autowired
 	UserFriendRepository userFriendRepository;
@@ -599,6 +591,38 @@ public class UserController {
 		}
 	}
 	
+	@RequestMapping(value = "/api/user/metime/deleteByRecurringId", method = RequestMethod.PUT)
+	@ResponseBody
+	public ResponseEntity deleteMeTimeByRecurringEventId(Long recurringEventId) {
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		try {
+			eventManager.deleteEventsByRecurringEventId(recurringEventId);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		try {
+			eventTimeSlotManager.deleteEventTimeSlotsByRecurringEventId(recurringEventId);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		try {
+			recurringManager.deleteRecurringPatternsByRecurringEventId(recurringEventId);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		try {
+			recurringManager.deleteRecurringEventByRecurringEventId(recurringEventId);
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return new ResponseEntity(response, HttpStatus.OK);
+	}
 	
 	@RequestMapping(value = "/api/user/getmetimes", method = RequestMethod.GET)
 	@ResponseBody
@@ -631,7 +655,7 @@ public class UserController {
 			return new ResponseEntity<Map<String,Object>>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
+	
 	
 	@RequestMapping(value="/api/user/registerdevice",method=RequestMethod.POST)
 	public ResponseEntity<Map<String, Object>> registerDevice(@RequestBody UserDevice userDevice) {

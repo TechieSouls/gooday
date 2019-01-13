@@ -90,5 +90,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Transactional
 	@Query("delete from Event e where e.createdById = :createdById and e.scheduleAs = :scheduleAs")
 	public void deleteEventsByCreatedByIdAndScheduleAs(@Param("createdById") Long createdById,@Param("scheduleAs") String scheduleAs);
+	
+	public void deleteByRecurringEventId(String recurringEventId);
+	
 
 }

@@ -58,6 +58,8 @@ public class EventTimeSlot {
 	@Column(name="source")
 	private String source;
 	
+	@Column(name="recurring_event_id")
+	private Long recurringEventId;
 	
 	public Long getEventTimeSlotId() {
 		return eventTimeSlotId;
@@ -119,6 +121,12 @@ public class EventTimeSlot {
 	}
 	public void setSource(String source) {
 		this.source = source;
+	}
+	public Long getRecurringEventId() {
+		return recurringEventId;
+	}
+	public void setRecurringEventId(Long recurringEventId) {
+		this.recurringEventId = recurringEventId;
 	}
 	@Override
 	public String toString() {

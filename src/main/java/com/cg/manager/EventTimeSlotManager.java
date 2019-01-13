@@ -135,6 +135,7 @@ public class EventTimeSlotManager {
 						eventTimeSlot.setScheduleAs(event.getScheduleAs());
 						eventTimeSlot.setEndTime(incrementedTime);
 						eventTimeSlot.setEventStartTime(event.getStartTime());
+						eventTimeSlot.setRecurringEventId(Long.parseLong(event.getRecurringEventId()));
 						String eventSlotDateOnlyWithNoTime = CenesUtils.yyyyMMddTHHmmss.format(new Date(eventDayStartTimeValue));
 						eventTimeSlot.setEventDate(CenesUtils.yyyyMMddTHHmmss.parse(eventSlotDateOnlyWithNoTime));
 
@@ -190,4 +191,7 @@ public class EventTimeSlotManager {
 		eventTimeSlotRepository.deleteByUserId(userId);
 	}
 	
+	public void deleteEventTimeSlotsByRecurringEventId(Long recurringEventId) {
+		eventTimeSlotRepository.deleteByRecurringEventId(recurringEventId);
+	}
 }
