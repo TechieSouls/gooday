@@ -626,7 +626,7 @@ public class UserController {
 	
 	@RequestMapping(value = "/api/user/getmetimes", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<Map<String,Object>> getMeTimes(@RequestParam("user_id") Long userId) {
+	public ResponseEntity<Map<String,Object>> getMeTimes(Long userId) {
 		Map<String,Object> response = new HashMap<>();
 		List<RecurringEvent> meTimeEvents = recurringManager.findRecurringEventsByCreatedById(userId);
 		if (meTimeEvents != null && meTimeEvents.size() > 0) {
