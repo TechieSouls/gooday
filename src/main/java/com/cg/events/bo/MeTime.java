@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 public class MeTime {
 
 	private Long userId;
+	private Long recurringEventId;
 	private List<MeTimeEvent> events;
 	private String timezone;
 	
@@ -33,5 +34,11 @@ public class MeTime {
 	}
 	public void setTimezone(String timezone) {
 		this.timezone = timezone;
+	}
+	public Long getRecurringEventId() {
+		return recurringEventId;
+	}
+	public void setRecurringEventId(Long recurringEventId) {
+		this.recurringEventId = recurringEventId;
 	}
 }
