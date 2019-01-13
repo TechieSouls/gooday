@@ -494,11 +494,8 @@ public class UserController {
 	@ResponseBody
 	public ResponseEntity<String> saveMeTime(@RequestBody MeTime meTime) {
 		
-		if (meTime != null) {
-			Long userId = meTime.getUserId();
-			recurringManager.deleteRecurringEventsByUserId(userId);
-			eventManager.deleteEventsByCreatedByIdScheduleAs(userId, "MeTime");
-			eventTimeSlotManager.deleteEventTimeSlotsByUserIdScheduleAs(userId, "MeTime");
+		if (meTime != null && meTime.getRecurringEventId() != null) {
+			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
 		}
 		
 		Long starTimeMillis = new Date().getTime();
