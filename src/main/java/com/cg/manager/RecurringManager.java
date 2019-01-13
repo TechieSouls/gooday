@@ -273,7 +273,7 @@ public class RecurringManager {
 	}
 	
 	public void deleteRecurringPatternsByRecurringEventId(Long recurringEventId) {
-		recurringPatternRepository.findByRecurringEventId(recurringEventId);
+		recurringPatternRepository.deleteByRecurringEventId(recurringEventId);
 	}
 	
 	class RecurringEventThread implements Runnable {
