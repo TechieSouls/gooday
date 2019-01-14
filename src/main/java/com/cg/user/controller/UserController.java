@@ -520,7 +520,7 @@ public class UserController {
 				if (!recurringEventMap.containsKey(meEvent.getTitle())) {
 					RecurringEvent recurringEvent = new RecurringEvent();
 					recurringEvent.setTitle(meEvent.getTitle());
-					recurringEvent.setDescription(meEvent.getDescription());
+					//recurringEvent.setDescription(meEvent.getDescription());
 					recurringEvent.setCreatedById(meTime.getUserId());
 					recurringEvent.setTimezone(meTime.getTimezone());
 					recurringEvent.setCreationTimestamp(new Date());
