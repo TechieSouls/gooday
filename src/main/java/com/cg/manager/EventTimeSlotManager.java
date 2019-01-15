@@ -131,11 +131,15 @@ public class EventTimeSlotManager {
 							continue;
 						}
 
+						System.out.println(event.toString());
 						eventTimeSlot.setSource(event.getSource());
 						eventTimeSlot.setScheduleAs(event.getScheduleAs());
 						eventTimeSlot.setEndTime(incrementedTime);
 						eventTimeSlot.setEventStartTime(event.getStartTime());
-						eventTimeSlot.setRecurringEventId(Long.parseLong(event.getRecurringEventId()));
+						if (event.getRecurringEventId() != null) {
+							eventTimeSlot.setRecurringEventId(Long.parseLong(event.getRecurringEventId()));
+						}
+						
 						String eventSlotDateOnlyWithNoTime = CenesUtils.yyyyMMddTHHmmss.format(new Date(eventDayStartTimeValue));
 						eventTimeSlot.setEventDate(CenesUtils.yyyyMMddTHHmmss.parse(eventSlotDateOnlyWithNoTime));
 

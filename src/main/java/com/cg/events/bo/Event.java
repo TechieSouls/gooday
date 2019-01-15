@@ -45,6 +45,9 @@ public class Event extends CgGeneral {
 	@Column(name="type")
 	private String type;
 
+	/**
+	 * This is set to string to hold the recurring id of Google Events
+	 * */
 	@Column(name="recurring_event_id")
 	private String recurringEventId;
 	
