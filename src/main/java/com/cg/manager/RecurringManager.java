@@ -283,16 +283,19 @@ public class RecurringManager {
 		RecurringEvent recurringEvent = new RecurringEvent();
 		recurringEvent.setTitle("Sleep Cycle");
 		recurringEvent.setCreatedById(userId);
+		recurringEvent.setProcessed(RecurringEvent.RecurringEventProcessStatus.processed.ordinal());
 		recurringEvents.add(recurringEvent);
 		
 		recurringEvent = new RecurringEvent();
 		recurringEvent.setTitle("Exercise");
 		recurringEvent.setCreatedById(userId);
+		recurringEvent.setProcessed(RecurringEvent.RecurringEventProcessStatus.processed.ordinal());
 		recurringEvents.add(recurringEvent);
 		
 		recurringEvent = new RecurringEvent();
 		recurringEvent.setTitle("Unplug From Technology");
 		recurringEvent.setCreatedById(userId);
+		recurringEvent.setProcessed(RecurringEvent.RecurringEventProcessStatus.processed.ordinal());
 		recurringEvents.add(recurringEvent);
 		
 		recurringEventRepository.save(recurringEvents);
