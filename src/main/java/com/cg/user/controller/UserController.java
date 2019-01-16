@@ -631,11 +631,13 @@ public class UserController {
 		List<RecurringEvent> meTimeEvents = recurringManager.findRecurringEventsByCreatedById(userId);
 		if (meTimeEvents != null && meTimeEvents.size() > 0) {
 			for (RecurringEvent meTimeEvent : meTimeEvents) {
-				Calendar metimeCalendar = Calendar.getInstance();
-				metimeCalendar.setTime(meTimeEvent.getStartTime());
-				for (RecurringPattern rp : meTimeEvent.getRecurringPatterns()) {
-					metimeCalendar.set(Calendar.DAY_OF_WEEK, rp.getDayOfWeek());
-					rp.setDayOfWeekTimestamp(metimeCalendar.getTimeInMillis());
+				if (meTimeEvent.getStartTime() != null) {
+					Calendar metimeCalendar = Calendar.getInstance();
+					metimeCalendar.setTime(meTimeEvent.getStartTime());
+					for (RecurringPattern rp : meTimeEvent.getRecurringPatterns()) {
+						metimeCalendar.set(Calendar.DAY_OF_WEEK, rp.getDayOfWeek());
+						rp.setDayOfWeekTimestamp(metimeCalendar.getTimeInMillis());
+					}
 				}
 			}
 			response.put("data", meTimeEvents);
