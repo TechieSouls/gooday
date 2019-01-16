@@ -276,6 +276,28 @@ public class RecurringManager {
 		recurringPatternRepository.deleteByRecurringEventId(recurringEventId);
 	}
 	
+	public void saveDefaultMeTime(Long userId) {
+		
+		List<RecurringEvent> recurringEvents = new ArrayList<>();
+		
+		RecurringEvent recurringEvent = new RecurringEvent();
+		recurringEvent.setTitle("Sleep Cycle");
+		recurringEvent.setCreatedById(userId);
+		recurringEvents.add(recurringEvent);
+		
+		recurringEvent = new RecurringEvent();
+		recurringEvent.setTitle("Exercise");
+		recurringEvent.setCreatedById(userId);
+		recurringEvents.add(recurringEvent);
+		
+		recurringEvent = new RecurringEvent();
+		recurringEvent.setTitle("Unplug From Technology");
+		recurringEvent.setCreatedById(userId);
+		recurringEvents.add(recurringEvent);
+		
+		recurringEventRepository.save(recurringEvents);
+	}
+	
 	class RecurringEventThread implements Runnable {
 		private RecurringEvent recurringEvent;
 		

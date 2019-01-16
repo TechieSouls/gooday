@@ -195,6 +195,9 @@ public class UserController {
 				
 				return new ResponseEntity<User>(user, HttpStatus.OK);
 			}
+			
+			recurringManager.saveDefaultMeTime(userInfo.getUserId());
+			
 			System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : User Details -> "+userInfo.toString());
 			return new ResponseEntity<User>(userInfo, HttpStatus.ACCEPTED);
 		} else if (user.getAuthType().equals(AuthenticateType.facebook)) {
