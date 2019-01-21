@@ -73,7 +73,14 @@ public class EventTimeSlotManager {
 	public List<EventTimeSlot> getTimeSlots(Event event,Long userId) {
 		List<EventTimeSlot> eventTimeSlots = new ArrayList<>();
 		Long eventDayStartTimeValue = CenesUtils.getStartOfDay(event.getStartTime()).getTime();
-		Long eventDayEndTimeValue = CenesUtils.getEndOfDay(event.getEndTime()).getTime();
+		Long eventDayEndTimeValue = null;
+		try {
+			eventDayEndTimeValue = CenesUtils.getEndOfDay(event.getEndTime()).getTime();
+		} catch(Exception e) {
+			System.out.println("Exception : getTimeSlots() : eventDayEndTimeValue : "+ e.getMessage());
+			eventDayEndTimeValue = eventDayStartTimeValue;
+		}
+		 		
 		int minutesToAdd = 5;
 
 		// Lets divide the events start and end time duration into slots
@@ -141,7 +148,7 @@ public class EventTimeSlotManager {
 								eventTimeSlot.setRecurringEventId(Long.parseLong(event.getRecurringEventId()));
 							}
 						} catch(Exception e) {
-							System.out.println("Saving Recurring Event Id in TimeSlot : " + e.getMessage());
+							System.out.println("Exception : getTimeSlots() : eventTimeSlot.setRecurringEventId : " + e.getMessage());
 						}
 
 						
