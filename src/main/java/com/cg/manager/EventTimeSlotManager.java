@@ -136,9 +136,14 @@ public class EventTimeSlotManager {
 						eventTimeSlot.setScheduleAs(event.getScheduleAs());
 						eventTimeSlot.setEndTime(incrementedTime);
 						eventTimeSlot.setEventStartTime(event.getStartTime());
-						if (event.getRecurringEventId() != null) {
-							eventTimeSlot.setRecurringEventId(Long.parseLong(event.getRecurringEventId()));
+						try {
+							if (event.getRecurringEventId() != null) {
+								eventTimeSlot.setRecurringEventId(Long.parseLong(event.getRecurringEventId()));
+							}
+						} catch(Exception e) {
+							System.out.println("Saving Recurring Event Id in TimeSlot : " + e.getMessage());
 						}
+
 						
 						String eventSlotDateOnlyWithNoTime = CenesUtils.yyyyMMddTHHmmss.format(new Date(eventDayStartTimeValue));
 						eventTimeSlot.setEventDate(CenesUtils.yyyyMMddTHHmmss.parse(eventSlotDateOnlyWithNoTime));
