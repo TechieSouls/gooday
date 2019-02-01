@@ -268,6 +268,10 @@ public class RecurringManager {
 		return recurringEventRepository.findByCreatedById(createdById);
 	}
 	
+	public RecurringEvent findByRecurringEventId(Long recurringEventId) {
+		return recurringEventRepository.findOne(recurringEventId);
+	}
+	
 	public void deleteRecurringEventByRecurringEventId(Long recEventId) {
 		recurringEventRepository.delete(recEventId);
 	}

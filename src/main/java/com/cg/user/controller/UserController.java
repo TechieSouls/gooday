@@ -114,6 +114,9 @@ public class UserController {
 	@Value("${cenes.imageUploadPath}")
 	private String imageUploadPath;
 	
+	@Value("${cenes.recurringEventUploadPath}")
+	private String recurringEventUploadPath;
+	
 	@Value("${cenes.domain}")
 	private String domain;
 	
@@ -470,6 +473,54 @@ public class UserController {
         	return new ResponseEntity<User>(user, HttpStatus.OK);
         }
         return new ResponseEntity<User>(user, HttpStatus.OK);
+    }
+	
+	@RequestMapping(value = "/api/recurring/upload", method = RequestMethod.POST)
+    public ResponseEntity<RecurringEvent> uploadRecurringEventImage(MultipartFile uploadfile,Long recurringEventId) {
+
+		InputStream inputStream = null;
+        OutputStream outputStream = null;
+        String extension = uploadfile.getOriginalFilename().substring(uploadfile.getOriginalFilename().trim().lastIndexOf("."),uploadfile.getOriginalFilename().length());
+        
+        String fileName = recurringEventId.toString()+extension;
+
+        File f = new File(recurringEventUploadPath);
+        if(!f.exists()) { 
+        	try {
+				f.mkdirs();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }        
+        File newFile = new File(recurringEventUploadPath+fileName);
+        try {
+            inputStream = uploadfile.getInputStream();
+
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            outputStream = new FileOutputStream(newFile);
+            int read = 0;
+            byte[] bytes = new byte[1024];
+
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+           
+            String photoUrl = "/assets/uploads/recurring/"+fileName;
+            RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(recurringEventId);
+            if (recurringEvent != null) {
+            	recurringEvent.setPhoto(photoUrl);
+            	recurringManager.saveRecurringEvent(recurringEvent);
+            }
+            return new ResponseEntity<RecurringEvent>(recurringEvent, HttpStatus.OK);
+            
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	RecurringEvent recurringEvent = new RecurringEvent();
+        	return new ResponseEntity<RecurringEvent>(recurringEvent, HttpStatus.OK);
+        }
     }
 	
 	
