@@ -649,6 +649,8 @@ public class UserController {
 	@ResponseBody
 	public ResponseEntity deleteMeTimeByRecurringEventId(Long recurringEventId) {
 		
+		
+		RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(recurringEventId);
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		try {
@@ -675,6 +677,22 @@ public class UserController {
 			// TODO: handle exception
 			e.printStackTrace();
 		}
+		
+		try{
+			if (recurringEvent.getPhoto() != null) {
+				String fileName = recurringEvent.getPhoto().substring(recurringEvent.getPhoto().lastIndexOf("/")+1, recurringEvent.getPhoto().length());
+	    		File file = new File(recurringEventUploadPath+fileName);
+	    		if(file.delete()){
+	    			System.out.println(file.getName() + " is deleted!");
+	    		}else{
+	    			System.out.println("Delete operation is failed.");
+	    		}
+			}
+    	} catch(Exception e){
+    		
+    		e.printStackTrace();
+    		
+    	}
 		return new ResponseEntity(response, HttpStatus.OK);
 	}
 	
