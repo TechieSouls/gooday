@@ -546,7 +546,7 @@ public class UserController {
 	
 	@RequestMapping(value = "/api/user/metime", method = RequestMethod.POST)
 	@ResponseBody
-	public ResponseEntity<String> saveMeTime(@RequestBody MeTime meTime) {
+	public ResponseEntity<Map<String, Object>> saveMeTime(@RequestBody MeTime meTime) {
 		
 		if (meTime != null && meTime.getRecurringEventId() != null) {
 			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
@@ -564,7 +564,8 @@ public class UserController {
 		dayOfWeekMap.put("Friday", 6);
 		dayOfWeekMap.put("Saturday", 7);
 		
-		JSONObject responseObject = new JSONObject();
+		Map<String, Object> responseObject = new HashMap<>();
+		RecurringEvent recurringEventToReturn = null;
 		try {
 			Map<String,RecurringEvent> recurringEventMap = new HashMap<>();
 			for (MeTimeEvent meEvent : meTime.getEvents()) {
@@ -623,6 +624,7 @@ public class UserController {
 			for (Entry<String,RecurringEvent> entryMap : recurringEventMap.entrySet()) {
 				RecurringEvent recurringEvent = recurringManager.saveRecurringEvent(entryMap.getValue());
 				recurringEvents.add(recurringEvent);
+				recurringEventToReturn = recurringEvent;
 			}
 			
 			//Generating time slots for MeTimeEvents
@@ -632,13 +634,14 @@ public class UserController {
 			
 			responseObject.put("status", "success");
 			responseObject.put("saved", "true");
+			responseObject.put("recurringEvent", recurringEventToReturn);
 			Long endTimeMillis = new Date().getTime();
 			System.out.println("[METIME EVENTS TOTAL TIME TAKEN : ENDS "+(endTimeMillis - starTimeMillis)/1000+"]");
 			System.out.println("[METIME EVENTS : ENDS]");
 
-			return new ResponseEntity<String>(responseObject.toString(),HttpStatus.OK);
+			return new ResponseEntity<Map<String, Object>>(responseObject,HttpStatus.OK);
 		} catch(Exception e) {
-			return new ResponseEntity<String>(responseObject.toString(),HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<Map<String, Object>>(responseObject,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 	
