@@ -810,7 +810,7 @@ public class EventController {
 
 			String eventImageUrl = domain + "/assets/uploads/events/large/" + fileName;
 			event.setEventPicture(eventImageUrl);
-			event = eventManager.createEvent(event);
+			event = eventManager.saveUpdateEvent(event);
 			
 			JSONObject jobj = new JSONObject();
 			jobj.put("success", true);
