@@ -89,6 +89,10 @@ public class EventManager {
 	EventServiceDao eventServiceDao;
 	
 	
+	public Event saveUpdateEvent(Event event) {
+		return eventService.saveEvent(event);
+	}
+	
 	public Event createEvent(Event event) {
 
 		Boolean ownerExists = false;

@@ -771,12 +771,10 @@ public class EventController {
 	}
 
 	@RequestMapping(value = "/api/event/upload", method = RequestMethod.POST)
-	public ResponseEntity<String> uploadImages(
-			@RequestParam("mediaFile") MultipartFile uploadfile,
-			@RequestParam("userId") String userId) {
+	public ResponseEntity<String> uploadImages(MultipartFile uploadfile, Long eventId) {
 
-		User user = userRepository.findOne(Long.valueOf(userId));
-		String dirPath = eventUploadPath.replaceAll("\\[userId\\]", userId);
+		Event event = eventManager.findEventByEventId(eventId);
+		
 		InputStream inputStream = null;
 		OutputStream outputStream = null;
 		String extension = uploadfile.getOriginalFilename().substring(
@@ -785,6 +783,7 @@ public class EventController {
 
 		String fileName = UUID.randomUUID().toString() + extension;
 
+		String dirPath = eventUploadPath+"large/";
 		File f = new File(dirPath);
 		if (!f.exists()) {
 			try {
@@ -809,8 +808,10 @@ public class EventController {
 				outputStream.write(bytes, 0, read);
 			}
 
-			String eventImageUrl = "http://" + domain + "/assets/uploads/"
-					+ userId + "/events/" + fileName;
+			String eventImageUrl = domain + "/assets/uploads/events/large/" + fileName;
+			event.setEventPicture(eventImageUrl);
+			event = eventManager.createEvent(event);
+			
 			JSONObject jobj = new JSONObject();
 			jobj.put("success", true);
 			jobj.put("eventPicture", eventImageUrl);
@@ -826,7 +827,6 @@ public class EventController {
 			}
 			return new ResponseEntity<String>(jobj.toString(), HttpStatus.OK);
 		}
-
 	}
 
 	// Method to get Outlook events from API.
