@@ -117,7 +117,7 @@ public class EventManager {
 			EventMember eventMember = new EventMember();
 			eventMember.setName(user.getName());
 			eventMember.setPicture(user.getPhoto());
-			eventMember.setStatus("Accept");
+			eventMember.setStatus("Going");
 			eventMember.setUserId(user.getUserId());
 			members.add(eventMember);
 			event.setEventMembers(members);
