@@ -53,6 +53,7 @@ import com.cg.bo.FacebookProfile;
 import com.cg.bo.UserFriend;
 import com.cg.bo.UserFriend.UserStatus;
 import com.cg.constant.CgConstants.ErrorCodes;
+import com.cg.dto.ChangePasswordDto;
 import com.cg.enums.CgEnums.AuthenticateType;
 import com.cg.events.bo.MeTime;
 import com.cg.events.bo.MeTimeEvent;
@@ -850,6 +851,37 @@ public class UserController {
 		ResponseEntity<User> responseEntity = new ResponseEntity<User>(user, HttpStatus.OK);
 		return responseEntity;
 	}
+	
+	@RequestMapping(value = "/api/user/changePassword", method = RequestMethod.POST)
+	public Map<String, Object> changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		User user = userService.findUserById(changePasswordDto.getUserId());
+		if (user == null) {
+			response.put("success", false);
+			response.put("message", "User does not exists.");
+			return response;
+		}
+		
+		String currentPassword = changePasswordDto.getCurrentPassword();
+		
+		if (!user.getPassword().equals(new Md5PasswordEncoder().encodePassword(currentPassword, salt))) {
+			response.put("success", false);
+			response.put("message", "Current Password is not correct.");
+			return response;
+		}
+		
+		//Now lets create new password and update it.
+		String newPassword = new Md5PasswordEncoder().encodePassword(changePasswordDto.getCurrentPassword(), salt);
+		user.setPassword(newPassword);
+		user = userService.saveUser(user);
+		response.put("success", true);
+		response.put("data", user);
+		return response;
+	}
+	
 	
 	@RequestMapping(value = "/auth/validateResetToken", method = RequestMethod.GET)
 	public User validateResetToken(String resetToken) {
