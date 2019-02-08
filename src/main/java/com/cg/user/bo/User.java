@@ -75,6 +75,9 @@ public class User extends CgGeneral{
 	@Column(name="country")
 	private String country;
 	
+	@Column(name="birth_date")
+	private Long birthDate;
+	
 	@Transient
 	private Boolean isNew;
 	
@@ -200,4 +203,21 @@ public class User extends CgGeneral{
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
+
+	public String getCountry() {
+		return country;
+	}
+
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	public Long getBirthDate() {
+		return birthDate;
+	}
+
+	public void setBirthDate(Long birthDate) {
+		this.birthDate = birthDate;
+	}
+	
 }
