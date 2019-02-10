@@ -460,7 +460,7 @@ public class UserController {
                 outputStream.write(bytes, 0, read);
             }
            
-            String profilePicUrl = "http://"+domain+"/assets/uploads/"+userId+"/profile/"+fileName;
+            String profilePicUrl = domain+"/assets/uploads/"+userId+"/profile/"+fileName;
             user.setPhoto(profilePicUrl);
             userService.saveUser(user);
             
@@ -874,7 +874,7 @@ public class UserController {
 		}
 		
 		//Now lets create new password and update it.
-		String newPassword = new Md5PasswordEncoder().encodePassword(changePasswordDto.getCurrentPassword(), salt);
+		String newPassword = new Md5PasswordEncoder().encodePassword(changePasswordDto.getNewPassword(), salt);
 		user.setPassword(newPassword);
 		user = userService.saveUser(user);
 		response.put("success", true);
