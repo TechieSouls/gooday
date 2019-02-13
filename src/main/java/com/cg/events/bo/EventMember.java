@@ -10,9 +10,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import com.authy.api.User;
 import com.cg.bo.CgGeneral;
 import com.cg.events.bo.Event.EventProcessedStatus;
+import com.cg.user.bo.User;
 
 import io.swagger.annotations.ApiModelProperty;
 
