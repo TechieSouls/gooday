@@ -313,7 +313,7 @@ public class EventManager {
 	}
 	
 	public void deleteEventsByCreatedByIdScheduleAs(Long createdById,String scheduleAs) {
-		eventService.deleteEventsByCreatedByIdScheduleAs(createdById, scheduleAs);
+		eventRepository.deleteEventsByCreatedByIdAndScheduleAs(createdById, scheduleAs);
 	}
 	
 	public void deleteEventsByCreatedById(Long createdById) {
@@ -880,7 +880,10 @@ public class EventManager {
 					
 					EventMember eventMember = new EventMember();
 					eventMember.setName(user.getName());
+					
+					//This has to be removed later.
 					eventMember.setPicture(user.getPhoto());
+					
 					eventMember.setStatus(MemberStatus.Going.toString());
 					eventMember.setSource(EventSource.Apple.toString());
 					if (user.getEmail() != null) {

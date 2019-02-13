@@ -5,9 +5,12 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.authy.api.User;
 import com.cg.bo.CgGeneral;
 import com.cg.events.bo.Event.EventProcessedStatus;
 
@@ -58,6 +61,10 @@ public class EventMember extends CgGeneral {
 	
 	@Column(name="processed")
 	private Integer processed = EventProcessedStatus.Processed.ordinal();	
+	
+	@ManyToOne
+	@JoinColumn(name="user_id")
+	private User user;
 	
 	@Transient
 	private Boolean owner = false;
@@ -127,5 +134,11 @@ public class EventMember extends CgGeneral {
 	}
 	public void setProcessed(Integer processed) {
 		this.processed = processed;
+	}
+	public User getUser() {
+		return user;
+	}
+	public void setUser(User user) {
+		this.user = user;
 	}
 }

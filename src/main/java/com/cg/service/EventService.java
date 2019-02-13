@@ -164,10 +164,7 @@ public class EventService {
 	public void deleteEventsByCreatedByIdAndSourceAndScheduleAs(Long createdById,String source,String scheduleAs) {
 		eventRepository.deleteEventsByCreatedByIdAndSourceAndScheduleAs(createdById, source,scheduleAs);
 	}	
-	public void deleteEventsByCreatedByIdScheduleAs(Long createdById,String scheduleAs) {
-		eventRepository.deleteEventsByCreatedByIdAndScheduleAs(createdById, scheduleAs);
-	}
-	
+
 	public void deleteEventsByCreatedById(Long createdById) {
 		eventRepository.deleteByCreatedById(createdById);
 	}

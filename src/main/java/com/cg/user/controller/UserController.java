@@ -56,6 +56,7 @@ import com.cg.bo.UserFriend.UserStatus;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.ChangePasswordDto;
 import com.cg.enums.CgEnums.AuthenticateType;
+import com.cg.events.bo.Event;
 import com.cg.events.bo.MeTime;
 import com.cg.events.bo.MeTimeEvent;
 import com.cg.events.bo.RecurringEvent;
@@ -889,6 +890,31 @@ public class UserController {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
+		User user = userService.findUserById(holidayCalendar.getUserId());
+		
+		
+		eventManager.deleteEventsByCreatedByIdScheduleAs(holidayCalendar.getUserId(), Event.ScheduleEventAs.Holiday.toString());
+		
+		//Find the holiday calendar is any in db and update it.
+		HolidayCalendar dbHolidayCalendar = null;
+		List<HolidayCalendar> holidayCaledars = userService.findHolidayCalendarByUserId(holidayCalendar.getUserId());
+		if (holidayCaledars != null && holidayCaledars.size() > 0) {
+			dbHolidayCalendar = holidayCaledars.get(0);
+		}
+		
+		if (dbHolidayCalendar != null) {
+			dbHolidayCalendar.setCountryCalendarId(holidayCalendar.getCountryCalendarId());
+			dbHolidayCalendar.setCountryName(holidayCalendar.getCountryName());
+			dbHolidayCalendar.setCountryCode(holidayCalendar.getCountryCode());
+
+			userService.saveHolidayCalendar(dbHolidayCalendar);		
+			eventManager.syncHolidays(dbHolidayCalendar.getCountryCalendarId(), user);
+			
+		} else {
+			userService.saveHolidayCalendar(holidayCalendar);		
+			eventManager.syncHolidays(holidayCalendar.getCountryCalendarId(), user);
+		
+		}
 		holidayCalendar = userService.saveHolidayCalendar(holidayCalendar);
 		if (holidayCalendar == null) {
 			response.put("success", false);
