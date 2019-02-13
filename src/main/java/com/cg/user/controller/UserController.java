@@ -50,6 +50,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.FacebookProfile;
+import com.cg.bo.HolidayCalendar;
 import com.cg.bo.UserFriend;
 import com.cg.bo.UserFriend.UserStatus;
 import com.cg.constant.CgConstants.ErrorCodes;
@@ -879,6 +880,39 @@ public class UserController {
 		user = userService.saveUser(user);
 		response.put("success", true);
 		response.put("data", user);
+		return response;
+	}
+	
+	@RequestMapping(value = "/api/user/holidayCalendar", method = RequestMethod.POST)
+	public Map<String, Object> saveHolidayCalendar(@RequestBody HolidayCalendar holidayCalendar) {
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		holidayCalendar = userService.saveHolidayCalendar(holidayCalendar);
+		if (holidayCalendar == null) {
+			response.put("success", false);
+			response.put("message", "HolidayCalendar cannot be saved.");
+			return response;
+		}
+		
+		response.put("data", holidayCalendar);
+		return response;
+	}
+	
+	@RequestMapping(value = "/api/user/holidayCalendarByUserId")
+	public Map<String, Object> findHolidayCalendarByUserId(Long userId) {
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		List<HolidayCalendar> holidayCalendars = userService.findHolidayCalendarByUserId(userId);
+		if (holidayCalendars == null) {
+			response.put("success", false);
+			response.put("message", "No Holiday Calendar Selected.");
+			return response;
+		}
+		response.put("data", holidayCalendars);
 		return response;
 	}
 	

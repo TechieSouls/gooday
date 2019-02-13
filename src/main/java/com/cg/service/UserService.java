@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cg.bo.HolidayCalendar;
+import com.cg.repository.HolidayCalendarRepository;
 import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserDeviceRepository;
 import com.cg.repository.UserRepository;
@@ -29,6 +31,9 @@ public class UserService {
 	
 	@Autowired
 	UserContactRepository userContactRepository;
+	
+	@Autowired
+	HolidayCalendarRepository holidayCalendarRepository;
 	
 	/***********  USER BLOCK STARTS *****************/
 	public User findUserById(Long userId) {
@@ -101,6 +106,16 @@ public class UserService {
 	
 	public void deleteUserByUserId(Long userId) {
 		userRepository.deleteByUserId(userId);
+	}
+	
+	public HolidayCalendar saveHolidayCalendar(HolidayCalendar holidayCalendar) {
+		
+		return holidayCalendarRepository.save(holidayCalendar);
+	}
+
+	public List<HolidayCalendar> findHolidayCalendarByUserId(Long userId) {
+		
+		return holidayCalendarRepository.findByUserId(userId);
 	}
 	
 	/**
