@@ -90,9 +90,9 @@ public class GatheringToDiaryUpdaterJob {
 			}
 			System.out.println("Diaries Size : "+diaries.size());
 			diaryRepository.save(diaries); */
-			for (Event gathering : events) {
+			/*for (Event gathering : events) {
 				notificationManager.deleteNotificationByNotificationTypeId(gathering.getEventId());
-			}
+			}*/
 			eventService.deleteEventsBatch(events);
 		}
 	}
