@@ -26,4 +26,7 @@ public interface EventMemberRepository extends CrudRepository<EventMember,Long> 
 	
 	@Query("select em from EventMember em where em.processed = :processed and em.status = :status")
 	public List<EventMember> findByProcessedAndStatus(@Param("processed") Integer processed,@Param("status") String status);
+	
+	public EventMember findByEventIdAndUserId(Long eventId, Long userId);
+
 }

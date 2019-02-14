@@ -42,6 +42,7 @@ import com.cg.events.bo.OutlookEventAttendees;
 import com.cg.events.bo.OutlookEventItem;
 import com.cg.events.bo.OutlookEvents;
 import com.cg.events.dao.EventServiceDao;
+import com.cg.events.repository.EventMemberRepository;
 import com.cg.events.repository.EventRepository;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
@@ -87,6 +88,9 @@ public class EventManager {
 	
 	@Autowired
 	EventServiceDao eventServiceDao;
+	
+	@Autowired
+	EventMemberRepository eventMemberRepository;
 	
 	
 	public Event saveUpdateEvent(Event event) {
@@ -1028,6 +1032,11 @@ public class EventManager {
 	
 	public void updateEventMemberPicture(String picture,Long userId) {
 		eventService.updateEventMemberPictureByUserId(picture, userId);
+	}
+	
+	
+	public EventMember findEventMemberByEventIdAndUserId(Long eventId, Long userId) {
+		return eventMemberRepository.findByEventIdAndUserId(eventId, userId);
 	}
 	
 	public EventMember findEventMemberByEventMemberId(Long eventMemberId) {

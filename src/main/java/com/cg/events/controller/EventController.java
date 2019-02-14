@@ -295,6 +295,43 @@ public class EventController {
 		
 	}
 	
+	@RequestMapping(value = "/api/event/memberStatusUpdate", method = RequestMethod.GET)
+	public ResponseEntity<Map<String,Object>> updateEventMemberStatus(Long eventId, Long userId, String status) {
+		Map<String,Object> response = new HashMap<>();
+		try {
+			
+			EventMember eventMember = eventManager.findEventMemberByEventIdAndUserId(eventId, userId);
+			if (eventMember != null) {
+				notificationManager.deleteNotificationByRecepientIdNotificationTypeId(eventMember.getUserId(), eventMember.getEventId());
+			}
+
+			if ("Going".equals(status)) {
+				eventMember.setStatus(MemberStatus.Going.toString());
+				eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+			} else if ("NotGoing".equals(status)) {
+				eventMember.setStatus(MemberStatus.NotGoing.toString());
+			}
+			eventService.saveEventMember(eventMember);
+			//eventService.updateEventMemberStatus(memberStatus, eventMemberId);
+			
+			notificationManager.sendEventAcceptDeclinedPush(eventMember);
+			
+			response.put("success", true);
+			response.put("message", "Status Updated Successfully");
+			response.put("errorCode",0);
+			response.put("errorDetail",null);
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("message", "Error in updating status");
+			response.put("errorCode",ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail",ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+		
+	}
+	
 	@ApiOperation(value = "Fetch User Events", notes = "Fecth user events by date and timezone", code = 200, httpMethod = "GET", produces = "application/json")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Event fetched successfuly", response = Event.class) })
 	@RequestMapping(value = "/api/getEvents", method = RequestMethod.GET)
