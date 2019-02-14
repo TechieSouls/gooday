@@ -301,9 +301,9 @@ public class EventController {
 		try {
 			
 			EventMember eventMember = eventManager.findEventMemberByEventIdAndUserId(eventId, userId);
-			if (eventMember != null) {
+			/*if (eventMember != null) {
 				notificationManager.deleteNotificationByRecepientIdNotificationTypeId(eventMember.getUserId(), eventMember.getEventId());
-			}
+			}*/
 
 			if ("Going".equals(status)) {
 				eventMember.setStatus(MemberStatus.Going.toString());
