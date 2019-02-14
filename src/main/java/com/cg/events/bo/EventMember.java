@@ -66,6 +66,9 @@ public class EventMember extends CgGeneral {
 	@JoinColumn(name="user_id", insertable=false, updatable=false)
 	private User user;
 	
+	@Column(name="user_contact_id")
+	private Long userContactId;
+	
 	@Transient
 	private Boolean owner = false;
 	
@@ -140,5 +143,11 @@ public class EventMember extends CgGeneral {
 	}
 	public void setUser(User user) {
 		this.user = user;
+	}
+	public Long getUserContactId() {
+		return userContactId;
+	}
+	public void setUserContactId(Long userContactId) {
+		this.userContactId = userContactId;
 	}
 }
