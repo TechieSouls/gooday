@@ -120,7 +120,7 @@ public class EventServiceDao {
 	
 	public Event findGatheringByEventId(Long eventId) {
 		
-		String gatheringQuery = "select * from events e JOIN event_members em on e.event_id = em.event_id JOIN users u on em.user_id = u.user_id "
+		String gatheringQuery = "select * from events e JOIN event_members em on e.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
 				+ "where e.event_id = "+eventId;
 		
 		System.out.println("Query : "+gatheringQuery);
@@ -175,7 +175,7 @@ public class EventServiceDao {
 		
 		String query = "select * from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"') as event_temp "
-				+ "JOIN event_members em on event_temp.event_id = em.event_id JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
+				+ "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 		
 		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
 		
