@@ -293,7 +293,7 @@ public class EventServiceDao {
 			eventMember.setUserContactId(Long.valueOf(eventMembersMap.get("user_contact_id").toString()));
 		}
 		
-		if  (eventMembersMap.get("user") != null) {
+		if  (eventMembersMap.get("user_id") != null) {
 			eventMember.setUser(populateUser(eventMembersMap));
 		}
 		return eventMember;
