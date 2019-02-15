@@ -87,7 +87,7 @@ public class NotificationManager {
 		
 		List<EventMember> eventMembers = event.getEventMembers();
 		for (EventMember eventMember : eventMembers) {
-			if (!eventMember.getUserId().equals(event.getCreatedById())) {
+			if (eventMember.getUserId() != null && !eventMember.getUserId().equals(event.getCreatedById())) {
 				boolean notificationAlreadySent = false;
 				String eventMessage = "sent you an invitation";
 				
