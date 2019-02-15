@@ -118,6 +118,10 @@ public class EventManager {
 				members = new ArrayList<>();
 			}
 			
+			for (EventMember mem: members) {
+				mem.setUser(null);
+			}
+			
 			EventMember eventMember = new EventMember();
 			eventMember.setName(user.getName());
 			eventMember.setPicture(user.getPhoto());
