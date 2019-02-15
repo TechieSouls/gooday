@@ -1,5 +1,6 @@
 package com.cg.events.bo;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -62,7 +63,7 @@ public class EventMember extends CgGeneral {
 	@Column(name="processed")
 	private Integer processed = EventProcessedStatus.Processed.ordinal();	
 	
-	@ManyToOne
+	@ManyToOne(cascade=CascadeType.ALL)
 	@JoinColumn(name="user_id", insertable=false, updatable=false)
 	private User user;
 	
