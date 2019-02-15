@@ -246,7 +246,11 @@ public class EventController {
 		Event event = new Event();
 		try {
 			event = eventServiceDao.findGatheringByEventId(eventId);
-			response.put("success", true);
+			if (event == null) {
+				response.put("success", false);
+			} else {
+				response.put("success", true);
+			}
 			response.put("data", event);
 			response.put("errorCode",0);
 			response.put("errorDetail",null);
