@@ -1054,14 +1054,14 @@ public class EventController {
 						List<EventMember> members = new ArrayList<>();
 						if (iteratableEvent.getEventMembers() != null && iteratableEvent.getEventMembers().size() > 0) {
 							for (EventMember eventMember : iteratableEvent.getEventMembers()) {
-								if (eventMember.getUserId().equals(iteratableEvent.getCreatedById())) {
+								if (eventMember.getUserId() != null && eventMember.getUserId().equals(iteratableEvent.getCreatedById())) {
 									eventMember.setOwner(true);
 									members.add(eventMember);
 									break;
 								}
 							}
 							for (EventMember eventMember : iteratableEvent.getEventMembers()) {
-								if (!eventMember.getUserId().equals(iteratableEvent.getCreatedById())) {
+								if (eventMember.getUserId() != null && !eventMember.getUserId().equals(iteratableEvent.getCreatedById())) {
 									members.add(eventMember);
 								}
 							}
