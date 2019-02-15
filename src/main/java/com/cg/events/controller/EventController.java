@@ -206,6 +206,9 @@ public class EventController {
 		try {
 			
 			Event event = eventService.findEventById(gatehringId);
+			for (EventMember eventMember: event.getEventMembers()) {
+				eventMember.setUser(null);
+			}
 			try {
 				eventService.deleteEventTimeSlotsByEventId(event.getEventId());
 			} catch(Exception e) {
@@ -242,7 +245,7 @@ public class EventController {
 		Map<String,Object> response = new HashMap<>();
 		Event event = new Event();
 		try {
-			event = eventRepository.findOne(eventId);
+			event = eventServiceDao.findGatheringByEventId(eventId);
 			response.put("success", true);
 			response.put("data", event);
 			response.put("errorCode",0);
