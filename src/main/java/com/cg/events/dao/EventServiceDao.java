@@ -128,7 +128,7 @@ public class EventServiceDao {
 		if (userGatherings != null) {
 			for (Map<String, Object> userGatheringMap: userGatherings) {
 				Event event = null;
-				if (userGatheringMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+				if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
 					event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
 					
 					List<EventMember> eventMmembers = event.getEventMembers();
@@ -171,7 +171,7 @@ public class EventServiceDao {
 		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
 		for (Map<String, Object> userGatheringMap: userGatheringsMapList) {
 			Event event = null;
-			if (userGatheringMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+			if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
 				event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
 				
 				List<EventMember> eventMmembers = event.getEventMembers();
@@ -210,7 +210,7 @@ public class EventServiceDao {
 		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
 		for (Map<String, Object> userGatheringMap: userGatheringsMapList) {
 			Event event = null;
-			if (userGatheringMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+			if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
 				event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
 				
 				List<EventMember> eventMmembers = event.getEventMembers();
