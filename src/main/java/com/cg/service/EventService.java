@@ -113,8 +113,8 @@ public class EventService {
 	
 	public List<Event> findPendingInvitations(Long userId) {
 		//List<Map<String,Object>> eventMembersList = eventServiceDao.findPendingInvitationsByUserd(userId);
-		List<Event> pendings = eventRepository.findPendingEvents(userId);
-		return pendings;
+		//List<Event> pendings = eventRepository.findPendingEvents(userId);
+		return eventServiceDao.findGatheringsByStatusNull(userId);
 	}
 	public Map<String,Object> findDeclinedGatherings(Long userId,String status) {
 		Map<String,Object> eventMembersList = eventServiceDao.findUserDeclinedGatheringssByDateAndUserIdAndStatus(userId,status);
@@ -140,7 +140,8 @@ public class EventService {
 		return eventRepository.findPastUserGatherings();
 	}
 	public List<Event> findUserFutureGatherings(Long userId,String status) {
-		return eventRepository.findFutureGatherings(userId, status);
+		//return eventRepository.findFutureGatherings(userId, status);
+		return eventServiceDao.findGatheringsByUserIdAndStatus(userId, status);
 	}
 	public List<Event> findEventByEventIds(List<Long> eventIds) {
 		return eventRepository.findByEventIds(eventIds);

@@ -3,18 +3,33 @@ package com.cg.events.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 import com.cg.dto.LocationDto;
+import com.cg.events.bo.Event;
+import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventTimeSlot;
+import com.cg.events.bo.Event.EventProcessedStatus;
+import com.cg.user.bo.User;
+
+import io.swagger.annotations.ApiModelProperty;
 
 @Service
 public class EventServiceDao {
@@ -101,6 +116,196 @@ public class EventServiceDao {
 		String deleteEvents = "delete from events where recurring_event_id = '"+recurringEventId+"'";
 		 jdbcTemplate.execute(deleteEvents);
 
+	}
+	
+	public List<Event> findGatheringsByUserIdAndStatus(Long userId, String status) {
+		
+		String query = "select * from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"') as event_temp "
+				+ "JOIN event_members em on event_temp.event_id = em.event_id JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
+		
+		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
+		
+		
+		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
+		for (Map<String, Object> userGatheringMap: userGatheringsMapList) {
+			Event event = null;
+			if (userGatheringMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+				event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
+				
+				List<EventMember> eventMmembers = event.getEventMembers();
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			} else {
+				event = populateEventBo(userGatheringMap);
+				
+				List<EventMember> eventMmembers = event.getEventMembers();
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			}
+			eventIdMap.put(event.getEventId(), event);
+		}
+		
+		List<Event> events = new ArrayList<>();
+		for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
+			events.add(eventEntrySet.getValue());
+		}
+		return events;
+	}
+	
+	public List<Event> findGatheringsByStatusNull(Long userId) {
+		String query = "select * from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status is null) as event_temp "
+				+ "JOIN event_members em on event_temp.event_id = em.event_id JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
+
+		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
+		
+		
+		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
+		for (Map<String, Object> userGatheringMap: userGatheringsMapList) {
+			Event event = null;
+			if (userGatheringMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+				event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
+				
+				List<EventMember> eventMmembers = event.getEventMembers();
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			} else {
+				event = populateEventBo(userGatheringMap);
+				
+				List<EventMember> eventMmembers = event.getEventMembers();
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			}
+			eventIdMap.put(event.getEventId(), event);
+		}
+		
+		List<Event> events = new ArrayList<>();
+		for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
+			events.add(eventEntrySet.getValue());
+		}
+		return events;
+	}
+	
+	public Event populateEventBo(Map<String, Object> eventMap) {
+		Event event = new Event();
+		if (eventMap.get("event_id") != null) {
+			event.setEventId(Long.valueOf(eventMap.get("event_id").toString()));
+		}
+		if (eventMap.get("created_by_id") != null) {
+			event.setEventId(Long.valueOf(eventMap.get("created_by_id").toString()));
+		}
+		if (eventMap.get("title") != null) {
+			event.setTitle(eventMap.get("title").toString());
+		}
+		if (eventMap.get("recurring_event_id") != null) {
+			event.setRecurringEventId(eventMap.get("recurring_event_id").toString());
+		}
+		if (eventMap.get("location") != null) {
+			event.setLocation(eventMap.get("location").toString());
+		}
+		if (eventMap.get("latitude") != null) {
+			event.setLatitude(eventMap.get("latitude").toString());
+		}
+		if (eventMap.get("longitude") != null) {
+			event.setLongitude(eventMap.get("longitude").toString());
+		}
+		if (eventMap.get("description") != null) {
+			event.setDescription(eventMap.get("description").toString());
+		}
+		if (eventMap.get("source_event_id") != null) {
+			event.setSourceEventId(eventMap.get("source_event_id").toString());
+		}
+		if (eventMap.get("source_user_id") != null) {
+			event.setSourceUserId(eventMap.get("source_user_id").toString());
+		}
+		if (eventMap.get("schedule_as") != null) {
+			event.setScheduleAs(eventMap.get("schedule_as").toString());
+		}
+		if (eventMap.get("event_picture") != null) {
+			event.setEventPicture(eventMap.get("event_picture").toString());
+		}
+		if (eventMap.get("start_time") != null) {
+			event.setStartTime((Date)eventMap.get("start_time"));
+		}
+		if (eventMap.get("end_time") != null) {
+			event.setEndTime((Date)eventMap.get("end_time"));
+		}
+		if (eventMap.get("is_predictive_on") != null) {
+			event.setIsPredictiveOn((Boolean)eventMap.get("source_user_id"));
+		}
+		if (eventMap.get("is_full_day") != null) {
+			event.setIsFullDay((Boolean)eventMap.get("is_full_day"));
+		}
+		if (eventMap.get("predictive_data") != null) {
+			event.setPredictiveData(eventMap.get("predictive_ata").toString());
+		}
+		return event;
+	}
+	
+	
+	public EventMember populateEventMembers(Map<String, Object> eventMembersMap) {
+		
+		EventMember eventMember = new EventMember();
+		if  (eventMembersMap.get("event_member_id") != null) {
+			eventMember.setEventMemberId(Long.valueOf(eventMembersMap.get("event_member_id").toString()));
+		}
+		if  (eventMembersMap.get("event_id") != null) {
+			eventMember.setEventId(Long.valueOf(eventMembersMap.get("event_id").toString()));
+		}
+		if  (eventMembersMap.get("source") != null) {
+			eventMember.setSource(eventMembersMap.get("source").toString());
+		}
+		if  (eventMembersMap.get("source") != null) {
+			eventMember.setSource(eventMembersMap.get("event_id").toString());
+		}
+		if  (eventMembersMap.get("source_email") != null) {
+			eventMember.setSourceEmail(eventMembersMap.get("source_email").toString());
+		}
+		if  (eventMembersMap.get("source_id") != null) {
+			eventMember.setSourceId(eventMembersMap.get("source_id").toString());
+		}
+		if  (eventMembersMap.get("name") != null) {
+			eventMember.setName(eventMembersMap.get("name").toString());
+		}
+		if  (eventMembersMap.get("picture") != null) {
+			eventMember.setPicture(eventMembersMap.get("picture").toString());
+		}
+		if  (eventMembersMap.get("status") != null) {
+			eventMember.setStatus(eventMembersMap.get("status").toString());
+		}
+		if  (eventMembersMap.get("user_id") != null) {
+			eventMember.setUserId(Long.valueOf(eventMembersMap.get("user_id").toString()));
+		}
+		if  (eventMembersMap.get("processed") != null) {
+			eventMember.setProcessed(Integer.valueOf(eventMembersMap.get("user_id").toString()));
+		}
+		if  (eventMembersMap.get("user_contact_id") != null) {
+			eventMember.setUserContactId(Long.valueOf(eventMembersMap.get("user_contact_id").toString()));
+		}
+		
+		if  (eventMembersMap.get("user") != null) {
+			eventMember.setUser(populateUser(eventMembersMap));
+		}
+		return eventMember;
+		
+	}
+	
+	public User populateUser(Map<String, Object> userMap) {
+		User user = new User();
+		if (userMap.get("user_id") != null) {
+			user.setUserId(Long.valueOf(userMap.get("user_id").toString()));
+		}
+		if (userMap.get("name") != null) {
+			user.setName(userMap.get("name").toString());
+		}
+		if (userMap.get("photo") != null) {
+			user.setPhoto(userMap.get("photo").toString());
+		}
+		if (userMap.get("phone") != null) {
+			user.setPhone(userMap.get("phone").toString());
+		}
+		return user;
 	}
 	
 	public List<LocationDto> findDistinctEventLocations(Long userId) {

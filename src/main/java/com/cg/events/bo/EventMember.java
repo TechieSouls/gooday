@@ -63,8 +63,7 @@ public class EventMember extends CgGeneral {
 	@Column(name="processed")
 	private Integer processed = EventProcessedStatus.Processed.ordinal();	
 	
-	@ManyToOne(cascade=CascadeType.ALL)
-	@JoinColumn(name="user_id", insertable=false, updatable=false)
+	@Transient
 	private User user;
 	
 	@Column(name="user_contact_id")
