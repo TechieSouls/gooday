@@ -122,38 +122,45 @@ public class EventServiceDao {
 		
 		String gatheringQuery = "select * from events e JOIN event_members em on e.event_id = em.event_id JOIN users u on em.user_id = u.user_id "
 				+ "where e.event_id = "+eventId;
+		
+		System.out.println("Query : "+gatheringQuery);
 		List<Map<String, Object>> userGatherings = jdbcTemplate.queryForList(gatheringQuery);
 		
 		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
 		if (userGatherings != null) {
-			for (Map<String, Object> userGatheringMap: userGatherings) {
-				Event event = null;
-				if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
-					event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
-					
-					List<EventMember> eventMmembers = event.getEventMembers();
-					eventMmembers.add(populateEventMembers(userGatheringMap));
-					event.setEventMembers(eventMmembers);
-				} else {
-					event = populateEventBo(userGatheringMap);
-					List<EventMember> eventMmembers = null;
-					if (event.getEventMembers() == null) {
-						eventMmembers = new ArrayList<>();
-					} else {
-						eventMmembers = event.getEventMembers();
-					}
-					
-					eventMmembers.add(populateEventMembers(userGatheringMap));
-					event.setEventMembers(eventMmembers);
-				}
-				eventIdMap.put(event.getEventId(), event);
-			}
 			
-			List<Event> events = new ArrayList<>();
-			for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
-				events.add(eventEntrySet.getValue());
+			try {
+				for (Map<String, Object> userGatheringMap: userGatherings) {
+					Event event = null;
+					if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+						event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
+						
+						List<EventMember> eventMmembers = event.getEventMembers();
+						eventMmembers.add(populateEventMembers(userGatheringMap));
+						event.setEventMembers(eventMmembers);
+					} else {
+						event = populateEventBo(userGatheringMap);
+						List<EventMember> eventMmembers = null;
+						if (event.getEventMembers() == null) {
+							eventMmembers = new ArrayList<>();
+						} else {
+							eventMmembers = event.getEventMembers();
+						}
+						
+						eventMmembers.add(populateEventMembers(userGatheringMap));
+						event.setEventMembers(eventMmembers);
+					}
+					eventIdMap.put(event.getEventId(), event);
+				}
+				
+				List<Event> events = new ArrayList<>();
+				for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
+					events.add(eventEntrySet.getValue());
+				}
+				events.get(0);
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
-			events.get(0);
 		}
 		
 		return null;
