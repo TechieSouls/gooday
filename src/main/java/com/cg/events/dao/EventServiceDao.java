@@ -316,7 +316,7 @@ public class EventServiceDao {
 	public EventMember populateEventMembers(Map<String, Object> eventMembersMap) {
 		
 		EventMember eventMember = new EventMember();
-		
+		System.out.println(eventMembersMap.toString());
 		try {
 			if  (eventMembersMap.get("event_member_id") != null) {
 				eventMember.setEventMemberId(Long.valueOf(eventMembersMap.get("event_member_id").toString()));
