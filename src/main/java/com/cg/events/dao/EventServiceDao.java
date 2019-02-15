@@ -158,7 +158,11 @@ public class EventServiceDao {
 				for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
 					events.add(eventEntrySet.getValue());
 				}
-				return events.get(0);
+				if (events.size() > 0) {
+					return events.get(0);
+				} else {
+					return null;
+				}
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
