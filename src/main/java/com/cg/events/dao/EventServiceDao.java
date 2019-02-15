@@ -124,11 +124,10 @@ public class EventServiceDao {
 				+ "where e.event_id = "+eventId;
 		List<Map<String, Object>> userGatherings = jdbcTemplate.queryForList(gatheringQuery);
 		
-		Event event = null;
 		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
 		if (userGatherings != null) {
 			for (Map<String, Object> userGatheringMap: userGatherings) {
-				Event eventTemp = null;
+				Event event = null;
 				if (userGatheringMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
 					event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
 					
@@ -154,10 +153,10 @@ public class EventServiceDao {
 			for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
 				events.add(eventEntrySet.getValue());
 			}
-			event = events.get(0);
+			events.get(0);
 		}
 		
-		return event;
+		return null;
 	}
 	
 	public List<Event> findGatheringsByUserIdAndStatus(Long userId, String status) {
@@ -244,7 +243,7 @@ public class EventServiceDao {
 			event.setEventId(Long.valueOf(eventMap.get("event_id").toString()));
 		}
 		if (eventMap.get("created_by_id") != null) {
-			event.setEventId(Long.valueOf(eventMap.get("created_by_id").toString()));
+			event.setCreatedById(Long.valueOf(eventMap.get("created_by_id").toString()));
 		}
 		if (eventMap.get("title") != null) {
 			event.setTitle(eventMap.get("title").toString());
