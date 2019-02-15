@@ -102,7 +102,7 @@ public class EventManager {
 		Boolean ownerExists = false;
 		if (event.getEventMembers() != null) {
 			for (EventMember member : event.getEventMembers()) {
-				if (event.getCreatedById().equals(member.getUserId())) {
+				if (member.getUserId() != null && event.getCreatedById().equals(member.getUserId())) {
 					ownerExists = true;
 					break;
 				}
