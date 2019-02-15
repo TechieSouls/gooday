@@ -138,8 +138,13 @@ public class EventServiceDao {
 				event.setEventMembers(eventMmembers);
 			} else {
 				event = populateEventBo(userGatheringMap);
+				List<EventMember> eventMmembers = null;
+				if (event.getEventMembers() == null) {
+					eventMmembers = new ArrayList<>();
+				} else {
+					eventMmembers = event.getEventMembers();
+				}
 				
-				List<EventMember> eventMmembers = event.getEventMembers();
 				eventMmembers.add(populateEventMembers(userGatheringMap));
 				event.setEventMembers(eventMmembers);
 			}
@@ -173,8 +178,12 @@ public class EventServiceDao {
 			} else {
 				event = populateEventBo(userGatheringMap);
 				
-				List<EventMember> eventMmembers = event.getEventMembers();
-				eventMmembers.add(populateEventMembers(userGatheringMap));
+				List<EventMember> eventMmembers = null;
+				if (event.getEventMembers() == null) {
+					eventMmembers = new ArrayList<>();
+				} else {
+					eventMmembers = event.getEventMembers();
+				}				eventMmembers.add(populateEventMembers(userGatheringMap));
 				event.setEventMembers(eventMmembers);
 			}
 			eventIdMap.put(event.getEventId(), event);
