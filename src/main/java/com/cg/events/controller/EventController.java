@@ -866,7 +866,7 @@ public class EventController {
 		    BufferedImage image = ImageIO.read(newFile);
 
 		    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
-		    File thumbnailPathFile = new File(thumbnailPath);
+		    File thumbnailPathFile = new File(eventUploadPath+"thumbnail/");
 			if (!thumbnailPathFile.exists()) {
 				try {
 					thumbnailPathFile.mkdirs();
