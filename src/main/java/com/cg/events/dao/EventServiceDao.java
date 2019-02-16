@@ -120,7 +120,7 @@ public class EventServiceDao {
 	
 	public Event findGatheringByEventId(Long eventId) {
 		
-		String gatheringQuery = "select *, em.name as non_cenes_member_name from events e JOIN event_members em on e.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
+		String gatheringQuery = "select *,e.source as event_source,  em.source as member_source, em.name as non_cenes_member_name from events e JOIN event_members em on e.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
 				+ "where e.event_id = "+eventId;
 		
 		System.out.println("Query : "+gatheringQuery);
@@ -277,8 +277,8 @@ public class EventServiceDao {
 			if (eventMap.get("description") != null) {
 				event.setDescription(eventMap.get("description").toString());
 			}
-			if (eventMap.get("source") != null) {
-				event.setSource(eventMap.get("source").toString());
+			if (eventMap.get("event_source") != null) {
+				event.setSource(eventMap.get("event_source").toString());
 			}
 			if (eventMap.get("source_event_id") != null) {
 				event.setSourceEventId(eventMap.get("source_event_id").toString());
@@ -334,8 +334,8 @@ public class EventServiceDao {
 			if  (eventMembersMap.get("event_id") != null) {
 				eventMember.setEventId(Long.valueOf(eventMembersMap.get("event_id").toString()));
 			}
-			if  (eventMembersMap.get("source") != null) {
-				eventMember.setSource(eventMembersMap.get("source").toString());
+			if  (eventMembersMap.get("member_source") != null) {
+				eventMember.setSource(eventMembersMap.get("member_source").toString());
 			}
 			if  (eventMembersMap.get("source_email") != null) {
 				eventMember.setSourceEmail(eventMembersMap.get("source_email").toString());
