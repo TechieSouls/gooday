@@ -312,7 +312,7 @@ public class EventServiceDao {
 				event.setIsPredictiveOn((Boolean)eventMap.get("is_predictive_on"));
 			}
 			if (eventMap.get("predictive_data") != null) {
-				event.setPredictiveData(eventMap.get("predictive_ata").toString());
+				event.setPredictiveData(eventMap.get("predictive_data").toString());
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
