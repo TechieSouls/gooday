@@ -55,7 +55,7 @@ dependencies {
     testCompile("org.springframework.boot:spring-boot-starter-test")
     compile('com.google.code.gson:gson:1.7.2')
     // https://mvnrepository.com/artifact/com.sun.media/jai_imageio
-	compile group: 'com.sun.media', name: 'jai_imageio', version: '1.1'
+	//compile group: 'com.sun.media', name: 'jai_imageio', version: '1.1'
     
     compile (group: 'com.pubnub', name: 'pubnub', version: '4.0.9'){
     	  exclude group: 'org.slf4j', module: 'slf4j-nop'
