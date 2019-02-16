@@ -289,6 +289,9 @@ public class EventServiceDao {
 			if (eventMap.get("event_picture") != null) {
 				event.setEventPicture(eventMap.get("event_picture").toString());
 			}
+			if (eventMap.get("thumnail") != null) {
+				event.setThumbnail(eventMap.get("thumnail").toString());
+			}
 			if (eventMap.get("start_time") != null) {
 				event.setStartTime((Date)eventMap.get("start_time"));
 			}
