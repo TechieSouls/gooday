@@ -200,18 +200,10 @@ public class EventController {
 			}
 			event = eventManager.createEvent(event);
 			
-			if (event.getEventPicture() != null && event.getEventPicture().indexOf("google") != -1) {
-				
+			if (event.getPlaceId() != null && event.getEventPicture() != null && event.getEventPicture().indexOf("google") != -1) {
 				GatheringPreviousLocation gatheringPreviousLocation = null;
-				boolean saveImage = true;
-				if (isOldEvent) {
-					gatheringPreviousLocation = eventManager.findGatheringPreviousLocationByEventId(event.getEventId());
-					if (gatheringPreviousLocation.getPlaceId().equals(event.getPlaceId())) {
-						saveImage = false;
-					}
-				}
-				
-				if (saveImage) {
+				gatheringPreviousLocation = eventManager.findGatheringPreviousLocationByUserIdAndPlaceId(event.getCreatedById(), event.getPlaceId());
+				if (gatheringPreviousLocation == null) {
 					gatheringPreviousLocation = new GatheringPreviousLocation();
 					gatheringPreviousLocation.setEventId(event.getEventId());
 					gatheringPreviousLocation.setPhoto(event.getEventPicture());
