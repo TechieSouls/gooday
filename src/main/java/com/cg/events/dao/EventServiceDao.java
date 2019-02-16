@@ -304,9 +304,7 @@ public class EventServiceDao {
 			if (eventMap.get("end_time") != null) {
 				event.setEndTime((Date)eventMap.get("end_time"));
 			}
-			if (eventMap.get("is_predictive_on") != null) {
-				event.setIsPredictiveOn((Boolean)eventMap.get("source_user_id"));
-			}
+			
 			if (eventMap.get("is_full_day") != null) {
 				event.setIsFullDay((Boolean)eventMap.get("is_full_day"));
 			}
