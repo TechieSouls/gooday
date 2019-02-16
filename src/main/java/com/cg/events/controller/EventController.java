@@ -863,39 +863,47 @@ public class EventController {
 			String eventImageUrl = domain + "/assets/uploads/events/large/" + fileName;
 			event.setEventPicture(eventImageUrl);
 			
-		    BufferedImage image = ImageIO.read(newFile);
-
-		    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
-		    File thumbnailPathFile = new File(eventUploadPath+"thumbnail/");
-			if (!thumbnailPathFile.exists()) {
-				try {
-					thumbnailPathFile.mkdirs();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		    File compressedImageFile = new File(thumbnailPath);
-		    OutputStream os = new FileOutputStream(compressedImageFile);
-
-		    Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(extension);
-		    ImageWriter writer = (ImageWriter) writers.next();
-
-		    ImageOutputStream ios = ImageIO.createImageOutputStream(os);
-		    writer.setOutput(ios);
-
-		    ImageWriteParam param = writer.getDefaultWriteParam();
-
-		    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-		    param.setCompressionQuality(0.01f);  // Change the quality value you prefer
-		    writer.write(null, new IIOImage(image, null, null), param);
-
-		    os.close();
-		    ios.close();
-		    writer.dispose();
 			
-		    String thumbnailImageUrl = domain + "/assets/uploads/events/thumbnail/" + fileName;
-			event.setEventPicture(thumbnailImageUrl);
+			try {
+				File originalFile = new File(dirPath + fileName);
+				
+				BufferedImage image = ImageIO.read(originalFile);
+
+			    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
+			    File thumbnailPathFile = new File(eventUploadPath+"thumbnail/");
+				if (!thumbnailPathFile.exists()) {
+					try {
+						thumbnailPathFile.mkdirs();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			    File compressedImageFile = new File(thumbnailPath);
+			    OutputStream os = new FileOutputStream(compressedImageFile);
+
+			    Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(extension);
+			    ImageWriter writer = (ImageWriter) writers.next();
+
+			    ImageOutputStream ios = ImageIO.createImageOutputStream(os);
+			    writer.setOutput(ios);
+
+			    ImageWriteParam param = writer.getDefaultWriteParam();
+
+			    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+			    param.setCompressionQuality(0.01f);  // Change the quality value you prefer
+			    writer.write(null, new IIOImage(image, null, null), param);
+
+			    os.close();
+			    ios.close();
+			    writer.dispose();
+				
+			    String thumbnailImageUrl = domain + "/assets/uploads/events/thumbnail/" + fileName;
+				event.setThumbnail(thumbnailImageUrl);
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		    
 			
 			event = eventManager.saveUpdateEvent(event);
 			
