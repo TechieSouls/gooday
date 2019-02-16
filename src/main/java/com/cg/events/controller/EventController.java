@@ -870,16 +870,30 @@ public class EventController {
 				BufferedImage image = ImageIO.read(originalFile);
 
 			    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
+			    System.out.println("thumbnailPath : "+thumbnailPath);
 			    File thumbnailPathFile = new File(eventUploadPath+"thumbnail/");
 				if (!thumbnailPathFile.exists()) {
+				    System.out.println("thumbnail Directroty no exists");
+
 					try {
 						thumbnailPathFile.mkdirs();
 					} catch (Exception e) {
+					    System.out.println("thumbnail Directroty Exception");
+
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
 			    File compressedImageFile = new File(thumbnailPath);
+			    try {
+			    	if (!compressedImageFile.exists()) {
+				    	compressedImageFile.createNewFile();
+					}
+			    } catch (Exception e) {
+					// TODO: handle exception
+			    	e.printStackTrace();
+				}
+			 
 			    OutputStream os = new FileOutputStream(compressedImageFile);
 
 			    Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(extension);
