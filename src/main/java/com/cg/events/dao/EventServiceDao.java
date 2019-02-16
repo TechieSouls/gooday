@@ -120,7 +120,7 @@ public class EventServiceDao {
 	
 	public Event findGatheringByEventId(Long eventId) {
 		
-		String gatheringQuery = "select * from events e JOIN event_members em on e.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
+		String gatheringQuery = "select *, em.name as non_cenes_member_name from events e JOIN event_members em on e.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
 				+ "where e.event_id = "+eventId;
 		
 		System.out.println("Query : "+gatheringQuery);
@@ -131,7 +131,7 @@ public class EventServiceDao {
 			
 			try {
 				for (Map<String, Object> userGatheringMap: userGatherings) {
-					System.out.println(userGatheringMap.toString());
+					//System.out.println(userGatheringMap.toString());
 					Event event = null;
 					if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
 						event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
@@ -316,7 +316,7 @@ public class EventServiceDao {
 	public EventMember populateEventMembers(Map<String, Object> eventMembersMap) {
 		
 		EventMember eventMember = new EventMember();
-		System.out.println(eventMembersMap.toString());
+		//System.out.println(eventMembersMap.toString());
 		try {
 			if  (eventMembersMap.get("event_member_id") != null) {
 				eventMember.setEventMemberId(Long.valueOf(eventMembersMap.get("event_member_id").toString()));
@@ -335,6 +335,8 @@ public class EventServiceDao {
 			}
 			if  (eventMembersMap.get("name") != null) {
 				eventMember.setName(eventMembersMap.get("name").toString());
+			} else {
+				eventMember.setName(eventMembersMap.get("non_cenes_member_name").toString());
 			}
 			if  (eventMembersMap.get("picture") != null) {
 				eventMember.setPicture(eventMembersMap.get("picture").toString());
