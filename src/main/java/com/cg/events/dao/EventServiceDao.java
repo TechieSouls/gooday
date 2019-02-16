@@ -131,7 +131,7 @@ public class EventServiceDao {
 			
 			try {
 				for (Map<String, Object> userGatheringMap: userGatherings) {
-					//System.out.println(userGatheringMap.toString());
+					System.out.println(userGatheringMap.toString());
 					Event event = null;
 					if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
 						event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
