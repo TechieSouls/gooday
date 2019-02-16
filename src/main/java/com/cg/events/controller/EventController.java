@@ -55,6 +55,7 @@ import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CenesProperty;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
+import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.HomeScreenDto;
@@ -196,6 +197,22 @@ public class EventController {
 				eventManager.updateTimeSlotsToFreeByEvent(eventFromDatabase);	
 			}
 			event = eventManager.createEvent(event);
+			
+			if (event.getEventPicture() != null && event.getEventPicture().indexOf("google") != -1) {
+				
+				GatheringPreviousLocation gatheringPreviousLocation = null;
+				
+				gatheringPreviousLocation = new GatheringPreviousLocation();
+				gatheringPreviousLocation.setEventId(event.getEventId());
+				gatheringPreviousLocation.setPhoto(event.getEventPicture());
+				gatheringPreviousLocation.setUserId(event.getCreatedById());
+				gatheringPreviousLocation.setLocation(event.getLocation());
+				gatheringPreviousLocation.setLongitude(event.getLongitude());
+				gatheringPreviousLocation.setLatitude(event.getLatitude());
+				eventManager.saveUpdateGatheringPreviousLocation(gatheringPreviousLocation);
+				
+			}
+			
 			response.put("data", event);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1286,8 +1303,8 @@ public class EventController {
 	
 	
 	@RequestMapping(value="/api/event/locations",method=RequestMethod.GET)
-	public List<LocationDto> findEventLocationsByUserId(Long userId) {
-		return eventManager.findEventLocationsByUserId(userId);
+	public List<GatheringPreviousLocation> findEventLocationsByUserId(Long userId) {
+		return eventManager.findTop15PreviousLocationsByUserId(userId);
 	}
 	/*public static void main(String[] args) {
 			String testJSO = "[{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1506841200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1506927600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507014000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507100400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507186800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507273200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507359600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507446000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507532400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507618800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507705200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507791600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507878000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507964400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508050800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508137200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508223600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508310000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508396400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508482800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508569200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508655600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508742000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508828400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508914800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509001200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509087600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509174000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509260400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509346800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509433200000}]";

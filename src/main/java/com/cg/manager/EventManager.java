@@ -20,6 +20,7 @@ import com.cg.bo.CalendarSyncToken.AccountType;
 import com.cg.bo.CenesProperty;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
+import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
 import com.cg.constant.CgConstants.ErrorCodes;
@@ -44,6 +45,7 @@ import com.cg.events.bo.OutlookEvents;
 import com.cg.events.dao.EventServiceDao;
 import com.cg.events.repository.EventMemberRepository;
 import com.cg.events.repository.EventRepository;
+import com.cg.events.repository.GatheringPreviousLocationRepository;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
 import com.cg.repository.CalendarSyncTokenRepository;
@@ -92,9 +94,16 @@ public class EventManager {
 	@Autowired
 	EventMemberRepository eventMemberRepository;
 	
+	@Autowired
+	GatheringPreviousLocationRepository gatheringPreviousLocationRepository;
+	
 	
 	public Event saveUpdateEvent(Event event) {
 		return eventService.saveEvent(event);
+	}
+	
+	public GatheringPreviousLocation saveUpdateGatheringPreviousLocation(GatheringPreviousLocation gatheringPreviousLocation) {
+		return gatheringPreviousLocationRepository.save(gatheringPreviousLocation);
 	}
 	
 	public Event createEvent(Event event) {
@@ -1077,6 +1086,10 @@ public class EventManager {
 	
 	public List<LocationDto> findEventLocationsByUserId(Long userId) {
 		return eventServiceDao.findDistinctEventLocations(userId);
+	}
+	
+	public List<GatheringPreviousLocation> findTop15PreviousLocationsByUserId(Long userId) {
+		return gatheringPreviousLocationRepository.findTop15ByUserIdOrderByGatheringPreviousLocationIdDesc(userId);
 	}
 	
 	/*public static void main(String[] args) {
