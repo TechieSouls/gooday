@@ -336,7 +336,11 @@ public class EventServiceDao {
 			if  (eventMembersMap.get("name") != null) {
 				eventMember.setName(eventMembersMap.get("name").toString());
 			} else {
-				eventMember.setName(eventMembersMap.get("non_cenes_member_name").toString());
+				if (eventMembersMap.get("non_cenes_member_name") != null) {
+					eventMember.setName(eventMembersMap.get("non_cenes_member_name").toString());
+				} else {
+					eventMember.setName("Guest");
+				}
 			}
 			if  (eventMembersMap.get("picture") != null) {
 				eventMember.setPicture(eventMembersMap.get("picture").toString());
