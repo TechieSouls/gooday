@@ -277,6 +277,9 @@ public class EventServiceDao {
 			if (eventMap.get("description") != null) {
 				event.setDescription(eventMap.get("description").toString());
 			}
+			if (eventMap.get("source") != null) {
+				event.setSource(eventMap.get("source").toString());
+			}
 			if (eventMap.get("source_event_id") != null) {
 				event.setSourceEventId(eventMap.get("source_event_id").toString());
 			}
@@ -295,6 +298,9 @@ public class EventServiceDao {
 			if (eventMap.get("start_time") != null) {
 				event.setStartTime((Date)eventMap.get("start_time"));
 			}
+			if (eventMap.get("timezone") != null) {
+				event.setTimezone(eventMap.get("timezone").toString());
+			}
 			if (eventMap.get("end_time") != null) {
 				event.setEndTime((Date)eventMap.get("end_time"));
 			}
@@ -303,6 +309,9 @@ public class EventServiceDao {
 			}
 			if (eventMap.get("is_full_day") != null) {
 				event.setIsFullDay((Boolean)eventMap.get("is_full_day"));
+			}
+			if (eventMap.get("is_predictive_on") != null) {
+				event.setIsPredictiveOn((Boolean)eventMap.get("is_predictive_on"));
 			}
 			if (eventMap.get("predictive_data") != null) {
 				event.setPredictiveData(eventMap.get("predictive_ata").toString());
