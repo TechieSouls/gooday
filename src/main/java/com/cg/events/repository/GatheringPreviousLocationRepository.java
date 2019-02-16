@@ -13,4 +13,6 @@ public interface GatheringPreviousLocationRepository extends JpaRepository<Gathe
 	public void deleteByEventId(Long eventId);
 	
 	public List<GatheringPreviousLocation> findTop15ByUserIdOrderByGatheringPreviousLocationIdDesc(Long userId);
+	
+	public GatheringPreviousLocation findByEventId(Long eventId);
 }

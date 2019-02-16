@@ -116,6 +116,10 @@ public class Event extends CgGeneral {
 	@Column(name="predictive_data",columnDefinition="TEXT")
 	private String predictiveData;
 	
+	@Column(name="place_id")
+	private String placeId;
+	
+	
 	@Transient
 	private Map<String,Object> predictiveDataForIos;
 	
@@ -269,6 +273,13 @@ public class Event extends CgGeneral {
 	}
 	public void setThumbnail(String thumbnail) {
 		this.thumbnail = thumbnail;
+	}
+	
+	public String getPlaceId() {
+		return placeId;
+	}
+	public void setPlaceId(String placeId) {
+		this.placeId = placeId;
 	}
 	@Override
 	public String toString() {

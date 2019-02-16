@@ -106,6 +106,10 @@ public class EventManager {
 		return gatheringPreviousLocationRepository.save(gatheringPreviousLocation);
 	}
 	
+	public GatheringPreviousLocation findGatheringPreviousLocationByEventId(Long eventId) {
+		return gatheringPreviousLocationRepository.findByEventId(eventId);
+	}
+	
 	public Event createEvent(Event event) {
 
 		Boolean ownerExists = false;

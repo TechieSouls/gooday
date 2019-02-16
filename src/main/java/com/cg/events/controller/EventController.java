@@ -182,6 +182,7 @@ public class EventController {
 	@ResponseBody
 	public ResponseEntity<Map<String,Object>> createEvent(@RequestBody Event event) {
 		
+		boolean isOldEvent = false;
 		Map<String,Object> response = new HashMap<>();
 		System.out.println("[CreateEvent : "+new Date()+", STARTS]");
 		System.out.println("Event Details : "+event);
@@ -193,6 +194,7 @@ public class EventController {
 			//Update all old timeslots to free and set Event to unprocessed
 			//To update new status to time slots
 			if (event.getEventId() != null) {
+				isOldEvent = true;
 				Event eventFromDatabase = eventManager.findEventByEventId(event.getEventId());
 				eventManager.updateTimeSlotsToFreeByEvent(eventFromDatabase);	
 			}
@@ -201,16 +203,25 @@ public class EventController {
 			if (event.getEventPicture() != null && event.getEventPicture().indexOf("google") != -1) {
 				
 				GatheringPreviousLocation gatheringPreviousLocation = null;
+				boolean saveImage = true;
+				if (isOldEvent) {
+					gatheringPreviousLocation = eventManager.findGatheringPreviousLocationByEventId(event.getEventId());
+					if (gatheringPreviousLocation.getPlaceId().equals(event.getPlaceId())) {
+						saveImage = false;
+					}
+				}
 				
-				gatheringPreviousLocation = new GatheringPreviousLocation();
-				gatheringPreviousLocation.setEventId(event.getEventId());
-				gatheringPreviousLocation.setPhoto(event.getEventPicture());
-				gatheringPreviousLocation.setUserId(event.getCreatedById());
-				gatheringPreviousLocation.setLocation(event.getLocation());
-				gatheringPreviousLocation.setLongitude(event.getLongitude());
-				gatheringPreviousLocation.setLatitude(event.getLatitude());
-				eventManager.saveUpdateGatheringPreviousLocation(gatheringPreviousLocation);
-				
+				if (saveImage) {
+					gatheringPreviousLocation = new GatheringPreviousLocation();
+					gatheringPreviousLocation.setEventId(event.getEventId());
+					gatheringPreviousLocation.setPhoto(event.getEventPicture());
+					gatheringPreviousLocation.setUserId(event.getCreatedById());
+					gatheringPreviousLocation.setLocation(event.getLocation());
+					gatheringPreviousLocation.setLongitude(event.getLongitude());
+					gatheringPreviousLocation.setLatitude(event.getLatitude());
+					gatheringPreviousLocation.setPlaceId(event.getPlaceId());
+					eventManager.saveUpdateGatheringPreviousLocation(gatheringPreviousLocation);
+				}
 			}
 			
 			response.put("data", event);

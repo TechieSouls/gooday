@@ -33,6 +33,9 @@ public class GatheringPreviousLocation extends CgGeneral {
 	
 	@Column(name="user_id")
 	private Long userId;
+	
+	@Column(name="place_id")
+	private String placeId;
 
 	public Long getGatheringPreviousLocationId() {
 		return gatheringPreviousLocationId;
@@ -89,5 +92,12 @@ public class GatheringPreviousLocation extends CgGeneral {
 	public void setLongitude(String longitude) {
 		this.longitude = longitude;
 	}
-	
+
+	public String getPlaceId() {
+		return placeId;
+	}
+
+	public void setPlaceId(String placeId) {
+		this.placeId = placeId;
+	}
 }
