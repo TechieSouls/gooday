@@ -91,6 +91,9 @@ public class Event extends CgGeneral {
 	@Column(name="event_picture")
 	private String eventPicture;
 	
+	@Column(name="thumbnail")
+	private String thumbnail;
+	
 	@OneToMany(cascade = CascadeType.ALL,fetch=FetchType.EAGER,orphanRemoval=true )
 	@JoinColumn(name="event_id")
 	@Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
@@ -112,7 +115,7 @@ public class Event extends CgGeneral {
 	
 	@Column(name="predictive_data",columnDefinition="TEXT")
 	private String predictiveData;
-
+	
 	@Transient
 	private Map<String,Object> predictiveDataForIos;
 	
@@ -261,6 +264,12 @@ public class Event extends CgGeneral {
 		this.isFullDay = isFullDay;
 	}
 
+	public String getThumbnail() {
+		return thumbnail;
+	}
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
+	}
 	@Override
 	public String toString() {
 		return "Event [eventId=" + eventId + ", title=" + title + ", type=" + type + ", recurringEventId="
