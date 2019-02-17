@@ -173,7 +173,7 @@ public class EventManager {
 		
 		Map<String,List<HomeScreenDto>> homeScreenDataMap = new HashMap<>();
 		//List<Event> events = eventRepository.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
-		List<Event> events = eventServiceDao.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
+		List<Event> events = eventServiceDao.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, CenesUtils.yyyyMMddTHHmmss.format(startDate), CenesUtils.yyyyMMddTHHmmss.format(endDate));
 		if (events != null && events.size() > 0) {
 			for (Event event : events) {
 				String dateKey = CenesUtils.yyyyMMdd.format(event.getStartTime());
