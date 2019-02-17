@@ -622,7 +622,13 @@ public class UserController {
 	@ResponseBody
 	public ResponseEntity<Map<String, Object>> saveMeTime(@RequestBody MeTime meTime) {
 		
+		String imageUrl = null;
 		if (meTime != null && meTime.getRecurringEventId() != null) {
+			
+			RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(meTime.getRecurringEventId());
+			if (recurringEvent != null && recurringEvent.getPhoto() != null) {
+				imageUrl = recurringEvent.getPhoto();
+			}
 			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
 		}
 		
@@ -671,6 +677,10 @@ public class UserController {
 					recurringEvent.setProcessed(RecurringEventProcessStatus.unprocessed.ordinal());
 					recurringEvent.setStatus(RecurringEventStatus.Started.toString());
 				
+					if (imageUrl != null) {
+						recurringEvent.setPhoto(imageUrl);
+					}
+					
 					List<RecurringPattern> recurringPatterns = new ArrayList<>();
 					RecurringPattern recurringPattern = new RecurringPattern();
 					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
@@ -684,6 +694,9 @@ public class UserController {
 					recurringEventMap.put(meEvent.getTitle(), recurringEvent);
 				} else {
 					RecurringEvent recurringEvent = recurringEventMap.get(meEvent.getTitle());
+					if (imageUrl != null) {
+						recurringEvent.setPhoto(imageUrl);
+					}
 					List<RecurringPattern> recurringPatterns = recurringEvent.getRecurringPatterns();
 					RecurringPattern recurringPattern = new RecurringPattern();
 					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
