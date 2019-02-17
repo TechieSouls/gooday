@@ -116,6 +116,9 @@ public class UserController {
 	
 	@Value("${cenes.imageUploadPath}")
 	private String imageUploadPath;
+
+	@Value("${cenes.profileImageUploadPath}")
+	private String profileImageUploadPath;
 	
 	@Value("${cenes.recurringEventUploadPath}")
 	private String recurringEventUploadPath;
@@ -285,11 +288,12 @@ public class UserController {
 		
 		User dbUser = userService.findUserById(user.getUserId());
 		dbUser.setName(user.getName());
-		dbUser.setEmail(user.getEmail());
+		//dbUser.setEmail(user.getEmail());
 		if (user.getPhoto() != null && user.getPhoto().length() > 0) {
 			dbUser.setPhoto(user.getPhoto());
 		}
 		dbUser.setGender(user.getGender());
+		dbUser.setBirthDate(user.getBirthDate());
 		
 		Map<String, Object> response = new HashMap<>();
 		try {
@@ -477,6 +481,73 @@ public class UserController {
         }
         return new ResponseEntity<User>(user, HttpStatus.OK);
     }
+	
+	@RequestMapping(value = "/api/user/profile/upload", method = RequestMethod.POST)
+    public ResponseEntity<User> uploadImages(MultipartFile uploadfile, Long userId) {
+    	
+		User user = userRepository.findOne(Long.valueOf(userId));
+		
+		File file = new File(profileImageUploadPath);
+		if (file != null) {
+			File[] files = file.listFiles(); 
+	        if (files != null && files.length > 0) {
+	            for (File f:files) {
+	            	if (f.isFile() && f.exists()) { 
+	            		f.delete();
+	            		System.out.println("successfully deleted");
+	                } else {
+	                	System.out.println("cant delete a file due to open or error");
+	                } 
+	            }
+	        }
+		}
+
+		InputStream inputStream = null;
+        OutputStream outputStream = null;
+        String extension = uploadfile.getOriginalFilename().substring(uploadfile.getOriginalFilename().trim().lastIndexOf("."),uploadfile.getOriginalFilename().length());
+        
+        String fileName = UUID.randomUUID().toString()+extension;
+
+        File f = new File(profileImageUploadPath);
+        if(!f.exists()) { 
+        	try {
+				f.mkdirs();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }        
+        File newFile = new File(profileImageUploadPath+fileName);
+        try {
+            inputStream = uploadfile.getInputStream();
+
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            outputStream = new FileOutputStream(newFile);
+            int read = 0;
+            byte[] bytes = new byte[1024];
+
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+           
+            String profilePicUrl = domain+"/assets/uploads/profile/"+fileName;
+            user.setPhoto(profilePicUrl);
+            userService.saveUser(user);
+            
+            //eventManager.updateEventMemberPicture(profilePicUrl,user.getUserId());
+            
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	user = new User();
+        	user.setErrorCode(HttpStatus.BAD_REQUEST.ordinal());
+        	user.setErrorDetail(HttpStatus.BAD_REQUEST.toString());
+        	return new ResponseEntity<User>(user, HttpStatus.OK);
+        }
+        return new ResponseEntity<User>(user, HttpStatus.OK);
+    }
+	
 	
 	@RequestMapping(value = "/api/recurring/upload", method = RequestMethod.POST)
     public ResponseEntity<RecurringEvent> uploadRecurringEventImage(MultipartFile uploadfile,Long recurringEventId) {
@@ -1038,5 +1109,12 @@ public class UserController {
 		String token = tokenAuthenticationService.addAuthentication(response,
 				authentication);
 		return token;
+	}
+	
+	
+	public String getUserToken(User user) {
+		user.setUsername(user.getUsername());
+		user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+		return establishUserAndLogin(null, user);
 	}
 }
