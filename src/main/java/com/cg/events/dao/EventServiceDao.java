@@ -84,7 +84,7 @@ public class EventServiceDao {
 	
 	public List<Event> findByCreatedByIdAndStartDateAndEventMemberStatus(Long createdById, String eventDate, String endDate) {
 		
-		String query = "select *, source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "e.start_time >= '"+eventDate+"' and e.start_time >=  '"+endDate+"' and  em.user_id = "+createdById+" and em.status = 'Going' "
 				+ "and e.schedule_as in ('Event','Holiday','Gathering')) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
@@ -218,7 +218,7 @@ public class EventServiceDao {
 	
 	public List<Event> findGatheringsByUserIdAndStatus(Long userId, String status) {
 		
-		String query = "select *, source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"') as event_temp "
 				+ "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 		
@@ -257,7 +257,7 @@ public class EventServiceDao {
 	}
 	
 	public List<Event> findGatheringsByStatusNull(Long userId) {
-		String query = "select *, source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status is null) as event_temp "
 				+ "JOIN event_members em on event_temp.event_id = em.event_id JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 
