@@ -18,6 +18,7 @@ import javax.persistence.Transient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
@@ -81,6 +82,48 @@ public class EventServiceDao {
 				},paramenets.toArray());
 	}
 	
+	public List<Event> findByCreatedByIdAndStartDateAndEventMemberStatus(Long createdById, Date eventDate, Date endDate) {
+		
+		String query = "select *, e.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+				+ "e.start_time >= "+eventDate+" and e.start_time >= "+endDate+" and  em.user_id = "+createdById+" and em.status = 'Going' "
+				+ "and e.schedule_as in ('Event','Holiday','Gathering')) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
+				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
+	
+		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
+		
+		
+		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
+		for (Map<String, Object> userGatheringMap: userGatheringsMapList) {
+			Event event = null;
+			if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+				event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
+				
+				List<EventMember> eventMmembers = event.getEventMembers();
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			} else {
+				event = populateEventBo(userGatheringMap);
+				List<EventMember> eventMmembers = null;
+				if (event.getEventMembers() == null) {
+					eventMmembers = new ArrayList<>();
+				} else {
+					eventMmembers = event.getEventMembers();
+				}
+				
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			}
+			eventIdMap.put(event.getEventId(), event);
+		}
+		
+		List<Event> events = new ArrayList<>();
+		for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
+			events.add(eventEntrySet.getValue());
+		}
+		return events;
+	}
+	
+	
 	public Map<String,Object> findUserGatheringsByDateAndUserIdAndStatus(String startDate,Long userId,String status) {
 		
 		String gatheringQuery = "select GROUP_CONCAT(e.event_id) as eventIds from "
@@ -120,7 +163,9 @@ public class EventServiceDao {
 	
 	public Event findGatheringByEventId(Long eventId) {
 		
-		String gatheringQuery = "select *,e.source as event_source,  em.source as member_source, em.name as non_cenes_member_name from events e JOIN event_members em on e.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
+		String gatheringQuery = "select *,e.source as event_source,  em.source as member_source, "
+				+ "em.name as non_cenes_member_name, u.name as origname from events e "
+				+ "JOIN event_members em on e.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
 				+ "where e.event_id = "+eventId;
 		
 		System.out.println("Query : "+gatheringQuery);
@@ -173,7 +218,7 @@ public class EventServiceDao {
 	
 	public List<Event> findGatheringsByUserIdAndStatus(Long userId, String status) {
 		
-		String query = "select * from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+		String query = "select *, e.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"') as event_temp "
 				+ "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 		
@@ -212,7 +257,7 @@ public class EventServiceDao {
 	}
 	
 	public List<Event> findGatheringsByStatusNull(Long userId) {
-		String query = "select * from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+		String query = "select *, e.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status is null) as event_temp "
 				+ "JOIN event_members em on event_temp.event_id = em.event_id JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 
@@ -343,7 +388,10 @@ public class EventServiceDao {
 			if  (eventMembersMap.get("source_id") != null) {
 				eventMember.setSourceId(eventMembersMap.get("source_id").toString());
 			}
-			if  (eventMembersMap.get("name") != null) {
+			
+			if (eventMembersMap.get("origname") != null) {
+				eventMember.setName(eventMembersMap.get("origname").toString());
+			} else if  (eventMembersMap.get("name") != null) {
 				eventMember.setName(eventMembersMap.get("name").toString());
 			} else {
 				if (eventMembersMap.get("non_cenes_member_name") != null) {
