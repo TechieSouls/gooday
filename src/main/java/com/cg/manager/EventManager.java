@@ -157,8 +157,11 @@ public class EventManager {
 	        	System.out.println(ex);
 	        }
 		}
-		event = eventService.saveEvent(event);
 		
+		System.out.println("Before Saving : "+event.toString());
+		event = eventService.saveEvent(event);
+
+		System.out.println("After Saving : "+event.toString());
 		notificationManager.sendGatheringNotification(event);
 		
 		System.out.println("[CreateEvent : "+new Date()+", ENDS]");
