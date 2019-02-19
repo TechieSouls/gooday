@@ -1028,10 +1028,18 @@ public class UserController {
 	
 	
 	@RequestMapping(value = "/auth/validateResetToken", method = RequestMethod.GET)
-	public User validateResetToken(String resetToken) {
+	public Map<String, Object> validateResetToken(String resetToken) {
 		try {
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
 			User user = userService.findUserByResetToken(resetToken);
-			return user;
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Reset Password Link Expired");
+			} else {
+				response.put("data", user);
+			}
+			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
