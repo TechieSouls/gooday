@@ -902,31 +902,42 @@ public class UserController {
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/auth/updatePassword/{email}/{password}", method = RequestMethod.GET)
-	public ResponseEntity<User> updatePassword(@PathVariable("email") String email,
-			@PathVariable("password") String newPassword, User user) {
+	/**
+	 * This API is to reset the password when user request from forget password
+	 * 
+	 * */
+	@RequestMapping(value = "/auth/updatePassword", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> updatePassword(Map<String, Object> requestBody) {
+		
+		System.out.println(requestBody.toString());
 		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		if (!requestBody.containsKey("resetToken")) {
+			response.put("success", false);
+			response.put("message", "ResetToken is missing");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+		
+		if (!requestBody.containsKey("password")) {
+			response.put("success", false);
+			response.put("message", "Password is missing");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+		
+		String resetToken = requestBody.get("resetToken").toString();
+		User user = userService.findUserByResetToken(resetToken);
+		
+		if (user == null) {
+			response.put("success", false);
+			response.put("message", "Invalid Reset Token");
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+		
 		try {
-			if (email != null && !email.isEmpty()) {
-				user = userService.findUserByEmail(email);
-				if (user != null) {
-					user.setPassword(new Md5PasswordEncoder().encodePassword(newPassword, salt));
-					user = userService.saveUser(user);
-					response.put("success", true);
-					response.put("data", user);
-				} else {
-					response.put("success", false);
-					response.put("data", null);
-				}
-				response.put("errorCode", 0);
-				response.put("errorDetail", null);
-
-			} else {
-				response.put("success", false);
-				response.put("data", null);
-				response.put("errorCode", 0);
-				response.put("errorDetail", null);
-			}
+			user.setPassword(new Md5PasswordEncoder().encodePassword(requestBody.get("password").toString(), salt));
+			user = userService.saveUser(user);
+			response.put("success", true);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.put("success", false);
@@ -934,8 +945,7 @@ public class UserController {
 			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
 			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
 		}
-		ResponseEntity<User> responseEntity = new ResponseEntity<User>(user, HttpStatus.OK);
-		return responseEntity;
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "/api/user/changePassword", method = RequestMethod.POST)
@@ -1036,8 +1046,7 @@ public class UserController {
 			if (user == null) {
 				response.put("success", false);
 				response.put("message", "Reset Password Link Expired");
-			} else {
-				response.put("data", user);
+				return response;
 			}
 			return response;
 		} catch (Exception e) {
