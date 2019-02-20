@@ -99,11 +99,17 @@ public class Event extends CgGeneral {
 	@Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
 	private List<EventMember> eventMembers;
 	
-	@ApiModelProperty(required=true)
 	@Column(name="start_time")
 	private Date startTime;
+
+	/***
+	 * This is needed in case of holiday or full day events as the 
+	 * dates from third party calendards does not contain hours or minutes.. 
+	 * That is the date is only as 2019-02-12 
+	 */
+	@Transient
+	private String fullDayStartTime;
 	
-	@ApiModelProperty(required=true)
 	@Column(name="end_time")
 	private Date endTime;
 	
@@ -280,6 +286,13 @@ public class Event extends CgGeneral {
 	}
 	public void setPlaceId(String placeId) {
 		this.placeId = placeId;
+	}
+	
+	public String getFullDayStartTime() {
+		return fullDayStartTime;
+	}
+	public void setFullDayStartTime(String fullDayStartTime) {
+		this.fullDayStartTime = fullDayStartTime;
 	}
 	@Override
 	public String toString() {
