@@ -42,6 +42,10 @@ public class NotificationController {
 			List<Notification> notificatoins = notificationRepository.findByRecepientIdOrderByCreatedAtDesc(userId);
 			
 			if (notificatoins != null && notificatoins.size() > 0) {
+				
+				//Update Badge Counts to 0
+				notificationCountDataRepository.setBadgeCountsToZero(userId);
+				
 				responseMap.put("data", notificatoins);
 			} else {
 				responseMap.put("data", new ArrayList<>());
