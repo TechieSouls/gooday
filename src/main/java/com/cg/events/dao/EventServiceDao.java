@@ -29,6 +29,7 @@ import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventTimeSlot;
 import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.user.bo.User;
+import com.cg.utils.CenesUtils;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -349,6 +350,11 @@ public class EventServiceDao {
 			}
 			if (eventMap.get("end_time") != null) {
 				event.setEndTime((Date)eventMap.get("end_time"));
+			}
+			
+			//If its a full day event then we are sending the Date String as yyyyMMdd format
+			if (eventMap.get("is_full_day") != null && (Boolean)eventMap.get("is_full_day")) {
+				event.setFullDayStartTime(CenesUtils.yyyyMMdd.format(event.getStartTime()));
 			}
 			
 			if (eventMap.get("is_full_day") != null) {
