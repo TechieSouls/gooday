@@ -150,4 +150,13 @@ public class EventMember extends CgGeneral {
 	public void setUserContactId(Long userContactId) {
 		this.userContactId = userContactId;
 	}
+	@Override
+	public String toString() {
+		return "EventMember [eventMemberId=" + eventMemberId + ", eventId=" + eventId + ", source=" + source
+				+ ", sourceEmail=" + sourceEmail + ", sourceId=" + sourceId + ", name=" + name + ", picture=" + picture
+				+ ", status=" + status + ", userId=" + userId + ", processed=" + processed + ", user=" + user
+				+ ", userContactId=" + userContactId + ", owner=" + owner + "]";
+	}
+	
+	
 }
