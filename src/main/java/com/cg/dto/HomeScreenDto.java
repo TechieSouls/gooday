@@ -20,6 +20,8 @@ public class HomeScreenDto {
 	private Long endTime;
 	private String type;
 	private Boolean isFullDay;
+	private String fullDayStartTime;
+
 	private List<Member> members = new ArrayList<>();
 	public Long getId() {
 		return id;
@@ -99,6 +101,13 @@ public class HomeScreenDto {
 	}
 	public void setIsFullDay(Boolean isFullDay) {
 		this.isFullDay = isFullDay;
+	}
+	
+	public String getFullDayStartTime() {
+		return fullDayStartTime;
+	}
+	public void setFullDayStartTime(String fullDayStartTime) {
+		this.fullDayStartTime = fullDayStartTime;
 	}
 	@Override
 	public String toString() {

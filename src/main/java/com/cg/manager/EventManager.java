@@ -198,6 +198,9 @@ public class EventManager {
 				if (event.getEndTime() != null) {
 					homeScreenDto.setEndTime(event.getEndTime().getTime());
 				}
+				if (event.getFullDayStartTime() != null) {
+					homeScreenDto.setFullDayStartTime(event.getFullDayStartTime());
+				}
 				homeScreenDto.setScheduleAs(event.getScheduleAs());
 				homeScreenDto.setLocation(event.getLocation());
 				homeScreenDto.setSource(event.getSource());
