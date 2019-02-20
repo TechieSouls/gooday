@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cg.bo.Notification;
 import com.cg.bo.Notification.NotificationReadStatus;
 import com.cg.bo.Notification.NotificationType;
+import com.cg.bo.NotificationCountData;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.repository.NotificationCountDataRepository;
 import com.cg.repository.NotificationRepository;
@@ -121,5 +122,29 @@ public class NotificationController {
 		responseMap.put("success", false);
 		return new ResponseEntity<Map<String,Object>>(responseMap,HttpStatus.OK);
 
-	}	
+	}
+	
+	@RequestMapping(value="/api/notification/getBadgeCounts",  produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Map<String,Object>> getBadgeCounts(Long userId) {
+		Map<String,Object> responseMap = new HashMap<>();
+		responseMap.put("errorCode", 0);
+		responseMap.put("errorDetail", null);
+		responseMap.put("success", true);
+		try {
+			NotificationCountData notificationCountData = notificationCountDataRepository.findByUserId(userId);
+			if (notificationCountData == null) {
+				responseMap.put("success", false);
+			} else {
+				responseMap.put("data", notificationCountData);
+			}
+			return new ResponseEntity<Map<String,Object>>(responseMap,HttpStatus.OK);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		responseMap.put("errorCode", ErrorCodes.InternalServerError.ordinal());
+		responseMap.put("errorDetail", ErrorCodes.InternalServerError.toString());
+		responseMap.put("success", false);
+		return new ResponseEntity<Map<String,Object>>(responseMap,HttpStatus.OK);
+
+	}
 }
