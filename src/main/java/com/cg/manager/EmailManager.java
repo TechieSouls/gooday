@@ -59,12 +59,12 @@ public class EmailManager {
 	public String resetPasswordHTMLTemplate(String resetPasswordToken, String name) {
 		String resetPasswordLink = "https://www.cenesgroup.com/app/forgetPassword?resetToken="+resetPasswordToken;
 		String htmlContent = "<html>\n" + 
-				"<body style=\"font-size: 18px;font-family: AvenirLTStd Book;color: #595757;\">\n" + 
+				"<body style=\"font-size: 18px;font-family: AvenirLTStd Book;color: #595757;padding-left:10px;padding-right:10px;\">\n" + 
 				"	\n" + 
 				"<div align=\"center\"><img src=\"https://www.cenesgroup.com/assets/images/Logo.png\"></div>\n" + 
 				"<div align=\"center\">\n" + 
 				"	\n" + 
-				"	<h3 class=\"reset-pswd\">\n" + 
+				"	<h3 style=\"letter-spacing: 1px;font-size: 28px;font-weight: lighter;\">\n" + 
 				"		Reset Password\n" + 
 				"	</h3>\n" + 
 				"</div>\n" + 
@@ -78,7 +78,7 @@ public class EmailManager {
 				"<br/>\n" + 
 				"\n" + 
 				"<div align=\"center\">\n" + 
-				"	<a href=\""+resetPasswordLink+"\" class=\"reset-btn\" style=\"text-decoration: none;color: #EE9B26;\"><span>Reset Password</span></a>\n" + 
+				"	<a href=\""+resetPasswordLink+"\" class=\"reset-btn\" style=\"text-decoration: none;color: #EE9B26;\"><span style=\"font-size: 18px;border:2px solid #EE9B26; padding:15px 75px; border-radius: 35px;text-align:center;\">Reset Password</span></a>\n" + 
 				"</div>\n" + 
 				"<br>\n" + 
 				"<br>\n" + 
@@ -103,12 +103,7 @@ public class EmailManager {
 				"        url('https://www.cenesgroup.com/assets/fonts/AvenirLTStd-Book.svg#AvenirLTStd-Book') format('svg');\n" + 
 				"    font-weight: normal;\n" + 
 				"    font-style: normal;\n" + 
-				"}\n .reset-pswd{letter-spacing: 1px;font-size: 28px;font-weight: lighter;}\n" + 
-				".reset-btn{font-size: 22px;border:2px solid #EE9B26; padding:25px 100px; border-radius: 40px;}" + 
-				"  @media(max-width:991px){\n" + 
-				".reset-btn span{ font-size: 18px;padding:15px 50px;border-radius: 30px;   }\n" + 
-				".reset-pswd{font-size: 20px;}\n" + 
-				"    }</style>\n" + 
+				"}</style>\n" + 
 				"</html>\n" + 
 				"";
 		
@@ -117,7 +112,9 @@ public class EmailManager {
 	
 	/*public static void main(String[] args) {
 		User user = new User();
-		user.setEmail("mspanesar145@gmail.com");
+		user.setResetToken("wewfwefw");
+		user.setName("adadf");
+		user.setEmail("neha.thamman89@gmail.com");
 		new EmailManager().sendForgotPasswordLink(user);
 	}*/
 }

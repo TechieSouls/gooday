@@ -483,7 +483,7 @@ public class UserController {
     }
 	
 	@RequestMapping(value = "/api/user/profile/upload", method = RequestMethod.POST)
-    public ResponseEntity<User> uploadImages(MultipartFile uploadfile, Long userId) {
+    public ResponseEntity<User> uploadImages(MultipartFile mediaFile, Long userId) {
     	
 		User user = userRepository.findOne(Long.valueOf(userId));
 		
@@ -504,7 +504,7 @@ public class UserController {
 
 		InputStream inputStream = null;
         OutputStream outputStream = null;
-        String extension = uploadfile.getOriginalFilename().substring(uploadfile.getOriginalFilename().trim().lastIndexOf("."),uploadfile.getOriginalFilename().length());
+        String extension = mediaFile.getOriginalFilename().substring(mediaFile.getOriginalFilename().trim().lastIndexOf("."),mediaFile.getOriginalFilename().length());
         
         String fileName = UUID.randomUUID().toString()+extension;
 
@@ -519,7 +519,7 @@ public class UserController {
         }        
         File newFile = new File(profileImageUploadPath+fileName);
         try {
-            inputStream = uploadfile.getInputStream();
+            inputStream = mediaFile.getInputStream();
 
             if (!newFile.exists()) {
                 newFile.createNewFile();
