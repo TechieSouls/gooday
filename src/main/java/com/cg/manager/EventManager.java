@@ -867,7 +867,9 @@ public class EventManager {
 					eventMember.setSource("Google");
 					members.add(eventMember);
 					try {
-						event.getEventMembers().clear();
+						if (event.getEventMembers() != null) {
+							event.getEventMembers().clear();
+						}
 					} catch (Exception e) {
 						// TODO: handle exception
 						e.printStackTrace();
