@@ -8,6 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.cg.user.bo.User;
+
 @Entity
 @Table(name="members")
 public class Member {
@@ -38,6 +40,8 @@ public class Member {
 	@Column(name="status")
 	private String status;
 
+	@Transient
+	private User user;
 
 	@Transient
 	private Boolean owner = false;
@@ -105,4 +109,13 @@ public class Member {
 	public void setOwner(Boolean owner) {
 		this.owner = owner;
 	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+	
 }
