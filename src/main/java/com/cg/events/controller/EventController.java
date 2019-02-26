@@ -745,7 +745,7 @@ public class EventController {
 					List<EventTimeSlot> etListsFromMap = eventTimeSlotMap.getValue();
 					
 					for (EventTimeSlot etsFromList : etListsFromMap) {
-						
+					
 						List<EventTimeSlot> etsMapList = null;
 						if (etsDateWiseMap.containsKey(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()))) {
 							etsMapList = etsDateWiseMap.get(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()));
@@ -769,7 +769,7 @@ public class EventController {
 				}
 
 				for (String mDate : monthlyDates) {
-					
+					System.out.println(mDate);
 					Calendar cal = Calendar.getInstance();
 					cal.setTime(CenesUtils.yyyyMMdd.parse(mDate));
 					cal.set(Calendar.HOUR_OF_DAY, searchCalDate.get(Calendar.HOUR_OF_DAY));
@@ -779,22 +779,37 @@ public class EventController {
 					if (etsDateWiseMap.containsKey(mDate)) {
 						List<EventTimeSlot> userTimeSlots = etsDateWiseMap.get(mDate);
 						
+						Boolean slotExistsBetweenTimeRange = false;
+						Long freeFriendIdForSlotsNotExistsInRange = null;
 						Set<Long> freeFriends = new HashSet<>();
 						//Set<Long> setOfUsersWithTimeSlots = new HashSet<>();
 						for (EventTimeSlot userEts : userTimeSlots) {
+							freeFriendIdForSlotsNotExistsInRange = userEts.getUserId();
 							//System.out.println("User Id : "+userEts.getUserId()+", Status : "+userEts.getStatus());
 							//if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime())) && userEts.getStatus().equals(TimeSlotStatus.Free.toString())) {
 							//System.out.println(CenesUtils.hhmm.format(userEts.getStartTime()));
-							if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime()))){
-								if (CenesUtils.yyyyMMdd.format(eventStartTime).equals(CenesUtils.yyyyMMdd.format(eventEndTime))) {
-									freeFriends.add(userEts.getUserId());
-								} else if (CenesUtils.yyyyMMdd.format(userEts.getEventStartTime()).equals(mDate)){
-									freeFriends.add(userEts.getUserId());
+							System.out.println("Time In Hour Format : "+CenesUtils.hhmm.format(userEts.getStartTime()));
+							if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime()))) {
+								slotExistsBetweenTimeRange = true;
+								System.out.println("Friend Found.."+userEts.getStatus());
+								
+								if (userEts.getStatus().equals(EventTimeSlot.TimeSlotStatus.Free.toString())) {
+									//This is to check if the events are of date yyyy-MM-dd
+									if (CenesUtils.yyyyMMdd.format(eventStartTime).equals(CenesUtils.yyyyMMdd.format(eventEndTime))) {
+										freeFriends.add(userEts.getUserId());
+									} else if (CenesUtils.yyyyMMdd.format(userEts.getEventStartTime()).equals(mDate)){
+										freeFriends.add(userEts.getUserId());
+									}
 								}
+								
 							}
 							//setOfUsersWithTimeSlots.add(userEts.getUserId());
 						}
  						
+						if (!slotExistsBetweenTimeRange) {
+							System.out.println("slotExistsBetweenTimeRange NOooooooo");
+							freeFriends.add(freeFriendIdForSlotsNotExistsInRange);
+						}
 						//System.out.println("Key : "+mDate+",Free Friends : "+freeFriends.size()+", Users With Time Slots : "+setOfUsersWithTimeSlots.size());
 						/*for (Long freeFriendId : freeFriends) {
 							if (setOfUsersWithTimeSlots.contains(freeFriendId)) {
@@ -804,7 +819,13 @@ public class EventController {
 						
 						//System.out.println("totalFriends : "+totalFriends+", Busy Friends : "+setOfUsersWithTimeSlots.size());
  						//int totalFriendsComing = freeFriends.size() + (totalFriends - freeFriends.size() - setOfUsersWithTimeSlots.size());
-						int totalFriendsComing = totalFriends - freeFriends.size();
+						
+						//If User is single and looking for his time slots then we will make total coming to total friends
+						
+						System.out.println("Total Friends: "+totalFriends+" && Friend Size : "+freeFriends.size());
+						int totalFriendsComing = freeFriends.size();
+						
+						
 						float predictivePercentage = Math.abs((Float.valueOf(totalFriendsComing) / Float.valueOf(totalFriends)) * 100);
 						
 						PredictiveCalendar pc = new PredictiveCalendar();
