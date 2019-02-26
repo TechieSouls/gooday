@@ -40,7 +40,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query("select e from Event e where DATE(e.startTime) >= :startTime  and DATE(e.startTime) <= :endTime and e.createdById = :createdById order by e.startTime asc")
 	List<Event> findByCreatedByIdAndStartTimeAndEndTime(@Param("createdById") Long createdById,@Param("startTime") Date eventDate,@Param("endTime") Date endDate);
 	
-	@Query("select e from Event e where processed = :processed")
+	@Query("select e from Event e where processed = :processed and isFullDay = false")
 	List<Event> findByEventProcessedOrNot(@Param("processed") int processed,Pageable pageable);
 	
 	public List<Event> findByCreatedByIdAndSourceAndScheduleAs(Long userId, String source, String scheduleAs);
