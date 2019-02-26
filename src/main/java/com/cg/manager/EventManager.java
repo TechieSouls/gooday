@@ -217,10 +217,9 @@ public class EventManager {
 							member.setType(MemberType.Event.toString());
 							member.setTypeId(eventMember.getEventId());
 							member.setUserId(eventMember.getUserId());
-							if (eventMember.getPicture() == null) {
-								member.setPicture(user.getPhoto());
-							} else {
-								member.setPicture(eventMember.getPicture());
+							member.setPicture(user.getPhoto());
+							if (eventMember.getUser() != null) {
+								member.setUser(eventMember.getUser());
 							}
 							member.setOwner(true);
 							member.setMemberId(eventMember.getEventMemberId());
@@ -238,6 +237,9 @@ public class EventManager {
 							member.setTypeId(eventMember.getEventId());
 							member.setUserId(eventMember.getUserId());
 							member.setMemberId(eventMember.getEventMemberId());
+							if (eventMember.getUser() != null) {
+								member.setUser(eventMember.getUser());
+							}
 							members.add(member);
 						} else if (eventMember.getUserId() == null) {
 							Member member = new Member();
@@ -248,6 +250,9 @@ public class EventManager {
 							member.setTypeId(eventMember.getEventId());
 							member.setUserId(eventMember.getUserId());
 							member.setMemberId(eventMember.getEventMemberId());
+							if (eventMember.getUser() != null) {
+								member.setUser(eventMember.getUser());
+							}
 							members.add(member);
 						}
 					}

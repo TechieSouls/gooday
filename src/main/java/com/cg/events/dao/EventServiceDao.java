@@ -224,6 +224,8 @@ public class EventServiceDao {
 				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"') as event_temp "
 				+ "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 		
+		System.out.println(query);
+		
 		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
 		
 		
