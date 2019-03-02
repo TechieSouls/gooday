@@ -16,7 +16,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
 	User findUserByEmail(String email);
 	User findUserByEmailAndPassword(String email,String password);
 	//User findByPhone(String phone);
-	List<User> findByPhone(String phone);
+	List<User> findByPhoneContaining(String phone);
 	
 	
 	@Query("select u from User u where resetToken =:resetToken and HOUR(TIMEDIFF(resetTokenCreatedAt,now())) <= 1")
