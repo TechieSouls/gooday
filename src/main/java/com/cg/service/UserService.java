@@ -83,7 +83,7 @@ public class UserService {
 	}
 	
 	public User findUserByPhone(String phone) {
-		List<User> users = userRepository.findByPhoneContaining(phone.replaceAll("+", ""));
+		List<User> users = userRepository.findByPhoneContaining(phone.replaceAll("\\+", ""));
 		if (users == null || users.size() == 0) {
 			return null;
 		}
@@ -264,7 +264,7 @@ public class UserService {
 		public void run() {
 			for (Entry<String, String> contactSet : getContacts().entrySet()) {
 				UserContact userContact = new UserContact(); 
-				List<User> users = this.userRepository.findByPhoneContaining(contactSet.getKey().replaceAll("+", ""));
+				List<User> users = this.userRepository.findByPhoneContaining(contactSet.getKey().replaceAll("\\+", ""));
 				UserContact.CenesMember cenesMember = CenesMember.no;
 				if (users != null && users.size() > 0) {
 					User user = users.get(0);
