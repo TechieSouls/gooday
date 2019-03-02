@@ -52,6 +52,30 @@ public class EventServiceDao {
 		return eventTimeSlotResults;
 	}*/
 	
+	public List<EventTimeSlot> getFreeTimeSlotsByUserIdAndStartDateAndEndDate(Long userId,String startDate,String endDate) {
+		
+		List<String> paramenets = new ArrayList<>();
+		paramenets.add(startDate);
+		paramenets.add(endDate);
+		paramenets.add(String.valueOf(userId));
+		
+		return jdbcTemplate.query("select * from event_time_slots WHERE "
+				+ "event_date >= ? and event_date <= ? and user_id = ?",
+				new RowMapper<EventTimeSlot>() {
+					@Override
+					public EventTimeSlot mapRow(ResultSet rs, int rownumber)
+							throws SQLException {
+						EventTimeSlot ets = new EventTimeSlot();
+						ets.setEventDate(rs.getDate("event_date"));
+						ets.setStartTime(rs.getLong("start_time"));
+						ets.setUserId(rs.getLong("user_id"));
+						ets.setStatus(rs.getString("status"));
+						ets.setEventStartTime(rs.getDate("event_start_time"));
+
+						return ets;
+					}
+				},paramenets.toArray());
+	}
 	
 	public List<EventTimeSlot> getFreeTimeSlotsByDateAndUserId(String userIds,String startDate,String endDate) {
 		
