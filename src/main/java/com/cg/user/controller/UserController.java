@@ -172,6 +172,24 @@ public class UserController {
 			}
 			System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : Email Type User");
 			userInfo = userService.findUserByEmail(user.getEmail());
+			if (userInfo != null) {
+				user.setPassword(null);
+				user.setErrorCode(ErrorCodes.EmailAlreadyTaken.getErrorCode());
+				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken.toString());
+				System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : Email Already Exists");
+				
+				return new ResponseEntity<User>(user, HttpStatus.OK);
+			}
+			userInfo = userService.findUserByPhone(user.getPhone());
+			if (userInfo != null) {
+				user.setPassword(null);
+				user.setErrorCode(ErrorCodes.PhoneAlreadyTaken.getErrorCode());
+				user.setErrorDetail(ErrorCodes.PhoneAlreadyTaken.toString());
+				System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : Phone Already Exists");
+				
+				return new ResponseEntity<User>(user, HttpStatus.OK);
+			}
+			
 			if (userInfo == null) {
 				System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : New signup request");
 				try {
@@ -196,13 +214,6 @@ public class UserController {
 					user.setErrorDetail(ErrorCodes.EmailAlreadyTaken.toString());
 					return new ResponseEntity<User>(user, HttpStatus.OK);
 				}
-			} else {
-				user.setPassword(null);
-				user.setErrorCode(ErrorCodes.EmailAlreadyTaken.getErrorCode());
-				user.setErrorDetail(ErrorCodes.EmailAlreadyTaken.toString());
-				System.out.println("[ Date : "+new Date()+" ] ,UserType : Email, Message : Email Already Exists");
-				
-				return new ResponseEntity<User>(user, HttpStatus.OK);
 			}
 			
 			recurringManager.saveDefaultMeTime(userInfo.getUserId());
