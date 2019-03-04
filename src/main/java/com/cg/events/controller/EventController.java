@@ -967,10 +967,18 @@ public class EventController {
 					
 					float predictivePercentage = Math.abs((Float.valueOf(friendsAttending) / Float.valueOf(totalFriends)) * 100);
 
+					
+					
+					
 					Date dd = new SimpleDateFormat("yyyy-MM-dd").parse(mDate);
+					
+					Calendar dateCal = Calendar.getInstance();
+					dateCal.setTimeInMillis(eventStartTime);
+					dateCal.set(Calendar.DAY_OF_MONTH, dd.getDate());
+					
 					PredictiveCalendar pc = new PredictiveCalendar();
 					pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dd));
-					pc.setDate(eventStartTime);
+					pc.setDate(dateCal.getTimeInMillis());
 					pc.setTotalFriends(totalFriends);
 					pc.setAttendingFriends(friendsAttending);
 					pc.setPredictivePercentage((int)predictivePercentage);
