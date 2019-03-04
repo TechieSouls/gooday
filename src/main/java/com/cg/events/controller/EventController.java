@@ -718,7 +718,8 @@ public class EventController {
 				
 				//List<Long> friendAttending = new ArrayList<>();
 				Map<String, String> dateFriendsAvailabilityMap = new HashMap<String, String>();
-				
+				Map<String, String> dateHoursMap = new HashMap<String, String>();
+
 				
 				for (String userId: userIds.split(",")) {
 					List<EventTimeSlot> eventTimeSlots = eventServiceDao.getFreeTimeSlotsByUserIdAndStartDateAndEndDate(Long.valueOf(userId), sDateStr, eDateStr);
@@ -969,7 +970,7 @@ public class EventController {
 					Date dd = new SimpleDateFormat("yyyy-MM-dd").parse(mDate);
 					PredictiveCalendar pc = new PredictiveCalendar();
 					pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dd));
-					pc.setDate(dd.getTime());
+					pc.setDate(eventStartTime);
 					pc.setTotalFriends(totalFriends);
 					pc.setAttendingFriends(friendsAttending);
 					pc.setPredictivePercentage((int)predictivePercentage);
