@@ -498,7 +498,7 @@ public class UserController {
     	
 		User user = userRepository.findOne(Long.valueOf(userId));
 		
-		File file = new File(profileImageUploadPath);
+		/*File file = new File(profileImageUploadPath);
 		if (file != null) {
 			File[] files = file.listFiles(); 
 	        if (files != null && files.length > 0) {
@@ -511,7 +511,7 @@ public class UserController {
 	                } 
 	            }
 	        }
-		}
+		}*/
 
 		InputStream inputStream = null;
         OutputStream outputStream = null;
