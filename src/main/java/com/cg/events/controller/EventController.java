@@ -199,6 +199,7 @@ public class EventController {
 				eventManager.updateTimeSlotsToFreeByEvent(eventFromDatabase);	
 			}
 			if (event.getEventId() == null || event.getKey() == null) {
+				event.setScheduleAs("Gathering");
 				event.setKey(CenesUtils.getAlphaNumeric(32));
 			}
 			event = eventManager.createEvent(event);
