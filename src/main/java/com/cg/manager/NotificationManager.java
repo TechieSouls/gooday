@@ -84,6 +84,7 @@ public class NotificationManager {
 		Map<String,JSONArray> androidMap = new HashMap<>();
 		Map<String,List> iOSMap = new HashMap<>();
 		
+		Map<Long, Integer> userIdBadgeCountMap = new HashMap<>();
 		
 		List<EventMember> eventMembers = event.getEventMembers();
 		for (EventMember eventMember : eventMembers) {
@@ -117,6 +118,9 @@ public class NotificationManager {
 				if (!notificationAlreadySent) {
 					notificationRepository.save(notification);
 				}
+				
+				
+				userIdBadgeCountMap.put(eventMember.getUserId(), getBadgeCountsByUserId(eventMember.getUserId()));
 				
 				List<UserDevice> toUserDeviceInfo = userService.findUserDeviceInfoByUserId(eventMember.getUserId());
 				if (toUserDeviceInfo != null && toUserDeviceInfo.size() > 0) {
@@ -200,7 +204,8 @@ public class NotificationManager {
 					JSONObject alert = new JSONObject();
 					alert.put("title",fromUser.getName()+pushMessage+event.getTitle());
 					payloadObj.put("alert",alert);
-					payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+					//payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+					payloadObj.put("badge",userIdBadgeCountMap.get(userDevice.getUserId()));
 					payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
 					notifyObj.put("aps", payloadObj);
