@@ -200,6 +200,7 @@ public class EventController {
 			}
 			if (event.getEventId() == null || event.getKey() == null) {
 				event.setScheduleAs("Gathering");
+				event.setSource("Cenes");
 				event.setKey(CenesUtils.getAlphaNumeric(32));
 			}
 			event = eventManager.createEvent(event);
