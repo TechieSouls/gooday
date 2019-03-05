@@ -74,7 +74,7 @@ public class NotificationManager {
 
 			for (EventMember eventMember : eventMembers) {
 				if (eventMember.getUserId() != null && !eventMember.getUserId().equals(event.getCreatedById())) {
-					sendPushForAcceptAndDeclineRequest(pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
+					sendPushForAcceptAndDeclineRequest(pushMessage,eventMember.getUserId(),eventMember.getName(),Notification.NotificationType.Gathering);
 				}
 			}
 		}
