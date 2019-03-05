@@ -237,6 +237,9 @@ public class EventController {
 		try {
 			
 			Event event = eventService.findEventById(gatehringId);
+			
+			notificationManager.sendDeleteNotification(event);
+			
 			for (EventMember eventMember: event.getEventMembers()) {
 				eventMember.setUser(null);
 			}

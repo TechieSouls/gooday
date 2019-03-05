@@ -59,6 +59,28 @@ public class NotificationManager {
 		notificationRepository.deleteByRecepientIdAndNotificationTypeId(recepientId, notificationTypeId);
 	}
 	
+	public void sendDeleteNotification(Event event) {
+				
+		List<EventMember> eventMembers = event.getEventMembers();
+		EventMember owner = null;
+		for (EventMember ownerMember: event.getEventMembers()) {
+			if (ownerMember.getUserId().equals(event.getCreatedById())) {
+				owner = ownerMember;
+				break;
+			}
+		}
+		if (owner != null) {
+			String pushMessage = owner.getName()+" deleted the invitation "+event.getTitle();
+
+			for (EventMember eventMember : eventMembers) {
+				if (eventMember.getUserId() != null && !eventMember.getUserId().equals(event.getCreatedById())) {
+					sendPushForAcceptAndDeclineRequest(pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
+				}
+			}
+		}
+		
+	}
+	
 	public void deleteNotificationByNotificationTypeId(Long notificationTypeId) {
 		notificationRepository.deleteByNotificationTypeId(notificationTypeId);
 	}
