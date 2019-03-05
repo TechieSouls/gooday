@@ -198,6 +198,9 @@ public class EventController {
 				Event eventFromDatabase = eventManager.findEventByEventId(event.getEventId());
 				eventManager.updateTimeSlotsToFreeByEvent(eventFromDatabase);	
 			}
+			if (event.getEventId() == null || event.getKey() == null) {
+				event.setKey(CenesUtils.getAlphaNumeric(32));
+			}
 			event = eventManager.createEvent(event);
 			
 			if (event.getPlaceId() != null && event.getEventPicture() != null && event.getEventPicture().indexOf("google") != -1) {
@@ -264,8 +267,6 @@ public class EventController {
 	}
 	
 	
-	@ApiOperation(value = "Fetch Event By Its Id", notes = "Fecth event by id", code = 200, httpMethod = "GET", produces = "application/json")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Event fetched successfuly", response = Event.class) })
 	@RequestMapping(value = "/api/event/{eventId}", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<Map<String,Object>> getEventById(@PathVariable("eventId") Long eventId) {
@@ -274,6 +275,33 @@ public class EventController {
 		Event event = new Event();
 		try {
 			event = eventServiceDao.findGatheringByEventId(eventId);
+			if (event == null) {
+				response.put("success", false);
+			} else {
+				response.put("success", true);
+			}
+			response.put("data", event);
+			response.put("errorCode",0);
+			response.put("errorDetail",null);
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("data", "");
+			response.put("errorCode",ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail",ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+	}
+	
+	@RequestMapping(value = "/api/event/invitation/{key}", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<Map<String,Object>> findEventByKey(@PathVariable("key") String key) {
+
+		Map<String,Object> response = new HashMap<>();
+		Event event = new Event();
+		try {
+			event = eventServiceDao.findGatheringByKey(key);
 			if (event == null) {
 				response.put("success", false);
 			} else {

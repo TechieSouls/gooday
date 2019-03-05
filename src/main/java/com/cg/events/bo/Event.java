@@ -125,6 +125,8 @@ public class Event extends CgGeneral {
 	@Column(name="place_id")
 	private String placeId;
 	
+	@Column(name="private_key")
+	private String key;
 	
 	@Transient
 	private Map<String,Object> predictiveDataForIos;
@@ -293,6 +295,13 @@ public class Event extends CgGeneral {
 	}
 	public void setFullDayStartTime(String fullDayStartTime) {
 		this.fullDayStartTime = fullDayStartTime;
+	}
+	
+	public String getKey() {
+		return key;
+	}
+	public void setKey(String key) {
+		this.key = key;
 	}
 	@Override
 	public String toString() {
