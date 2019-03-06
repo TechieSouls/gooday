@@ -273,10 +273,10 @@ public class NotificationManager {
 		Notification notification = null;
 		if (eventMember.getStatus().equals(MemberStatus.Going.toString())) {
 			notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Accept);
-			pushMessage = "[username] accepts your invitation [title]";
+			pushMessage = eventMember.getName()+" accepts your invitation "+event.getTitle();
 		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
 			notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Decline);
-			pushMessage = "[username] declines your invitation [title]";
+			pushMessage = eventMember.getName()+" declines your invitation "+event.getTitle();
 		}
 		
 		if (notification == null) {
@@ -290,7 +290,7 @@ public class NotificationManager {
 		
 		notification.setMessage(pushMessage);
 		notification.setTitle(event.getTitle());
-		notification.setRecepientId(eventMember.getUserId());
+		notification.setRecepientId(event.getCreatedById());
 		notification.setNotificationTypeId(event.getEventId());
 		notification.setType(NotificationType.Gathering);
 		notification.setCreatedAt(new Date());
