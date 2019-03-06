@@ -295,7 +295,6 @@ public class NotificationManager {
 		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
 			notification.setMessage("declines your invitation");
 		}
-		notification.setMessage(pushMessage);
 		notification.setTitle(event.getTitle());
 		notification.setRecepientId(event.getCreatedById());
 		notification.setNotificationTypeId(event.getEventId());
