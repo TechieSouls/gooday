@@ -156,7 +156,7 @@ public class GoogleService {
 					continue;
 				}
 				Calendar minTimeCal = Calendar.getInstance();
-				minTimeCal.add(Calendar.DAY_OF_MONTH, minTimeCal.get(Calendar.DAY_OF_MONTH) - 1);
+				minTimeCal.add(Calendar.DAY_OF_MONTH, - 1);
 				minTimeCal.set(Calendar.HOUR_OF_DAY, 0);
 				minTimeCal.set(Calendar.MINUTE, 0);
 				minTimeCal.set(Calendar.SECOND, 0);
