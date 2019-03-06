@@ -198,6 +198,11 @@ public class EventController {
 				Event eventFromDatabase = eventManager.findEventByEventId(event.getEventId());
 				eventManager.updateTimeSlotsToFreeByEvent(eventFromDatabase);	
 			}
+			if (event.getEventId() == null || event.getKey() == null) {
+				event.setScheduleAs("Gathering");
+				event.setSource("Cenes");
+				event.setKey(CenesUtils.getAlphaNumeric(32));
+			}
 			event = eventManager.createEvent(event);
 			
 			if (event.getPlaceId() != null && event.getEventPicture() != null && event.getEventPicture().indexOf("google") != -1) {
@@ -234,6 +239,9 @@ public class EventController {
 		try {
 			
 			Event event = eventService.findEventById(gatehringId);
+			
+			notificationManager.sendDeleteNotification(event);
+			
 			for (EventMember eventMember: event.getEventMembers()) {
 				eventMember.setUser(null);
 			}
@@ -264,8 +272,6 @@ public class EventController {
 	}
 	
 	
-	@ApiOperation(value = "Fetch Event By Its Id", notes = "Fecth event by id", code = 200, httpMethod = "GET", produces = "application/json")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Event fetched successfuly", response = Event.class) })
 	@RequestMapping(value = "/api/event/{eventId}", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<Map<String,Object>> getEventById(@PathVariable("eventId") Long eventId) {
@@ -274,6 +280,33 @@ public class EventController {
 		Event event = new Event();
 		try {
 			event = eventServiceDao.findGatheringByEventId(eventId);
+			if (event == null) {
+				response.put("success", false);
+			} else {
+				response.put("success", true);
+			}
+			response.put("data", event);
+			response.put("errorCode",0);
+			response.put("errorDetail",null);
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("data", "");
+			response.put("errorCode",ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail",ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+	}
+	
+	@RequestMapping(value = "/api/event/invitation/{key}", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<Map<String,Object>> findEventByKey(@PathVariable("key") String key) {
+
+		Map<String,Object> response = new HashMap<>();
+		Event event = new Event();
+		try {
+			event = eventServiceDao.findGatheringByKey(key);
 			if (event == null) {
 				response.put("success", false);
 			} else {
@@ -718,7 +751,8 @@ public class EventController {
 				
 				//List<Long> friendAttending = new ArrayList<>();
 				Map<String, String> dateFriendsAvailabilityMap = new HashMap<String, String>();
-				
+				Map<String, String> dateHoursMap = new HashMap<String, String>();
+
 				
 				for (String userId: userIds.split(",")) {
 					List<EventTimeSlot> eventTimeSlots = eventServiceDao.getFreeTimeSlotsByUserIdAndStartDateAndEndDate(Long.valueOf(userId), sDateStr, eDateStr);
@@ -966,10 +1000,18 @@ public class EventController {
 					
 					float predictivePercentage = Math.abs((Float.valueOf(friendsAttending) / Float.valueOf(totalFriends)) * 100);
 
+					
+					
+					
 					Date dd = new SimpleDateFormat("yyyy-MM-dd").parse(mDate);
+					
+					Calendar dateCal = Calendar.getInstance();
+					dateCal.setTimeInMillis(eventStartTime);
+					dateCal.set(Calendar.DAY_OF_MONTH, dd.getDate());
+					
 					PredictiveCalendar pc = new PredictiveCalendar();
 					pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dd));
-					pc.setDate(dd.getTime());
+					pc.setDate(dateCal.getTimeInMillis());
 					pc.setTotalFriends(totalFriends);
 					pc.setAttendingFriends(friendsAttending);
 					pc.setPredictivePercentage((int)predictivePercentage);

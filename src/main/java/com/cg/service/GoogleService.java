@@ -165,7 +165,7 @@ public class GoogleService {
 				maxTimeCal.set(Calendar.MINUTE, 0);
 				maxTimeCal.set(Calendar.SECOND, 0);
 				maxTimeCal.add(Calendar.MONTH, 3);
-				
+								
 				String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/"+URLEncoder.encode(calendarId)+"/events";
 				
 				String tokenParam = "";//"access_token="+accessToken;
@@ -205,6 +205,9 @@ public class GoogleService {
 					if (!calItem.has("summary")) {
 						continue;
 					}
+					
+					//System.out.println(calItem.toString());
+					
 					GoogleEventItem item = new GoogleEventItem();
 					item.setId(calItem.getString("id"));
 					
@@ -224,6 +227,9 @@ public class GoogleService {
 					}
 					if (calItem.has("recurringEventId")) {
 						item.setRecurringEventId(calItem.getString("recurringEventId"));
+					}
+					if (calItem.has("creator")) {
+						item.setCreatorEmail(calItem.getJSONObject("creator").getString("email"));
 					}
 					
 					if (calItem.has("attendees")) {
@@ -324,6 +330,7 @@ public class GoogleService {
 			List<GoogleEventItem> eventItems = new ArrayList<>();
 			for (int i=0; i<items.length(); i++) {
 				JSONObject itemObj = items.getJSONObject(i);
+				//System.out.println(itemObj.toString());
 				GoogleEventItem googleEventItem = new GoogleEventItem();
 				googleEventItem.setSummary(itemObj.getString("summary"));
 				googleEventItem.setId(itemObj.getString("id"));
@@ -480,6 +487,24 @@ public class GoogleService {
 		GoogleCountries gc = null;//doGoogleCountriesRestRequest(placeApi,HttpMethod.GET,null);
 		return gc;
 	}
+	
+	/*public static void main(String[] args) {
+		//new GoogleService().getCountryHolidayEvents("en.canadian#holiday@group.v.calendar.google.com");
+		
+		new GoogleService().getCalenderEvents(false, "ya29.Gly3Bh9sw_7rm0Cl8GXeS0eKOp7R_ZfVfKFmAcRduTk1GcCkI_TUTzZdKqMZ8K1Z4_3rn0aOznZPt05O5ygtdkrNpFmjTV6oEOZ5eFABDwpDDGx0G6DOJ-rX-We5Xg");
+	}*/
+	
+	/*public static void main(String[] args) {
+		Calendar maxTimeCal = Calendar.getInstance();
+		maxTimeCal.set(Calendar.HOUR_OF_DAY, 0);
+		maxTimeCal.set(Calendar.MINUTE, 0);
+		maxTimeCal.set(Calendar.SECOND, 0);
+		maxTimeCal.add(Calendar.MONTH, 3);
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssZ");
+
+		System.out.println(URLEncoder.encode(sdf.format(maxTimeCal.getTime())));
+	}*/
 	/*public static void main(String[] args) {
 		GoogleService gs = new GoogleService();
 		

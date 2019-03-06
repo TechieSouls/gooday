@@ -24,7 +24,8 @@ public class CgConstants {
 		FacebookTokenNotPresent(118),
 		NameNotPresent(119),
 		AuthTypeNotPresent(120),
-		InternalServerError(121);
+		InternalServerError(121),
+		PhoneAlreadyTaken(122);
 		int errorCode;
 
 		private ErrorCodes(int i) {

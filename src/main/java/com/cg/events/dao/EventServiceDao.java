@@ -3,6 +3,7 @@ package com.cg.events.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -242,6 +243,62 @@ public class EventServiceDao {
 		return null;
 	}
 	
+	public Event findGatheringByKey(String key) {
+		
+		String gatheringQuery = "select *,e.source as event_source,  em.source as member_source, "
+				+ "em.name as non_cenes_member_name, u.name as origname from events e "
+				+ "JOIN event_members em on e.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
+				+ "where e.private_key = '"+key+"'";
+		
+		System.out.println("Query : "+gatheringQuery);
+		List<Map<String, Object>> userGatherings = jdbcTemplate.queryForList(gatheringQuery);
+		
+		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
+		if (userGatherings != null) {
+			
+			try {
+				for (Map<String, Object> userGatheringMap: userGatherings) {
+					//System.out.println(userGatheringMap.toString());
+					Event event = null;
+					if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+						event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
+						
+						List<EventMember> eventMmembers = event.getEventMembers();
+						eventMmembers.add(populateEventMembers(userGatheringMap));
+						event.setEventMembers(eventMmembers);
+					} else {
+						event = populateEventBo(userGatheringMap);
+						List<EventMember> eventMmembers = null;
+						if (event.getEventMembers() == null) {
+							eventMmembers = new ArrayList<>();
+						} else {
+							eventMmembers = event.getEventMembers();
+						}
+						
+						eventMmembers.add(populateEventMembers(userGatheringMap));
+						event.setEventMembers(eventMmembers);
+					}
+					eventIdMap.put(event.getEventId(), event);
+				}
+				
+				List<Event> events = new ArrayList<>();
+				for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
+					events.add(eventEntrySet.getValue());
+				}
+				if (events.size() > 0) {
+					return events.get(0);
+				} else {
+					return null;
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return null;
+	}
+	
+	
 	public List<Event> findGatheringsByUserIdAndStatus(Long userId, String status) {
 		
 		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
@@ -281,6 +338,16 @@ public class EventServiceDao {
 		for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
 			events.add(eventEntrySet.getValue());
 		}
+		
+
+		events.sort(Comparator.comparing(Event::getStartTime, (star1, star2) -> {
+		    if(star1 == star2){
+		         return 0;
+		    }
+		    return (star1.getTime() > star2.getTime()) ? -1 : 1;
+		}));
+                      
+		
 		return events;
 	}
 	
@@ -391,6 +458,9 @@ public class EventServiceDao {
 			}
 			if (eventMap.get("predictive_data") != null) {
 				event.setPredictiveData(eventMap.get("predictive_data").toString());
+			}
+			if (eventMap.get("private_key") != null) {
+				event.setKey(eventMap.get("private_key").toString());
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
