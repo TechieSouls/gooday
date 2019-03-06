@@ -495,39 +495,40 @@ public class EventManager {
 								continue;
 							}
 							
-							boolean isUserInvitee = false;
-							if (eventItem.getAttendees() != null && eventItem.getAttendees().size() > 0) {
-								for (GoogleEventAttendees attendee : eventItem.getAttendees()) {
-									if (attendee.getEmail().equals(user.getEmail()) && !attendee.getOrganizer()) {
-										isUserInvitee = true;
-										break;
-									}
-								}
+							//Lets check first if the creator Exists in our DB or Not.
+							//If it exists in db then we will set the created by id as its user id
+							//Otherewise we can make the syncing user as creator.
+							User creatorExistsInDb = userService.findUserByEmail(eventItem.getCreatorEmail());
+							if (creatorExistsInDb != null) {
+								user = creatorExistsInDb;
 							}
 							
 							Event event = null;
-							Long userId = user.getUserId();
-							System.out.println("[User Invitee : "+isUserInvitee+"  UserId : "+userId+"]");
 							System.out.println("Event Title : "+eventItem.getSummary());
 							System.out.println("[Event : "+eventItem.toString()+" ]");
-							if (isUserInvitee) {
+							/*if (isUserInvitee) {
 								List<Event> eventsTemp = this.eventRepository.findBySourceEventId(eventItem.getId());
 								if (eventsTemp != null && eventsTemp.size() > 0) {
 									userId = eventsTemp.get(0).getCreatedById();
 								}
+							}*/
+							//if (event == null) {
+							
+							//Now check if creator has already synced the calendar, then there will be an event already existing.
+							//We will fetch that event by created by id and google event id.
+							//If creator has not synced the event then we will create new event. 
+							//If creator is different then he will see the event without syncing the google calendar.
+							List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+							if (dbevents == null || dbevents.size() == 0) {
+								event = new Event();
+							} else {
+								event = dbevents.get(0);
 							}
-							if (event == null) {
-								List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-								if (dbevents == null || dbevents.size() == 0) {
-									event = new Event();
-								} else {
-									event = dbevents.get(0);
-								}
-							}
+							//}
 							event.setSourceEventId(eventItem.getId());
 							event.setSource(EventSource.Google.toString());
 							event.setTitle(eventItem.getSummary());
-							event.setCreatedById(userId);
+							event.setCreatedById(user.getUserId());
 							if (eventItem.getDescription() != null) {
 								event.setDescription(eventItem.getDescription());
 							}
@@ -571,10 +572,24 @@ public class EventManager {
 								event.setStartTime(new Date());
 							}
 							
+							//Lets populate the Invitees.
 							List<EventMember> eventMembersTemp  = new ArrayList<>();
 							if (eventItem.getAttendees() != null && eventItem.getAttendees().size() > 0) {
-								eventMembersTemp = parseGoogleEventMembers(eventItem.getAttendees(),userId);
-							} //else {
+								eventMembersTemp = parseGoogleEventMembers(eventItem.getAttendees());
+							} 
+							
+							//Now we need to check if creator has invited himself in the event.
+							//if not then we will add him in the invitee list
+							boolean isUserInvitee = false;
+							if (eventMembersTemp != null && eventMembersTemp.size() > 0) {
+								for (EventMember attendeeMember : eventMembersTemp) {
+									if (attendeeMember.getUserId() != null && attendeeMember.getUserId().equals(user.getUserId())) {
+										isUserInvitee = true;
+										break;
+									}
+								}
+							}
+							if (!isUserInvitee) {
 								EventMember eventMember = new EventMember();
 								eventMember.setName(user.getName());
 								eventMember.setStatus(MemberStatus.Going.toString());
@@ -585,6 +600,8 @@ public class EventManager {
 								
 								eventMember.setUserId(user.getUserId());
 								eventMembersTemp.add(eventMember);
+							}
+							
 							//}
 							
 							//Clearing old users and adding new one.
@@ -634,7 +651,7 @@ public class EventManager {
 	}
 	
 	public List<EventMember> parseGoogleEventMembers(
-			List<GoogleEventAttendees> attendees,Long userId) {
+			List<GoogleEventAttendees> attendees) {
 			List<EventMember> members = new ArrayList<>();
 			for (GoogleEventAttendees attendee : attendees) {
 				EventMember eventMember = new EventMember();
@@ -651,16 +668,16 @@ public class EventManager {
 				eventMember.setSource(EventSource.Google.toString());
 				eventMember.setSourceEmail(attendee.getEmail());
 				
-				if (attendee.getSelf() && attendee.getOrganizer()) {
-					eventMember.setUserId(userId);
-				} else {
+				//if (attendee.getSelf() && attendee.getOrganizer()) {
+					//eventMember.setUserId(userId);
+				//} else {
 					User user = userService.findUserByEmail(attendee.getEmail());
 					if (user != null) {
 						eventMember.setUserId(user.getUserId());
 						eventMember.setName(user.getName());
 						eventMember.setPicture(user.getPhoto());
 					}
-				}
+				//}
 				members.add(eventMember);
 			}
 			return members;

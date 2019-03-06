@@ -9,6 +9,7 @@ public class GoogleEventItem {
 	private String status;
 	private String summary;
 	private String description;
+	private String creatorEmail;
 	private String location;
 	private String recurringEventId;
 	private Map<String,String> start;
@@ -68,6 +69,13 @@ public class GoogleEventItem {
 	}
 	public void setRecurringEventId(String recurringEventId) {
 		this.recurringEventId = recurringEventId;
+	}
+	
+	public String getCreatorEmail() {
+		return creatorEmail;
+	}
+	public void setCreatorEmail(String creatorEmail) {
+		this.creatorEmail = creatorEmail;
 	}
 	@Override
 	public String toString() {
