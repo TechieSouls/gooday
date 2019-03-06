@@ -84,11 +84,12 @@ public class NotificationManager {
 					notification.setSenderId(owner.getUserId());
 					notification.setSender(owner.getName());
 					notification.setNotificationTypeStatus(NotificationTypeStatus.New);
-					notification.setMessage(owner.getName()+" deleted the event "+event.getTitle());
+					notification.setMessage("deleted the event");
 					notification.setTitle(event.getTitle());
 					notification.setRecepientId(eventMember.getUserId());
 					notification.setNotificationTypeId(event.getEventId());
 					notification.setType(NotificationType.Gathering);
+					notification.setAction(NotificationTypeAction.Delete);
 					notification.setCreatedAt(new Date());
 					notification.setUpdateAt(new Date());
 					notificationRepository.save(notification);
