@@ -290,6 +290,11 @@ public class NotificationManager {
 		
 		notification.setNotificationTypeStatus(NotificationTypeStatus.New);
 		
+		if (eventMember.getStatus().equals(MemberStatus.Going.toString())) {
+			notification.setMessage("accepts your invitation");
+		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
+			notification.setMessage("declines your invitation");
+		}
 		notification.setMessage(pushMessage);
 		notification.setTitle(event.getTitle());
 		notification.setRecepientId(event.getCreatedById());
