@@ -508,6 +508,7 @@ public class EventManager {
 							Event event = null;
 							Long userId = user.getUserId();
 							System.out.println("[User Invitee : "+isUserInvitee+"  UserId : "+userId+"]");
+							System.out.println("Event Title : "+eventItem.getSummary());
 							System.out.println("[Event : "+eventItem.toString()+" ]");
 							if (isUserInvitee) {
 								List<Event> eventsTemp = this.eventRepository.findBySourceEventId(eventItem.getId());
@@ -573,7 +574,7 @@ public class EventManager {
 							List<EventMember> eventMembersTemp  = new ArrayList<>();
 							if (eventItem.getAttendees() != null && eventItem.getAttendees().size() > 0) {
 								eventMembersTemp = parseGoogleEventMembers(eventItem.getAttendees(),userId);
-							} else {
+							} //else {
 								EventMember eventMember = new EventMember();
 								eventMember.setName(user.getName());
 								eventMember.setStatus(MemberStatus.Going.toString());
@@ -584,7 +585,7 @@ public class EventManager {
 								
 								eventMember.setUserId(user.getUserId());
 								eventMembersTemp.add(eventMember);
-							}
+							//}
 							
 							//Clearing old users and adding new one.
 							if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
@@ -643,7 +644,7 @@ public class EventManager {
 				if (attendee.getResponseStatus().equals("accepted")) {
 					eventMember.setStatus(MemberStatus.Going.toString());
 				} else if (attendee.getResponseStatus().equals("needsAction")) {
-					eventMember.setStatus(MemberStatus.Maybe.toString());
+					eventMember.setStatus(MemberStatus.Going.toString());
 				} else if (attendee.getResponseStatus().equals("declined")) {
 					eventMember.setStatus(MemberStatus.NotGoing.toString());
 				}
