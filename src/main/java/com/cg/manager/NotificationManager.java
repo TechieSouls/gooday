@@ -268,17 +268,18 @@ public class NotificationManager {
 		String pushMessage = "";
 
 		Event event = eventManager.findEventByEventId(eventMember.getEventId());
-		pushMessage = pushMessage.replace("[username]",eventMember.getName()).replace("[title]", event.getTitle());
 		
 		Notification notification = null;
 		if (eventMember.getStatus().equals(MemberStatus.Going.toString())) {
 			notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Accept);
-			pushMessage = eventMember.getName()+" accepts your invitation "+event.getTitle();
+			pushMessage = "[username] accepts your invitation [title]";
 		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
 			notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Decline);
-			pushMessage = eventMember.getName()+" declines your invitation "+event.getTitle();
+			pushMessage = "[username] declines your invitation [title]";
 		}
 		
+		pushMessage = pushMessage.replace("[username]",eventMember.getName()).replace("[title]", event.getTitle());
+
 		if (notification == null) {
 			notification = new Notification();
 		}
