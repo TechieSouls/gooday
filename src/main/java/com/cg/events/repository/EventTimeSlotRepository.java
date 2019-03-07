@@ -21,6 +21,9 @@ public interface EventTimeSlotRepository extends  JpaRepository<EventTimeSlot, L
 	@Query("Select ets from EventTimeSlot ets where ets.startTime >= :startTime and ets.endTime <= :endTime and ets.userId = :userId")
 	public List<EventTimeSlot> findByStartAndEndTimeAndUserId(@Param("startTime") long startTime,@Param("endTime") long endTime,@Param("userId") Long userId);
 
+	@Query("Select ets from EventTimeSlot ets where ets.startTime >= :startTime and ets.endTime <= :endTime and ets.eventId = :eventId")
+	public List<EventTimeSlot> findByStartAndEndTimeAndEventId(@Param("startTime") long startTime,@Param("endTime") long endTime,@Param("eventId") Long eventId);
+
 	@Modifying(clearAutomatically = true)
 	@Transactional
 	@Query("delete from EventTimeSlot ets where ets.userId =:userId and ets.scheduleAs = :scheduleAs")
