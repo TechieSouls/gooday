@@ -751,7 +751,7 @@ public class EventController {
 				
 				//List<Long> friendAttending = new ArrayList<>();
 				Map<String, String> dateFriendsAvailabilityMap = new HashMap<String, String>();
-				Map<String, String> dateHoursMap = new HashMap<String, String>();
+				Map<String, Long> dateHoursMap = new HashMap<String, Long>();
 
 				
 				for (String userId: userIds.split(",")) {
@@ -1008,7 +1008,7 @@ public class EventController {
 					Calendar dateCal = Calendar.getInstance();
 					dateCal.setTimeInMillis(eventStartTime);
 					dateCal.set(Calendar.DAY_OF_MONTH, dd.getDate());
-					
+					System.out.println("Event Date After adding mDate : "+dateCal.getTime());
 					PredictiveCalendar pc = new PredictiveCalendar();
 					pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dd));
 					pc.setDate(dateCal.getTimeInMillis());
