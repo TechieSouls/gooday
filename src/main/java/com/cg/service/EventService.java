@@ -159,6 +159,10 @@ public class EventService {
 		return eventTimeSlotRepository.findByStartAndEndTimeAndUserId(startTime,endTime,userId);
 	}
 	
+	public List<EventTimeSlot> findEventTimeSlotByEventDateAndEventId(long startTime,long endTime,Long eventId) {
+		return eventTimeSlotRepository.findByStartAndEndTimeAndEventId(startTime,endTime,eventId);
+	}
+	
 	public void deleteEventsByCreatedByIdAndSource(Long createdById,String source) {
 		eventRepository.deleteEventsByCreatedByIdAndSource(createdById, source);
 	}

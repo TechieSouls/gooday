@@ -148,6 +148,12 @@ public class EventManager {
 			event.setEventMembers(members);
 		}
 		
+		
+		if (event.getEventId() != null) {
+			for (EventMember eventMem: event.getEventMembers()) {
+				eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+			}
+		}
 		if (event.getPredictiveData() != null) {
 	        try{
 	        	String validatedPropertiesJsonString = event.getPredictiveData().replaceAll("\\\"","\"");
@@ -1074,7 +1080,7 @@ public class EventManager {
 	}
 	
 	public void updateTimeSlotsToFreeByEvent(Event event) {
-		List<EventTimeSlot> timeSlots  = eventService.findEventTimeSlotByEventDateAndUserId(event.getStartTime().getTime(),event.getEndTime().getTime(),event.getCreatedById());
+		List<EventTimeSlot> timeSlots  = eventService.findEventTimeSlotByEventDateAndEventId(event.getStartTime().getTime(),event.getEndTime().getTime(),event.getEventId());
 		if (timeSlots != null && timeSlots.size() > 0) {
 			for (EventTimeSlot ets : timeSlots) {
 				ets.setStatus(TimeSlotStatus.Free.toString());
