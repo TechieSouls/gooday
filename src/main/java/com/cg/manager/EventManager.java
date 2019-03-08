@@ -151,7 +151,9 @@ public class EventManager {
 		
 		if (event.getEventId() != null) {
 			for (EventMember eventMem: event.getEventMembers()) {
-				eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+				if (eventMem.getStatus() != null) {
+					eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+				}
 			}
 		}
 		if (event.getPredictiveData() != null) {
