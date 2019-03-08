@@ -8,12 +8,16 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import com.cg.user.bo.User;
 
 @Entity
 @Table(name="notifications")
 public class Notification extends CgGeneral{
 	
 	public enum NotificationType {Event,Gathering,Reminder};
+	public enum NotificationTypeAction {Create, Accept, Decline, Delete};
 	public enum NotificationTypeStatus {New,Old}
 	public enum NotificationReadStatus {Read,UnRead}
 	
@@ -55,6 +59,13 @@ public class Notification extends CgGeneral{
 	@Column(name="type")
 	@Enumerated(EnumType.STRING)
 	private NotificationType type;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(name="notification_type_action")
+	private NotificationTypeAction action = NotificationTypeAction.Create;
+	
+	@Transient
+	private User user;
 	
 	public Long getNotificationId() {
 		return notificationId;
@@ -144,4 +155,21 @@ public class Notification extends CgGeneral{
 	public void setReadStatus(NotificationReadStatus readStatus) {
 		this.readStatus = readStatus;
 	}
+
+	public NotificationTypeAction getAction() {
+		return action;
+	}
+
+	public void setAction(NotificationTypeAction action) {
+		this.action = action;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+	
 }

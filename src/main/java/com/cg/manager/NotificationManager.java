@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.cg.bo.Notification;
 import com.cg.bo.Notification.NotificationType;
+import com.cg.bo.Notification.NotificationTypeAction;
 import com.cg.bo.Notification.NotificationTypeStatus;
 import com.cg.bo.NotificationCountData;
 import com.cg.constant.CgConstants;
@@ -74,6 +75,26 @@ public class NotificationManager {
 
 			for (EventMember eventMember : eventMembers) {
 				if (eventMember.getUserId() != null && !eventMember.getUserId().equals(event.getCreatedById())) {
+					
+					Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(event.getEventId(),eventMember.getUserId(), NotificationTypeAction.Delete );
+					if (notification == null) {
+						notification = new Notification();
+					}
+					
+					notification.setSenderId(owner.getUserId());
+					notification.setSender(owner.getName());
+					notification.setNotificationTypeStatus(NotificationTypeStatus.New);
+					notification.setMessage("deleted the event");
+					notification.setTitle(event.getTitle());
+					notification.setRecepientId(eventMember.getUserId());
+					notification.setNotificationTypeId(event.getEventId());
+					notification.setType(NotificationType.Gathering);
+					notification.setAction(NotificationTypeAction.Delete);
+					notification.setCreatedAt(new Date());
+					notification.setUpdateAt(new Date());
+					notificationRepository.save(notification);
+					
+					
 					sendPushForAcceptAndDeclineRequest(pushMessage,eventMember.getUserId(),eventMember.getName(),Notification.NotificationType.Gathering);
 				}
 			}
@@ -114,7 +135,7 @@ public class NotificationManager {
 				boolean notificationAlreadySent = false;
 				String eventMessage = "sent you an invitation";
 				
-				Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientId(event.getEventId(),eventMember.getUserId());
+				Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(event.getEventId(),eventMember.getUserId(), NotificationTypeAction.Create);
 				if (notification == null) {
 					notification = new Notification();
 				}
@@ -246,14 +267,43 @@ public class NotificationManager {
 	
 	public void sendEventAcceptDeclinedPush(EventMember eventMember) {
 		String pushMessage = "";
-		if (eventMember.getStatus().equals(MemberStatus.Going.toString())) {
-			pushMessage = "[username] accepts your invitation [title]";
-		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
-			pushMessage = "[username] declines your invitation [title]";
-		}
 
 		Event event = eventManager.findEventByEventId(eventMember.getEventId());
+		
+		Notification notification = null;
+		if (eventMember.getStatus().equals(MemberStatus.Going.toString())) {
+			notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Accept);
+			pushMessage = "[username] accepts your invitation [title]";
+		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
+			notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Decline);
+			pushMessage = "[username] declines your invitation [title]";
+		}
+		
 		pushMessage = pushMessage.replace("[username]",eventMember.getName()).replace("[title]", event.getTitle());
+
+		if (notification == null) {
+			notification = new Notification();
+		}
+		
+		notification.setSenderId(eventMember.getUserId());
+		notification.setSender(eventMember.getName());
+		
+		notification.setNotificationTypeStatus(NotificationTypeStatus.New);
+		
+		if (eventMember.getStatus().equals(MemberStatus.Going.toString())) {
+			notification.setMessage("accepts your invitation");
+		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
+			notification.setMessage("declines your invitation");
+		}
+		notification.setTitle(event.getTitle());
+		notification.setRecepientId(event.getCreatedById());
+		notification.setNotificationTypeId(event.getEventId());
+		notification.setType(NotificationType.Gathering);
+		notification.setCreatedAt(new Date());
+		notification.setUpdateAt(new Date());
+		notificationRepository.save(notification);
+		
+
 		sendPushForAcceptAndDeclineRequest(pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
 	}
 

@@ -21,6 +21,8 @@ import com.cg.bo.NotificationCountData;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.repository.NotificationCountDataRepository;
 import com.cg.repository.NotificationRepository;
+import com.cg.repository.UserRepository;
+import com.cg.user.bo.User;
 
 @RestController
 public class NotificationController {
@@ -30,6 +32,9 @@ public class NotificationController {
 	
 	@Autowired
 	NotificationCountDataRepository notificationCountDataRepository;
+
+	@Autowired
+	UserRepository userRepository;
 	
 	@RequestMapping(value="/api/notification/byuser", method=RequestMethod.GET)
 	public ResponseEntity<Map<String,Object>> getUserNotifications(@RequestParam("userId") Long userId) {
@@ -42,6 +47,11 @@ public class NotificationController {
 			List<Notification> notificatoins = notificationRepository.findByRecepientIdOrderByCreatedAtDesc(userId);
 			
 			if (notificatoins != null && notificatoins.size() > 0) {
+				
+				for (Notification notification: notificatoins) {
+					User user = userRepository.findOne(notification.getSenderId());
+					notification.setUser(user);
+				}
 				
 				//Update Badge Counts to 0
 				notificationCountDataRepository.setBadgeCountsToZero(userId);
