@@ -148,12 +148,18 @@ public class EventManager {
 			event.setEventMembers(members);
 		}
 		
-		
-		if (event.getEventId() != null) {
+		if (event.getEventId() == null) {
 			for (EventMember eventMem: event.getEventMembers()) {
-				eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+					eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+			}
+		} else {
+			for (EventMember eventMem: event.getEventMembers()) {
+				if (null == eventMem.getStatus()) {
+					eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+				}
 			}
 		}
+		
 		if (event.getPredictiveData() != null) {
 	        try{
 	        	String validatedPropertiesJsonString = event.getPredictiveData().replaceAll("\\\"","\"");

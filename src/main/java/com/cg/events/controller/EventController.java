@@ -379,9 +379,9 @@ public class EventController {
 				eventMember.setStatus(MemberStatus.Going.toString());
 				eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 			} else if ("NotGoing".equals(status)) {
-				if (eventMember.getStatus() != null) {
-					eventManager.updateEventMemberTimeSlot(event, eventMember);
-				}
+				//if (eventMember.getStatus() != null) {
+				eventManager.updateEventMemberTimeSlot(event, eventMember);
+				//}
 				eventMember.setStatus(MemberStatus.NotGoing.toString());
 			}
 			eventService.saveEventMember(eventMember);
