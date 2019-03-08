@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -368,6 +369,7 @@ public class EventController {
 		Map<String,Object> response = new HashMap<>();
 		try {
 			
+			Event event = eventManager.findEventByEventId(eventId);
 			EventMember eventMember = eventManager.findEventMemberByEventIdAndUserId(eventId, userId);
 			/*if (eventMember != null) {
 				notificationManager.deleteNotificationByRecepientIdNotificationTypeId(eventMember.getUserId(), eventMember.getEventId());
@@ -377,6 +379,9 @@ public class EventController {
 				eventMember.setStatus(MemberStatus.Going.toString());
 				eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 			} else if ("NotGoing".equals(status)) {
+				if (eventMember.getStatus() != null) {
+					eventManager.updateEventMemberTimeSlot(event, eventMember);
+				}
 				eventMember.setStatus(MemberStatus.NotGoing.toString());
 			}
 			eventService.saveEventMember(eventMember);
@@ -1505,6 +1510,5 @@ public class EventController {
 			String testJSO = "[{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1506841200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1506927600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507014000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507100400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507186800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507273200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507359600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507446000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507532400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507618800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507705200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507791600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507878000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507964400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508050800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508137200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508223600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508310000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508396400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508482800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508569200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508655600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508742000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508828400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508914800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509001200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509087600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509174000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509260400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509346800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509433200000}]";
 			System.out.println(testJSO.replaceAll("\\\"","\""));
 	}*/
-	
 	
 }

@@ -1089,6 +1089,16 @@ public class EventManager {
 		eventService.saveAndUpdateEventTimeSlot(timeSlots);
 	}
 	
+	public void updateEventMemberTimeSlot(Event event, EventMember eventMember) {
+		List<EventTimeSlot> timeSlots  = eventService.findEventTimeSlotByEventDateAndUserId(event.getStartTime().getTime(),event.getEndTime().getTime(),eventMember.getUserId());
+		if (timeSlots != null && timeSlots.size() > 0) {
+			for (EventTimeSlot ets : timeSlots) {
+				ets.setStatus(TimeSlotStatus.Free.toString());
+			}
+		}
+		eventService.saveAndUpdateEventTimeSlot(timeSlots);
+	}
+	
 	public void updateEventMemberPicture(String picture,Long userId) {
 		eventService.updateEventMemberPictureByUserId(picture, userId);
 	}
