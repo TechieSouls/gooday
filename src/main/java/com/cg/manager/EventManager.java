@@ -666,6 +666,8 @@ public class EventManager {
 			List<GoogleEventAttendees> attendees) {
 			List<EventMember> members = new ArrayList<>();
 			for (GoogleEventAttendees attendee : attendees) {
+				
+				boolean isDeclined = false;
 				EventMember eventMember = new EventMember();
 				if (attendee.getDisplayName() != null) {
 					eventMember.setName(attendee.getDisplayName());
@@ -676,6 +678,7 @@ public class EventManager {
 					eventMember.setStatus(MemberStatus.Going.toString());
 				} else if (attendee.getResponseStatus().equals("declined")) {
 					eventMember.setStatus(MemberStatus.NotGoing.toString());
+					isDeclined = true;
 				}
 				eventMember.setSource(EventSource.Google.toString());
 				eventMember.setSourceEmail(attendee.getEmail());
@@ -685,10 +688,13 @@ public class EventManager {
 				//} else {
 					User user = userService.findUserByEmail(attendee.getEmail());
 					if (user != null) {
+						
 						eventMember.setUserId(user.getUserId());
 						eventMember.setName(user.getName());
 						eventMember.setPicture(user.getPhoto());
-						eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+						if (!isDeclined) {
+							eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+						}
 					}
 				//}
 				members.add(eventMember);
