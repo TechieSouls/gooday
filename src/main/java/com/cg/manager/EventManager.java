@@ -688,6 +688,7 @@ public class EventManager {
 						eventMember.setUserId(user.getUserId());
 						eventMember.setName(user.getName());
 						eventMember.setPicture(user.getPhoto());
+						eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 					}
 				//}
 				members.add(eventMember);
