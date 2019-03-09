@@ -530,7 +530,7 @@ public class EventManager {
 								user = creatorExistsInDb;
 							}*/
 							
-							Event event = null;
+							Event event = new Event();
 							System.out.println("Event Title : "+eventItem.getSummary());
 							System.out.println("[Event : "+eventItem.toString()+" ]");
 							/*if (isUserInvitee) {
@@ -545,12 +545,12 @@ public class EventManager {
 							//We will fetch that event by created by id and google event id.
 							//If creator has not synced the event then we will create new event. 
 							//If creator is different then he will see the event without syncing the google calendar.
-							List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-							if (dbevents == null || dbevents.size() == 0) {
-								event = new Event();
-							} else {
-								event = dbevents.get(0);
-							}
+							//List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+							//if (dbevents == null || dbevents.size() == 0) {
+							//	event = new Event();
+							//} else {
+							//	event = dbevents.get(0);
+							//}
 							//}
 							
 							
@@ -640,10 +640,10 @@ public class EventManager {
 							//}
 							
 							//Clearing old users and adding new one.
-							if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
-								event.getEventMembers().clear();
+							//if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
+								//event.getEventMembers().clear();
 								//event.getEventMembers().addAll(eventMembersTemp);
-							} //else {
+							//} //else {
 							
 							event.setEventMembers(eventMembersTemp);
 							//}
