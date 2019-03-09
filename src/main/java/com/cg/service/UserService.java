@@ -264,6 +264,7 @@ public class UserService {
 		public void run() {
 			for (Entry<String, String> contactSet : getContacts().entrySet()) {
 				UserContact userContact = new UserContact(); 
+				System.out.println("User Contacts : Name : "+contactSet.getValue()+" "+contactSet.getKey().replaceAll("\\+", ""));
 				List<User> users = this.userRepository.findByPhoneContaining(contactSet.getKey().replaceAll("\\+", ""));
 				UserContact.CenesMember cenesMember = CenesMember.no;
 				if (users != null && users.size() > 0) {
