@@ -231,6 +231,9 @@ public class GoogleService {
 					}
 					if (calItem.has("creator")) {
 						item.setCreatorEmail(calItem.getJSONObject("creator").getString("email"));
+						if (calItem.getJSONObject("creator").has("self")) {
+							item.setSelf(calItem.getJSONObject("creator").getBoolean("self"));
+						}
 					}
 					
 					if (calItem.has("attendees")) {

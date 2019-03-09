@@ -12,6 +12,7 @@ public class GoogleEventItem {
 	private String creatorEmail;
 	private String location;
 	private String recurringEventId;
+	private boolean self;
 	private Map<String,String> start;
 	private Map<String,String> end;
 	private List<GoogleEventAttendees> attendees;
@@ -76,6 +77,13 @@ public class GoogleEventItem {
 	}
 	public void setCreatorEmail(String creatorEmail) {
 		this.creatorEmail = creatorEmail;
+	}
+	
+	public boolean isSelf() {
+		return self;
+	}
+	public void setSelf(boolean self) {
+		this.self = self;
 	}
 	@Override
 	public String toString() {
