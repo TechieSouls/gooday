@@ -147,7 +147,7 @@ public class GoogleService {
 	
 	public List<GoogleEvents> getCalenderEvents(boolean isNextSyncRequest, String accessToken) {
 		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
-		/*List<String> calendars = googleCalendarList(accessToken);
+		/* List<String> calendars = googleCalendarList(accessToken);
 		if (calendars != null && calendars.size() > 0) {
 			for (String calendarId : calendars) {
 
