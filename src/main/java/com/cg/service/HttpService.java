@@ -1,6 +1,8 @@
 package com.cg.service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -42,7 +44,7 @@ public class HttpService {
 				System.out.println("Response Code : " + responseCode);
 
 				BufferedReader in = new BufferedReader(new InputStreamReader(
-						con.getInputStream(), Charset.forName("UTF-8")));
+						con.getInputStream(), "UTF-8"));
 				String inputLine;
 				StringBuffer response = new StringBuffer();
 
@@ -82,7 +84,7 @@ public class HttpService {
 				System.out.println("Response Code : " + responseCode);
 
 				BufferedReader in = new BufferedReader(new InputStreamReader(
-						con.getInputStream(), Charset.forName("UTF-8")));
+						con.getInputStream(), "UTF-8"));
 				String inputLine;
 				StringBuffer response = new StringBuffer();
 
