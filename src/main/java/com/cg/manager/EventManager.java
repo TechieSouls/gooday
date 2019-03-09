@@ -545,14 +545,14 @@ public class EventManager {
 							//We will fetch that event by created by id and google event id.
 							//If creator has not synced the event then we will create new event. 
 							//If creator is different then he will see the event without syncing the google calendar.
-							//List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-							//if (dbevents != null && dbevents.size() != 0) {
+							List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+							if (dbevents != null && dbevents.size() != 0) {
 								//event = new Event();
-							//	continue;
+								continue;
 							//} //else {
 								//event = dbevents.get(0);
 							
-							//}
+							}
 							
 							
 							
