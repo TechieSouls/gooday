@@ -147,7 +147,7 @@ public class GoogleService {
 	
 	public List<GoogleEvents> getCalenderEvents(boolean isNextSyncRequest, String accessToken) {
 		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
-		List<String> calendars = googleCalendarList(accessToken);
+		/*List<String> calendars = googleCalendarList(accessToken);
 		if (calendars != null && calendars.size() > 0) {
 			for (String calendarId : calendars) {
 
@@ -155,6 +155,7 @@ public class GoogleService {
 					System.out.println("Skipping :: "+calendarId);
 					continue;
 				}
+		*/		
 				Calendar minTimeCal = Calendar.getInstance();
 				minTimeCal.add(Calendar.DAY_OF_MONTH, - 1);
 				minTimeCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -167,7 +168,7 @@ public class GoogleService {
 				maxTimeCal.set(Calendar.SECOND, 0);
 				maxTimeCal.add(Calendar.MONTH, 3);
 								
-				String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/"+URLEncoder.encode(calendarId)+"/events";
+				String events_list_api_str = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
 				
 				String tokenParam = "";//"access_token="+accessToken;
 				if (isNextSyncRequest) {
@@ -185,8 +186,8 @@ public class GoogleService {
 				String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
 				calResponse = httpService.getRequestWithAuthorization(normalEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(normalEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
-			}
-		}	
+		/*	}
+		}	*/
 		return googleCalendarEvents;
 	}
 	
