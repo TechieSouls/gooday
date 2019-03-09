@@ -42,7 +42,7 @@ public class HttpService {
 				System.out.println("Response Code : " + responseCode);
 
 				BufferedReader in = new BufferedReader(new InputStreamReader(
-						con.getInputStream(), Charset.forName("UTF-8")));
+						con.getInputStream(), "UTF-8"));
 				String inputLine;
 				StringBuffer response = new StringBuffer();
 
@@ -82,7 +82,7 @@ public class HttpService {
 				System.out.println("Response Code : " + responseCode);
 
 				BufferedReader in = new BufferedReader(new InputStreamReader(
-						con.getInputStream(), Charset.forName("UTF-8")));
+						con.getInputStream(), "UTF-8"));
 				String inputLine;
 				StringBuffer response = new StringBuffer();
 
