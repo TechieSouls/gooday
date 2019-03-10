@@ -178,6 +178,8 @@ public class UserService {
 	
 	public List<Map<String,String>> filterUserContactsWhichAreNotCenesMember(List<Map<String,String>> phoneContacts,Long userId) {
 		List<Map<String,String>> phoneContactsToRemove = new ArrayList<>();
+		
+		//Fetching Contacts of a User
 		List<UserContact> userContacts = userContactRepository.findByUserId(userId);
 		
 		System.out.println("Deleting Contacts");
@@ -191,6 +193,9 @@ public class UserService {
 			Iterator<Map<String,String>> it = phoneContacts.iterator();
 			while (it.hasNext()) {
 				Map<String,String> value = it.next();
+				
+				//+164651067 contains key 0164651067
+				//+91 8437375294 contains key 08437375294
 				if (value.containsKey(userContact.getPhone())) {
 					//phoneContacts.remove(value);
 					phoneContactsToRemove.add(value);
@@ -236,6 +241,9 @@ public class UserService {
 			Iterator<Map<String,String>> it = phoneContacts.iterator();
 			while (it.hasNext()) {
 				Map<String,String> value = it.next();
+				
+				
+				//Check if Phone contact and db contacts are matching
 				if (value.containsKey(userContact.getPhone())) {
 					if (!value.get(userContact.getPhone()).equals(userContact.getName())) {
 						userContact.setName(value.get(userContact.getPhone()));
