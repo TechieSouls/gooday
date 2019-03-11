@@ -377,10 +377,12 @@ public class EventController {
 
 			if ("Going".equals(status)) {
 				eventMember.setStatus(MemberStatus.Going.toString());
+				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
 				eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 			} else if ("NotGoing".equals(status)) {
 				//if (eventMember.getStatus() != null) {
-				eventManager.updateEventMemberTimeSlot(event, eventMember);
+				//eventManager.updateEventMemberTimeSlot(event, eventMember);
+				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
 				//}
 				eventMember.setStatus(MemberStatus.NotGoing.toString());
 			}

@@ -44,4 +44,6 @@ public interface EventTimeSlotRepository extends  JpaRepository<EventTimeSlot, L
 	public void deleteByUserId(Long userId);
 	
 	public void deleteByRecurringEventId(Long recurringEventId);
+	
+	public void deleteByEventIdAndUserId(Long eventId, Long userId);
 }

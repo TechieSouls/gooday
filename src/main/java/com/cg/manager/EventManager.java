@@ -45,6 +45,7 @@ import com.cg.events.bo.OutlookEvents;
 import com.cg.events.dao.EventServiceDao;
 import com.cg.events.repository.EventMemberRepository;
 import com.cg.events.repository.EventRepository;
+import com.cg.events.repository.EventTimeSlotRepository;
 import com.cg.events.repository.GatheringPreviousLocationRepository;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
@@ -96,6 +97,9 @@ public class EventManager {
 	
 	@Autowired
 	GatheringPreviousLocationRepository gatheringPreviousLocationRepository;
+	
+	@Autowired
+	EventTimeSlotRepository eventTimeSlotRepository;
 	
 	
 	public Event saveUpdateEvent(Event event) {
@@ -1160,6 +1164,9 @@ public class EventManager {
 			}
 		}
 		eventService.saveAndUpdateEventTimeSlot(timeSlots);
+	}
+	public void deleteTimeSlotsForEventMember(Event event, EventMember eventMember) {
+		eventTimeSlotRepository.deleteByEventIdAndUserId(event.getEventId(), eventMember.getUserId());
 	}
 	
 	public void updateEventMemberPicture(String picture,Long userId) {
