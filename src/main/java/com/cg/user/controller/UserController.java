@@ -1081,6 +1081,15 @@ public class UserController {
 	
 	@RequestMapping(value = "/api/guest/sendVerificationCode", method = RequestMethod.POST)
 	public ResponseEntity<?> sendPhoneVerificationCode(@RequestBody Map<String,String> phoneMap) {
+		
+		Map<String, Object> phoneExistingMap = new HashMap<>();
+		phoneExistingMap.put("success", false);
+		phoneExistingMap.put("message","Phone Number Already Exists");
+		List<User> users = userRepository.findByPhoneContaining(phoneMap.get("phone").toString());
+		if (users != null && users.size() > 0) {
+			return new ResponseEntity<>(phoneExistingMap, HttpStatus.OK);
+		}
+		
 		TwilioService ts = new TwilioService();
 		Map<String, Object> response = ts.sendVerificationCode(phoneMap.get("countryCode").toString(), phoneMap.get("phone").toString());
 		return new ResponseEntity<>(response, HttpStatus.OK);
