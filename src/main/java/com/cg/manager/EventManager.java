@@ -158,7 +158,7 @@ public class EventManager {
 			}
 		} else {
 			for (EventMember eventMem: event.getEventMembers()) {
-				if (null == eventMem.getStatus() && eventMem.getStatus().equals("Going")) {
+				if (null == eventMem.getStatus() || eventMem.getStatus().equals("Going")) {
 					eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 				}
 			}
