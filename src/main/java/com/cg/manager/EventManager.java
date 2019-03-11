@@ -158,7 +158,7 @@ public class EventManager {
 			}
 		} else {
 			for (EventMember eventMem: event.getEventMembers()) {
-				if (null == eventMem.getStatus()) {
+				if (null == eventMem.getStatus() && eventMem.getStatus().equals("Going")) {
 					eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 				}
 			}
@@ -176,7 +176,7 @@ public class EventManager {
 		
 		System.out.println("Before Saving : "+event.toString());
 		event = eventService.saveEvent(event);
-
+		
 		System.out.println("After Saving : "+event.toString());
 		notificationManager.sendGatheringNotification(event);
 		
@@ -1167,6 +1167,17 @@ public class EventManager {
 	}
 	public void deleteTimeSlotsForEventMember(Event event, EventMember eventMember) {
 		eventTimeSlotRepository.deleteByEventIdAndUserId(event.getEventId(), eventMember.getUserId());
+	}
+	
+	public void deleteTimeSlotsForEvent(Event event) {
+		eventTimeSlotRepository.deleteByEventId(event.getEventId());
+	}
+	
+	public EventMember generateTimeSlotsForEventMember(Event event, EventMember eventMember) {
+		List<EventTimeSlot> eventTimeSlots = eventTimeSlotManager.getTimeSlots(event,eventMember.getUserId());
+		eventTimeSlotRepository.save(eventTimeSlots);
+		eventMember.setProcessed(Event.EventProcessedStatus.Processed.ordinal());
+		return eventMember;
 	}
 	
 	public void updateEventMemberPicture(String picture,Long userId) {

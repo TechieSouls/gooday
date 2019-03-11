@@ -197,7 +197,9 @@ public class EventController {
 			if (event.getEventId() != null) {
 				isOldEvent = true;
 				Event eventFromDatabase = eventManager.findEventByEventId(event.getEventId());
-				eventManager.updateTimeSlotsToFreeByEvent(eventFromDatabase);	
+				//eventManager.deleteTimeSlotsForEventMember(eventFromDatabase, eventMember);
+				eventManager.deleteTimeSlotsForEvent(eventFromDatabase);
+
 			}
 			if (event.getEventId() == null || event.getKey() == null) {
 				event.setScheduleAs("Gathering");
@@ -378,7 +380,7 @@ public class EventController {
 			if ("Going".equals(status)) {
 				eventMember.setStatus(MemberStatus.Going.toString());
 				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
-				eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+				eventMember = eventManager.generateTimeSlotsForEventMember(event, eventMember);
 			} else if ("NotGoing".equals(status)) {
 				//if (eventMember.getStatus() != null) {
 				//eventManager.updateEventMemberTimeSlot(event, eventMember);
