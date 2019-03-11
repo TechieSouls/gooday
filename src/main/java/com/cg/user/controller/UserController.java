@@ -198,7 +198,8 @@ public class UserController {
 					user.setToken(establishUserAndLogin(httpServletResponse, user));
 					userInfo = userService.saveUser(user);
 					
-					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(user.getPhone().replaceAll("\\+", ""));
+					String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
 					if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
 						for (UserContact userContact : userContactInOtherContacts) {
 							userContact.setCenesMember(CenesMember.yes);

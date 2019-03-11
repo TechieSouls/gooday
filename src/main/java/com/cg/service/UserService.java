@@ -151,7 +151,7 @@ public class UserService {
 		contacts = tempContacts;
 		
 
-		
+		//This will return the list of contacts which are not added in database.
 		contacts = filterUserContactsWhichAreNotCenesMember(contacts,userId);		
 		
 		Map<String,String> threadContacts = null;
