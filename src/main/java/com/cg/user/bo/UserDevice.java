@@ -24,6 +24,16 @@ public class UserDevice extends CgGeneral {
 	@Column(name="device_type")
 	private String deviceType;
 	
+	@Column(name="manufacturer")
+	private String manufacturer;
+	
+
+	@Column(name="model")
+	private String model;
+
+	@Column(name="version")
+	private String version;
+	
 	@Column(name="user_id")
 	private Long userId;
 
@@ -57,5 +67,29 @@ public class UserDevice extends CgGeneral {
 
 	public void setUserId(Long userId) {
 		this.userId = userId;
+	}
+
+	public String getManufacturer() {
+		return manufacturer;
+	}
+
+	public void setManufacturer(String manufacturer) {
+		this.manufacturer = manufacturer;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
 	}
 }
