@@ -700,7 +700,11 @@ public class UserController {
 					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
 					//recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
 					//System.out.println(startCal.get(Calendar.DAY_OF_WEEK));
-					recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
+					
+					Calendar dayOfWeekCal = Calendar.getInstance();
+					dayOfWeekCal.setTimeInMillis(meEvent.getStartTime());
+					
+					recurringPattern.setDayOfWeek(dayOfWeekMap.get(dayOfWeekCal.get(Calendar.DAY_OF_WEEK)));
 					recurringPatterns.add(recurringPattern);
 					
 					recurringEvent.setRecurringPatterns(recurringPatterns);
@@ -714,7 +718,12 @@ public class UserController {
 					List<RecurringPattern> recurringPatterns = recurringEvent.getRecurringPatterns();
 					RecurringPattern recurringPattern = new RecurringPattern();
 					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
-					recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
+					
+					Calendar dayOfWeekCal = Calendar.getInstance();
+					dayOfWeekCal.setTimeInMillis(meEvent.getStartTime());
+					recurringPattern.setDayOfWeek(dayOfWeekMap.get(dayOfWeekCal.get(Calendar.DAY_OF_WEEK)));
+					
+					//recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
 					//recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
 					//System.out.println(startCal.get(Calendar.DAY_OF_WEEK));
 					recurringPatterns.add(recurringPattern);
