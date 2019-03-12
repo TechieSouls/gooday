@@ -79,7 +79,7 @@ public class User extends CgGeneral{
 	private Long birthDate;
 
 	@Column(name="birth_day_str")
-	private Long birthDayStr;
+	private String birthDayStr;
 	
 	@Transient
 	private Boolean isNew;
@@ -223,14 +223,12 @@ public class User extends CgGeneral{
 		this.birthDate = birthDate;
 	}
 
-	public Long getBirthDayStr() {
+	public String getBirthDayStr() {
 		return birthDayStr;
 	}
 
-	public void setBirthDayStr(Long birthDayStr) {
+	public void setBirthDayStr(String birthDayStr) {
 		this.birthDayStr = birthDayStr;
 	}
-	
-	
 	
 }
