@@ -306,6 +306,8 @@ public class UserController {
 		}
 		dbUser.setGender(user.getGender());
 		dbUser.setBirthDate(user.getBirthDate());
+		dbUser.setBirthDate(user.getBirthDayStr());
+
 		
 		Map<String, Object> response = new HashMap<>();
 		try {
