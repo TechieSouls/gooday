@@ -838,6 +838,9 @@ public class UserController {
 			UserDevice savedUser = userService.findUserDeviceByDeviceTypeAndUserId(userDevice.getDeviceType(), userDevice.getUserId());
 			if (savedUser != null) {
 				savedUser.setDeviceToken(userDevice.getDeviceToken());
+				savedUser.setModel(userDevice.getModel());
+				savedUser.setManufacturer(userDevice.getManufacturer());
+				savedUser.setVersion(userDevice.getVersion());
 				userService.saveUserDeviceToken(savedUser);
 			} else {
 				userService.saveUserDeviceToken(userDevice);
