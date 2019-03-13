@@ -933,7 +933,7 @@ public class UserController {
 	 * 
 	 * */
 	@RequestMapping(value = "/auth/updatePassword", method = RequestMethod.POST)
-	public ResponseEntity<Map<String, Object>> updatePassword(Map<String, Object> requestBody) {
+	public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody Map<String, Object> requestBody) {
 		
 		System.out.println(requestBody.toString());
 		Map<String, Object> response = new HashMap<>();
