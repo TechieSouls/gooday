@@ -479,7 +479,7 @@ public class NotificationManager {
 			try {
 				if (toAndroidArray.length() > 0) {
 					JSONObject notifyObj = new JSONObject();
-					notifyObj.put("title", "Gathering");
+					notifyObj.put("title", "Happening Now:");
 					notifyObj.put("body", pushMessage);
 					
 					PushNotificationService.sendAndroidPush(toAndroidArray,notifyObj);
@@ -496,7 +496,7 @@ public class NotificationManager {
 						JSONObject notifyObj = new JSONObject();
 						JSONObject payloadObj = new JSONObject();
 						JSONObject alert = new JSONObject();
-						alert.put("title","Gathering : "+pushMessage);
+						alert.put("title","Happening Now: "+pushMessage);
 						payloadObj.put("alert",alert);
 						payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 						payloadObj.put("sound","cenes-notification-ringtone.aiff");
@@ -539,7 +539,7 @@ public class NotificationManager {
 				payloadObj.put(CgConstants.notificationTypeStatus,"AcceptAndDecline");
 				
 				JSONObject notifyObj = new JSONObject();
-				notifyObj.put("title", receipentName);
+				notifyObj.put("title", "");
 				notifyObj.put("body", pushMessage);
 				notifyObj.put("payload", payloadObj);
 				

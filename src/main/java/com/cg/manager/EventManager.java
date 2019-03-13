@@ -45,6 +45,7 @@ import com.cg.events.bo.OutlookEvents;
 import com.cg.events.dao.EventServiceDao;
 import com.cg.events.repository.EventMemberRepository;
 import com.cg.events.repository.EventRepository;
+import com.cg.events.repository.EventTimeSlotRepository;
 import com.cg.events.repository.GatheringPreviousLocationRepository;
 import com.cg.reminders.bo.Reminder;
 import com.cg.reminders.bo.ReminderMember;
@@ -96,6 +97,9 @@ public class EventManager {
 	
 	@Autowired
 	GatheringPreviousLocationRepository gatheringPreviousLocationRepository;
+	
+	@Autowired
+	EventTimeSlotRepository eventTimeSlotRepository;
 	
 	
 	public Event saveUpdateEvent(Event event) {
@@ -154,7 +158,7 @@ public class EventManager {
 			}
 		} else {
 			for (EventMember eventMem: event.getEventMembers()) {
-				if (null == eventMem.getStatus()) {
+				if (null == eventMem.getStatus() || eventMem.getStatus().equals("Going")) {
 					eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 				}
 			}
@@ -172,7 +176,7 @@ public class EventManager {
 		
 		System.out.println("Before Saving : "+event.toString());
 		event = eventService.saveEvent(event);
-
+		
 		System.out.println("After Saving : "+event.toString());
 		notificationManager.sendGatheringNotification(event);
 		
@@ -506,16 +510,31 @@ public class EventManager {
 							if ("cancelled".equals(eventItem.getStatus())) {
 								continue;
 							}
+							boolean eventMemberIsBlocked = false;
+							if (eventItem.isSelf()) {
+								eventMemberIsBlocked = true;
+							}
+							if (!eventMemberIsBlocked) {
+								eventMemberIsBlocked = eventMemberIsBlocked(eventItem.getAttendees());
+							}
+							
+							
+							if (!eventMemberIsBlocked) {
+								//If event member not blocked
+								//then we not save this event
+								continue;
+								
+							}
 							
 							//Lets check first if the creator Exists in our DB or Not.
 							//If it exists in db then we will set the created by id as its user id
 							//Otherewise we can make the syncing user as creator.
-							User creatorExistsInDb = userService.findUserByEmail(eventItem.getCreatorEmail());
+							/*User creatorExistsInDb = userService.findUserByEmail(eventItem.getCreatorEmail());
 							if (creatorExistsInDb != null) {
 								user = creatorExistsInDb;
-							}
+							}*/
 							
-							Event event = null;
+							Event event = new Event();
 							System.out.println("Event Title : "+eventItem.getSummary());
 							System.out.println("[Event : "+eventItem.toString()+" ]");
 							/*if (isUserInvitee) {
@@ -531,12 +550,17 @@ public class EventManager {
 							//If creator has not synced the event then we will create new event. 
 							//If creator is different then he will see the event without syncing the google calendar.
 							List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-							if (dbevents == null || dbevents.size() == 0) {
-								event = new Event();
-							} else {
-								event = dbevents.get(0);
+							if (dbevents != null && dbevents.size() != 0) {
+								//event = new Event();
+								continue;
+							//} //else {
+								//event = dbevents.get(0);
+							
 							}
-							//}
+							
+							
+							
+							
 							event.setSourceEventId(eventItem.getId());
 							event.setSource(EventSource.Google.toString());
 							event.setTitle(eventItem.getSummary());
@@ -585,14 +609,14 @@ public class EventManager {
 							}
 							
 							//Lets populate the Invitees.
-							List<EventMember> eventMembersTemp  = new ArrayList<>();
+							/*List<EventMember> eventMembersTemp  = new ArrayList<>();
 							if (eventItem.getAttendees() != null && eventItem.getAttendees().size() > 0) {
 								eventMembersTemp = parseGoogleEventMembers(eventItem.getAttendees());
-							} 
+							}*/
 							
 							//Now we need to check if creator has invited himself in the event.
 							//if not then we will add him in the invitee list
-							boolean isUserInvitee = false;
+							/*boolean isUserInvitee = false;
 							if (eventMembersTemp != null && eventMembersTemp.size() > 0) {
 								for (EventMember attendeeMember : eventMembersTemp) {
 									if (attendeeMember.getUserId() != null && attendeeMember.getUserId().equals(user.getUserId())) {
@@ -600,29 +624,34 @@ public class EventManager {
 										break;
 									}
 								}
+							}*/
+							
+							
+							//if (!isUserInvitee) {
+							List<EventMember> eventMembersTemp  = new ArrayList<>();
+							EventMember eventMember = new EventMember();
+							eventMember.setName(user.getName());
+							eventMember.setStatus(MemberStatus.Going.toString());
+							eventMember.setSource(EventSource.Google.toString());
+							if (user.getEmail() != null) {
+								eventMember.setSourceEmail(user.getEmail());
 							}
-							if (!isUserInvitee) {
-								EventMember eventMember = new EventMember();
-								eventMember.setName(user.getName());
-								eventMember.setStatus(MemberStatus.Going.toString());
-								eventMember.setSource(EventSource.Google.toString());
-								if (user.getEmail() != null) {
-									eventMember.setSourceEmail(user.getEmail());
-								}
-								
-								eventMember.setUserId(user.getUserId());
-								eventMembersTemp.add(eventMember);
-							}
+							
+							eventMember.setUserId(user.getUserId());
+							eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+							eventMembersTemp.add(eventMember);
+							//}
 							
 							//}
 							
 							//Clearing old users and adding new one.
-							if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
-								event.getEventMembers().clear();
-								event.getEventMembers().addAll(eventMembersTemp);
-							} else {
-								event.setEventMembers(eventMembersTemp);
-							}
+							//if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
+								//event.getEventMembers().clear();
+								//event.getEventMembers().addAll(eventMembersTemp);
+							//} //else {
+							
+							event.setEventMembers(eventMembersTemp);
+							//}
 							
 							if (eventItem.getRecurringEventId() != null) {
 								event.setRecurringEventId(eventItem.getRecurringEventId());
@@ -660,6 +689,31 @@ public class EventManager {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public Boolean eventMemberIsBlocked(List<GoogleEventAttendees> attendees) {
+		boolean blocked = false;
+		
+		///Lets iterate the attendees
+		if (attendees != null && attendees.size() > 0) {
+			
+			for (GoogleEventAttendees googleEventAttendees: attendees) {
+				
+				//We will check if users exists iin attendees
+				if (googleEventAttendees.getSelf()) {
+					
+					//If user exists in attendees then we will check whether he accpetted the event or 
+					//did not take any action. We will be blocking the user in that case.
+					if (googleEventAttendees.getResponseStatus().equals("accepted") || googleEventAttendees.getResponseStatus().equals("needsAction")) {
+						blocked = true;
+						break;
+					} 
+				}
+			}
+		}
+		
+		return blocked;
+		
 	}
 	
 	public List<EventMember> parseGoogleEventMembers(
@@ -1110,6 +1164,20 @@ public class EventManager {
 			}
 		}
 		eventService.saveAndUpdateEventTimeSlot(timeSlots);
+	}
+	public void deleteTimeSlotsForEventMember(Event event, EventMember eventMember) {
+		eventTimeSlotRepository.deleteByEventIdAndUserId(event.getEventId(), eventMember.getUserId());
+	}
+	
+	public void deleteTimeSlotsForEvent(Event event) {
+		eventTimeSlotRepository.deleteByEventId(event.getEventId());
+	}
+	
+	public EventMember generateTimeSlotsForEventMember(Event event, EventMember eventMember) {
+		List<EventTimeSlot> eventTimeSlots = eventTimeSlotManager.getTimeSlots(event,eventMember.getUserId());
+		eventTimeSlotRepository.save(eventTimeSlots);
+		eventMember.setProcessed(Event.EventProcessedStatus.Processed.ordinal());
+		return eventMember;
 	}
 	
 	public void updateEventMemberPicture(String picture,Long userId) {

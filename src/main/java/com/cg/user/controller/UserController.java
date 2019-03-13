@@ -198,7 +198,8 @@ public class UserController {
 					user.setToken(establishUserAndLogin(httpServletResponse, user));
 					userInfo = userService.saveUser(user);
 					
-					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhone(user.getPhone());
+					String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
 					if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
 						for (UserContact userContact : userContactInOtherContacts) {
 							userContact.setCenesMember(CenesMember.yes);
@@ -305,6 +306,8 @@ public class UserController {
 		}
 		dbUser.setGender(user.getGender());
 		dbUser.setBirthDate(user.getBirthDate());
+		dbUser.setBirthDayStr(user.getBirthDayStr());
+
 		
 		Map<String, Object> response = new HashMap<>();
 		try {
@@ -697,7 +700,11 @@ public class UserController {
 					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
 					//recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
 					//System.out.println(startCal.get(Calendar.DAY_OF_WEEK));
-					recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
+					
+					Calendar dayOfWeekCal = Calendar.getInstance();
+					dayOfWeekCal.setTimeInMillis(meEvent.getStartTime());
+					
+					recurringPattern.setDayOfWeek(dayOfWeekCal.get(Calendar.DAY_OF_WEEK));
 					recurringPatterns.add(recurringPattern);
 					
 					recurringEvent.setRecurringPatterns(recurringPatterns);
@@ -711,7 +718,12 @@ public class UserController {
 					List<RecurringPattern> recurringPatterns = recurringEvent.getRecurringPatterns();
 					RecurringPattern recurringPattern = new RecurringPattern();
 					recurringPattern.setRecurringEventId(recurringEvent.getRecurringEventId());
-					recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
+					
+					Calendar dayOfWeekCal = Calendar.getInstance();
+					dayOfWeekCal.setTimeInMillis(meEvent.getStartTime());
+					recurringPattern.setDayOfWeek(dayOfWeekCal.get(Calendar.DAY_OF_WEEK));
+					
+					//recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
 					//recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
 					//System.out.println(startCal.get(Calendar.DAY_OF_WEEK));
 					recurringPatterns.add(recurringPattern);
@@ -837,6 +849,9 @@ public class UserController {
 			UserDevice savedUser = userService.findUserDeviceByDeviceTypeAndUserId(userDevice.getDeviceType(), userDevice.getUserId());
 			if (savedUser != null) {
 				savedUser.setDeviceToken(userDevice.getDeviceToken());
+				savedUser.setModel(userDevice.getModel());
+				savedUser.setManufacturer(userDevice.getManufacturer());
+				savedUser.setVersion(userDevice.getVersion());
 				userService.saveUserDeviceToken(savedUser);
 			} else {
 				userService.saveUserDeviceToken(userDevice);
@@ -1080,6 +1095,15 @@ public class UserController {
 	
 	@RequestMapping(value = "/api/guest/sendVerificationCode", method = RequestMethod.POST)
 	public ResponseEntity<?> sendPhoneVerificationCode(@RequestBody Map<String,String> phoneMap) {
+		
+		Map<String, Object> phoneExistingMap = new HashMap<>();
+		phoneExistingMap.put("success", false);
+		phoneExistingMap.put("message","Phone Number Already Exists");
+		List<User> users = userRepository.findByPhoneContaining(phoneMap.get("phone").toString());
+		if (users != null && users.size() > 0) {
+			return new ResponseEntity<>(phoneExistingMap, HttpStatus.OK);
+		}
+		
 		TwilioService ts = new TwilioService();
 		Map<String, Object> response = ts.sendVerificationCode(phoneMap.get("countryCode").toString(), phoneMap.get("phone").toString());
 		return new ResponseEntity<>(response, HttpStatus.OK);
