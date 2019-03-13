@@ -794,7 +794,7 @@ public class EventController {
 							Boolean slotExistsBetweenTimeRange = false;
 							Long freeFriendIdForSlotsNotExistsInRange = null;
 							Set<Long> freeFriends = new HashSet<>();
-							//Set<Long> setOfUsersWithTimeSlots = new HashSet<>();
+							List<String> checkForNumberOfSlotsUserIsBusy = new ArrayList<>();
 							for (EventTimeSlot userEts : userTimeSlots) {
 								
 								freeFriendIdForSlotsNotExistsInRange = userEts.getUserId();
@@ -806,7 +806,7 @@ public class EventController {
 								if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime()))) {
 									slotExistsBetweenTimeRange = true;
 									System.out.println("Friend Found.."+userEts.getStatus());
-									
+									checkForNumberOfSlotsUserIsBusy.add(userEts.getStatus());
 									if (userEts.getStatus().equals(EventTimeSlot.TimeSlotStatus.Free.toString())) {
 										//This is to check if the events are of date yyyy-MM-dd
 										if (CenesUtils.yyyyMMdd.format(eventStartTime).equals(CenesUtils.yyyyMMdd.format(eventEndTime))) {
@@ -822,6 +822,10 @@ public class EventController {
 									
 								}
 								//setOfUsersWithTimeSlots.add(userEts.getUserId());
+							}
+							
+							if (slotExistsBetweenTimeRange && checkForNumberOfSlotsUserIsBusy.size() < 2) {
+								slotExistsBetweenTimeRange = false;
 							}
 	 						
 							if (!slotExistsBetweenTimeRange) {
