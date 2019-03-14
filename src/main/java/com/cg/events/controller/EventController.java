@@ -1,40 +1,19 @@
 package com.cg.events.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
-
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import okhttp3.internal.framed.ErrorCode;
 
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
@@ -60,9 +39,7 @@ import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.HomeScreenDto;
-import com.cg.dto.LocationDto;
 import com.cg.events.bo.Event;
-import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.events.bo.Event.EventSource;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventMember.MemberStatus;
@@ -87,6 +64,14 @@ import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import net.coobird.thumbnailator.Thumbnails;
+import okhttp3.internal.framed.ErrorCode;
 
 @RestController
 @Api(value = "Event", description = "Events of user")
@@ -1092,51 +1077,23 @@ public class EventController {
 			
 			try {
 				File originalFile = new File(dirPath + fileName);
-				
-				BufferedImage image = ImageIO.read(originalFile);
 
-			    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
-			    System.out.println("thumbnailPath : "+thumbnailPath);
-			    File thumbnailPathFile = new File(eventUploadPath+"thumbnail/");
-				if (!thumbnailPathFile.exists()) {
-				    System.out.println("thumbnail Directroty no exists");
-
+				String thumnailDirPath = eventUploadPath+"thumbnail/";
+				File thumbnailFile = new File(thumnailDirPath);
+				if (!thumbnailFile.exists()) {
 					try {
-						thumbnailPathFile.mkdirs();
+						thumbnailFile.mkdirs();
 					} catch (Exception e) {
-					    System.out.println("thumbnail Directroty Exception");
-
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-			    File compressedImageFile = new File(thumbnailPath);
-			    try {
-			    	if (!compressedImageFile.exists()) {
-				    	compressedImageFile.createNewFile();
-					}
-			    } catch (Exception e) {
-					// TODO: handle exception
-			    	e.printStackTrace();
-				}
-			 
-			    OutputStream os = new FileOutputStream(compressedImageFile);
-
-			    Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(extension);
-			    ImageWriter writer = (ImageWriter) writers.next();
-
-			    ImageOutputStream ios = ImageIO.createImageOutputStream(os);
-			    writer.setOutput(ios);
-
-			    ImageWriteParam param = writer.getDefaultWriteParam();
-
-			    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-			    param.setCompressionQuality(0.01f);  // Change the quality value you prefer
-			    writer.write(null, new IIOImage(image, null, null), param);
-
-			    os.close();
-			    ios.close();
-			    writer.dispose();
+				
+			    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
+			    
+			    Thumbnails.of(originalFile)
+		         .size(150, 150)
+		         .outputFormat("jpg").toFile(thumbnailPath);
 				
 			    String thumbnailImageUrl = domain + "/assets/uploads/events/thumbnail/" + fileName;
 				event.setThumbnail(thumbnailImageUrl);
@@ -1519,5 +1476,36 @@ public class EventController {
 			String testJSO = "[{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1506841200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1506927600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507014000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507100400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507186800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507273200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507359600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507446000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507532400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507618800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507705200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507791600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507878000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1507964400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508050800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508137200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508223600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508310000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508396400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508482800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508569200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508655600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508742000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508828400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1508914800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509001200000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509087600000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509174000000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509260400000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509346800000},{\"predictivePercentage\":100,\"totalFriends\":1,\"attendingFriends\":1,\"date\":1509433200000}]";
 			System.out.println(testJSO.replaceAll("\\\"","\""));
 	}*/
+	//public static void main(String[] args) {
+		   
+	    //  try{
+	    //     String fileName = "/Users/cenes_dev/digital_image_processing.jpg";
+	    //     String website = "https://beta.cenesgroup.com/assets/uploads/events/large/78e348a0-546c-42c9-9359-0b94b4b6d241.jpg";
+	         
+	    //     System.out.println("Downloading File From: " + website);
+	         
+	         /*URL url = new URL(website);
+	         InputStream inputStream = url.openStream();
+	         OutputStream outputStream = new FileOutputStream(fileName);
+	         byte[] buffer = new byte[100];
+	         
+	         int length = 0;
+	         
+	         while ((length = inputStream.read(buffer)) != -1) {
+	            System.out.println("Buffer Read of length: " + length);
+	            outputStream.write(buffer, 0, length);
+	         }
+	         
+	         inputStream.close();
+	         outputStream.close();*/
+	         
+	      //   Thumbnails.of(new URL(website))
+	      //   .size(200, 200)
+	      //   .outputFormat("jpg").toFile(fileName);
+	         
+	     // } catch(Exception e) {
+	     //    System.out.println("Exception: " + e.getMessage());
+	     // }
+	   //}
 	
 }
