@@ -1,40 +1,19 @@
 package com.cg.events.controller;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
-
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
-import okhttp3.internal.framed.ErrorCode;
 
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
@@ -60,9 +39,7 @@ import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.HomeScreenDto;
-import com.cg.dto.LocationDto;
 import com.cg.events.bo.Event;
-import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.events.bo.Event.EventSource;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventMember.MemberStatus;
@@ -87,6 +64,14 @@ import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import net.coobird.thumbnailator.Thumbnails;
+import okhttp3.internal.framed.ErrorCode;
 
 @RestController
 @Api(value = "Event", description = "Events of user")
@@ -1092,51 +1077,23 @@ public class EventController {
 			
 			try {
 				File originalFile = new File(dirPath + fileName);
-				
-				BufferedImage image = ImageIO.read(originalFile);
 
-			    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
-			    System.out.println("thumbnailPath : "+thumbnailPath);
-			    File thumbnailPathFile = new File(eventUploadPath+"thumbnail/");
-				if (!thumbnailPathFile.exists()) {
-				    System.out.println("thumbnail Directroty no exists");
-
+				String thumnailDirPath = eventUploadPath+"thumbnail/";
+				File thumbnailFile = new File(thumnailDirPath);
+				if (!thumbnailFile.exists()) {
 					try {
-						thumbnailPathFile.mkdirs();
+						thumbnailFile.mkdirs();
 					} catch (Exception e) {
-					    System.out.println("thumbnail Directroty Exception");
-
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-			    File compressedImageFile = new File(thumbnailPath);
-			    try {
-			    	if (!compressedImageFile.exists()) {
-				    	compressedImageFile.createNewFile();
-					}
-			    } catch (Exception e) {
-					// TODO: handle exception
-			    	e.printStackTrace();
-				}
-			 
-			    OutputStream os = new FileOutputStream(compressedImageFile);
-
-			    Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName(extension);
-			    ImageWriter writer = (ImageWriter) writers.next();
-
-			    ImageOutputStream ios = ImageIO.createImageOutputStream(os);
-			    writer.setOutput(ios);
-
-			    ImageWriteParam param = writer.getDefaultWriteParam();
-
-			    param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-			    param.setCompressionQuality(0.01f);  // Change the quality value you prefer
-			    writer.write(null, new IIOImage(image, null, null), param);
-
-			    os.close();
-			    ios.close();
-			    writer.dispose();
+				
+			    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
+			    
+			    Thumbnails.of(originalFile)
+		         .size(180, 180)
+		         .outputFormat("jpg").toFile(thumbnailPath);
 				
 			    String thumbnailImageUrl = domain + "/assets/uploads/events/thumbnail/" + fileName;
 				event.setThumbnail(thumbnailImageUrl);

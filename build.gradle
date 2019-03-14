@@ -62,6 +62,11 @@ dependencies {
     	
     }
     
+    /* For creating Thumbnails. */
+    // https://mvnrepository.com/artifact/net.coobird/thumbnailator
+	compile group: 'net.coobird', name: 'thumbnailator', version: '0.4.1'
+    
+    
    // https://mvnrepository.com/artifact/com.github.fernandospr/javapns-jdk16
     compile group: 'com.github.fernandospr', name: 'javapns-jdk16', version: '2.2.1'
 // https://mvnrepository.com/artifact/com.sun.jersey/jersey-client
