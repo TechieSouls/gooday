@@ -1092,7 +1092,7 @@ public class EventController {
 			    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
 			    
 			    Thumbnails.of(originalFile)
-		         .size(150, 150)
+		         .size(180, 180)
 		         .outputFormat("jpg").toFile(thumbnailPath);
 				
 			    String thumbnailImageUrl = domain + "/assets/uploads/events/thumbnail/" + fileName;
