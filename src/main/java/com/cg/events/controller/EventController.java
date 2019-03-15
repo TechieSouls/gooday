@@ -446,6 +446,36 @@ public class EventController {
 	}
 	
 	
+	@RequestMapping(value = "/api/events", method = RequestMethod.GET)
+	@ResponseBody
+	public ResponseEntity<Map<String,Object>> getEventsByPage(Long userId, Long startTime, int offSet) {
+		Map<String,Object> response = new HashMap<>();
+		try {
+
+			System.out.println("[USER EVENTS -  User Id : " + userId + "]");
+			Date eDate = new Date(startTime);
+
+		    List<HomeScreenDto> responseDataToSend = eventManager.getHomeScreenData(userId,eDate, offSet);
+			System.out.println("[USER EVENTS -  Events list : " + responseDataToSend.size()+ "]");
+
+			response.put("success", true);
+			response.put("data", responseDataToSend);
+			response.put("errorCode", 0);
+			response.put("errorDetail", null);
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			response.put("success", false);
+			response.put("data", new ArrayList<>());
+			response.put("errorCode", ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail", ErrorCodes.InternalServerError.toString());
+
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+	}
+	
+	
+	
 	@ApiOperation(value = "Fetch User Events", notes = "Fecth user events by date and timezone", code = 200, httpMethod = "GET", produces = "application/json")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Event fetched successfuly", response = Event.class) })
 	@RequestMapping(value = "/api/getEvents/user", method = RequestMethod.GET)
