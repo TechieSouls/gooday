@@ -138,7 +138,7 @@ public class EventTimeSlotManager {
 							continue;
 						}
 
-						System.out.println(event.toString());
+						//System.out.println(event.toString());
 						eventTimeSlot.setSource(event.getSource());
 						eventTimeSlot.setScheduleAs(event.getScheduleAs());
 						eventTimeSlot.setEndTime(incrementedTime);

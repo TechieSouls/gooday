@@ -649,7 +649,9 @@ public class UserController {
 			if (recurringEvent != null && recurringEvent.getPhoto() != null) {
 				imageUrl = recurringEvent.getPhoto();
 			}
-			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
+			recurringEvent.setCreatedById(null);
+			recurringManager.saveRecurringEvent(recurringEvent);
+			//deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
 		}
 		
 		Long starTimeMillis = new Date().getTime();
@@ -769,7 +771,7 @@ public class UserController {
 		RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(recurringEventId);
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
-		try {
+		/*try {
 			eventManager.deleteEventsByRecurringEventId(recurringEventId);
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -808,7 +810,9 @@ public class UserController {
     		
     		e.printStackTrace();
     		
-    	}
+    	}*/
+		recurringEvent.setCreatedById(null);
+		recurringManager.saveRecurringEvent(recurringEvent);
 		return new ResponseEntity(response, HttpStatus.OK);
 	}
 	
