@@ -68,6 +68,9 @@ public class Notification extends CgGeneral{
 	@Transient
 	private User user;
 	
+	@Transient
+	private Event event;
+	
 	public Long getNotificationId() {
 		return notificationId;
 	}
