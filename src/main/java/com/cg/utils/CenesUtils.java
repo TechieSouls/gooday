@@ -93,7 +93,7 @@ public class CenesUtils {
 		    now.set(Calendar.MILLISECOND, 0);
 			timeSlotValues.add(now.getTimeInMillis());
 		    incrementalTime = now.getTimeInMillis();
-		    System.out.println(now.getTime());
+		    //System.out.println(now.getTime());
 	    }
 	    //System.out.println("Divide time inot slots END");
 	    /*if (timeSlotValues.size() > 0) {

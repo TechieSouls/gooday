@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.cg.events.bo.Event;
 import com.cg.user.bo.User;
 
 @Entity
@@ -171,5 +172,12 @@ public class Notification extends CgGeneral{
 	public void setUser(User user) {
 		this.user = user;
 	}
-	
+
+	public Event getEvent() {
+		return event;
+	}
+
+	public void setEvent(Event event) {
+		this.event = event;
+	}
 }

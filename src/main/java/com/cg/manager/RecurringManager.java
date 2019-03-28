@@ -180,7 +180,7 @@ public class RecurringManager {
 		event.setTimezone(recurringEvent.getTimezone());
 		event.setRecurringEventId(recurringEvent.getRecurringEventId().toString());
 		event.setCreatedById(recurringEvent.getCreatedById());
-		event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
+		event.setProcessed(EventProcessedStatus.Processed.ordinal());
 		return event;
 	}
 	
@@ -265,7 +265,7 @@ public class RecurringManager {
 	}
 	
 	public List<RecurringEvent> findRecurringEventsByCreatedById(Long createdById) {
-		return recurringEventRepository.findByCreatedById(createdById);
+		return recurringEventRepository.findByCreatedByIdOrderByCreationTimestampDesc(createdById);
 	}
 	
 	public RecurringEvent findByRecurringEventId(Long recurringEventId) {
@@ -297,7 +297,7 @@ public class RecurringManager {
 		recurringEvents.add(recurringEvent);
 		
 		recurringEvent = new RecurringEvent();
-		recurringEvent.setTitle("Unplug From Technology");
+		recurringEvent.setTitle("Unplug from Tech");
 		recurringEvent.setCreatedById(userId);
 		recurringEvent.setProcessed(RecurringEvent.RecurringEventProcessStatus.processed.ordinal());
 		recurringEvents.add(recurringEvent);

@@ -12,6 +12,8 @@ import com.cg.manager.EventManager;
 import com.cg.manager.NotificationManager;
 import com.cg.manager.ReminderManager;
 import com.cg.reminders.bo.Reminder;
+import com.cg.service.UserService;
+import com.cg.threads.UserThread;
 
 @Service
 public class RemindersAlertJob {
@@ -25,7 +27,10 @@ public class RemindersAlertJob {
 	@Autowired
 	NotificationManager notificationManager;
 	
-	@Scheduled(cron="0 0/1 * * * *") //At every hour minutes	
+	@Autowired
+	UserService userService;
+	
+	//@Scheduled(cron="0 0/1 * * * *") //At every hour minutes	
 	public void runRemindersAlertJob() {
 		System.out.println("Date : "+new Date()+" Reminders Alert Job STARTS");
 		List<Reminder> reminders = reminderManager.findRemindersToSendAlerts();
@@ -43,6 +48,10 @@ public class RemindersAlertJob {
 		System.out.println("Events to be notified.");
 		if (events != null && events.size() > 0) {
 			notificationManager.sendEventAlertPush(events);
+			
+			//Now lets update the counts of cenes member counts under user stats
+			UserThread userThread = new UserThread();
+			userThread.runUpdateUserStatThreadByEvents(events, userService);
 		}
 		System.out.println("Date : "+new Date()+" Events Alert Job ENDS");
 	}

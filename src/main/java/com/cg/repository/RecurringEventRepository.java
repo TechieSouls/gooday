@@ -20,7 +20,7 @@ public interface RecurringEventRepository extends JpaRepository<RecurringEvent, 
 	
 	public RecurringEvent findBySourceEventIdAndCreatedById(String sourceEventId,Long userId);
 	
-	public List<RecurringEvent> findByCreatedById(Long userId);
+	public List<RecurringEvent> findByCreatedByIdOrderByCreationTimestampDesc(Long userId);
 
 	@Modifying(clearAutomatically = true)
 	@Transactional

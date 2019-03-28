@@ -11,10 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.cg.bo.HolidayCalendar;
+import com.cg.bo.UserStat;
+import com.cg.dao.UserDao;
+import com.cg.events.bo.Event;
+import com.cg.events.bo.EventMember;
 import com.cg.repository.HolidayCalendarRepository;
 import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserDeviceRepository;
 import com.cg.repository.UserRepository;
+import com.cg.repository.UserStatRepository;
 import com.cg.user.bo.User;
 import com.cg.user.bo.UserContact;
 import com.cg.user.bo.UserContact.CenesMember;
@@ -34,6 +39,13 @@ public class UserService {
 	
 	@Autowired
 	HolidayCalendarRepository holidayCalendarRepository;
+	
+	@Autowired
+	UserStatRepository userStatRepository;
+	
+	@Autowired
+	UserDao userDao;
+	
 	
 	/***********  USER BLOCK STARTS *****************/
 	public User findUserById(Long userId) {
@@ -258,6 +270,10 @@ public class UserService {
 		}
 	}
 	
+	public Long findCenesMemberCountsByUserId(Long userId) {
+		return userContactRepository.findCenesMemberCountsByUserId(userId);
+	}
+	
 	class PhoneConatctsTask implements Runnable {
 		
 		private UserRepository userRepository;
@@ -326,5 +342,100 @@ public class UserService {
 			this.userId = userId;
 		}
 	}
+
+	/***************   USER STAT FUNCTIONS  ******************/
+	public UserStat findUserStatByUserId(Long userId) {
+		return userStatRepository.findByUserId(userId);
+	}
 	
+	public UserStat saveUpdateUserStat(UserStat userStat) {
+		return userStatRepository.save(userStat);
+	}
+	
+	//This function will update the cenes member counts in user contacts.
+	public void updateCenesMemberCountsByUserContacts(List<UserContact> userContacts) {
+		
+		List<UserStat> usersStat = userDao.getUserStatsByUserContacts(userContacts);
+		List<UserStat> userStatToUpdate = new ArrayList<>();
+		
+		for (UserContact userContact: userContacts) {
+			
+			UserStat userStat = null;
+			
+			for (UserStat userStatTemp : usersStat) {
+				if (userStatTemp.getUserId().equals(userContact.getUserId())) {
+					
+					userStat = userStatTemp;
+					Long counts = userStat.getCenesMemberCounts() + 1;
+					userStat.setCenesMemberCounts(counts);
+					userStatToUpdate.add(userStat);
+					break;
+				}
+			}
+			
+			if (userStat == null) {
+				userStat  = new UserStat();
+				userStat.setCenesMemberCounts(1l);
+				userStatToUpdate.add(userStat);
+			}
+		}
+		
+		userStatRepository.save(userStatToUpdate);
+	}
+	
+	public void updateEventHostedAndAttendedCounts(List<Event> events) {
+		
+		for (Event event: events) {
+			
+			List<EventMember> eventMembers = event.getEventMembers();
+			
+			List<EventMember> goingMembers = new ArrayList<>();
+			for (EventMember eventMember: eventMembers) {
+				if (eventMember.getStatus().equals(EventMember.MemberStatus.Going.toString())) {
+					goingMembers.add(eventMember);
+				}
+			}
+			
+			List<UserStat> usersStatToUpdate = new ArrayList<UserStat>();
+			List<UserStat> usersStat = userDao.getUserStatByEventMembers(goingMembers);
+			
+			for (EventMember goingMember: goingMembers) {
+				
+				boolean userStatExist = false;
+
+				for (UserStat userStat: usersStat) {
+					
+					//If User Stat exists for Event Members
+					if (userStat.getUserId().equals(goingMember.getUserId())) {
+						
+						//Check if event Member is a host 
+						if (event.getCreatedById().equals(goingMember.getUserId())) {
+							userStat.setEventsHostedCounts(userStat.getEventsHostedCounts() + 1);
+							usersStatToUpdate.add(userStat);
+							userStatExist  = true;
+							break;
+						}
+					}
+				}
+				
+				//If Stats Does not exist for user. Then create new stats
+				if (!userStatExist) {
+					
+					UserStat userStat = new UserStat();
+					//If eventMember is a Host, Increment hosted counts
+					if (event.getCreatedById().equals(goingMember.getUserId())) {
+						userStat.setEventsHostedCounts(1l);
+					} else {//Increment Attended counts
+						userStat.setEventsAttendedCounts(1l);
+					}
+					usersStatToUpdate.add(userStat);
+				}
+			}
+			
+			
+			if (usersStatToUpdate.size() > 0) {
+				userStatRepository.save(usersStatToUpdate);
+			}
+		}
+	}
 }

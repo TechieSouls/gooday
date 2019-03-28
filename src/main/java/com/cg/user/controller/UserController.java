@@ -53,6 +53,7 @@ import com.cg.bo.FacebookProfile;
 import com.cg.bo.HolidayCalendar;
 import com.cg.bo.UserFriend;
 import com.cg.bo.UserFriend.UserStatus;
+import com.cg.bo.UserStat;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.ChangePasswordDto;
 import com.cg.enums.CgEnums.AuthenticateType;
@@ -76,6 +77,7 @@ import com.cg.service.OutlookService;
 import com.cg.service.TwilioService;
 import com.cg.service.UserService;
 import com.cg.stateless.security.TokenAuthenticationService;
+import com.cg.threads.UserThread;
 import com.cg.user.bo.User;
 import com.cg.user.bo.UserContact;
 import com.cg.user.bo.UserContact.CenesMember;
@@ -206,6 +208,10 @@ public class UserController {
 							userContact.setFriendId(user.getUserId());
 						}
 						userContactRepository.save(userContactInOtherContacts);
+						
+						//Now lets update the counts of cenes member counts under user stats
+						UserThread userThread = new UserThread();
+						userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);
 					}
 					
 				} catch(Exception e) {
@@ -643,7 +649,9 @@ public class UserController {
 			if (recurringEvent != null && recurringEvent.getPhoto() != null) {
 				imageUrl = recurringEvent.getPhoto();
 			}
-			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
+			recurringEvent.setCreatedById(null);
+			recurringManager.saveRecurringEvent(recurringEvent);
+			//deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
 		}
 		
 		Long starTimeMillis = new Date().getTime();
@@ -763,7 +771,7 @@ public class UserController {
 		RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(recurringEventId);
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
-		try {
+		/*try {
 			eventManager.deleteEventsByRecurringEventId(recurringEventId);
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -802,7 +810,9 @@ public class UserController {
     		
     		e.printStackTrace();
     		
-    	}
+    	}*/
+		recurringEvent.setCreatedById(null);
+		recurringManager.saveRecurringEvent(recurringEvent);
 		return new ResponseEntity(response, HttpStatus.OK);
 	}
 	
@@ -933,7 +943,7 @@ public class UserController {
 	 * 
 	 * */
 	@RequestMapping(value = "/auth/updatePassword", method = RequestMethod.POST)
-	public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody Map<String, Object> requestBody) {
+	public ResponseEntity<Map<String, Object>> updatePassword(Map<String, Object> requestBody) {
 		
 		System.out.println(requestBody.toString());
 		Map<String, Object> response = new HashMap<>();
@@ -1091,6 +1101,19 @@ public class UserController {
 	@RequestMapping(value = "/api/syncContacts", method = RequestMethod.POST)
 	public void syncUserContacts(@RequestBody Map<String,Object> contactsMap) {
 		userService.syncPhoneContacts(contactsMap);
+		
+		Long userId = Long.valueOf(contactsMap.get("userId").toString());
+		if (userId != null) {
+			UserStat userStat = userService.findUserStatByUserId(userId);
+			if (userStat == null) {
+				userStat = new UserStat();
+			}
+			
+			Long cenesMemberCounts = userService.findCenesMemberCountsByUserId(userId);
+			
+			userStat.setCenesMemberCounts(cenesMemberCounts);
+			userService.saveUpdateUserStat(userStat);
+		}
 	}
 	
 	@RequestMapping(value = "/api/guest/sendVerificationCode", method = RequestMethod.POST)
