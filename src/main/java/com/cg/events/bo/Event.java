@@ -32,7 +32,7 @@ public class Event extends CgGeneral {
 	public enum EventType{Sport,Cafe,Entertainment,Travel,Birthday,Food,Seasonal};
 	public enum EventSource{Cenes,Facebook,Google,Outlook,Apple}
 	public enum EventProcessedStatus{UnProcessed,Waiting,Processed}
-	public enum EventUpdateFor{Image,Title,Time,GuestList,Location, Description, MultipleChanges}
+	public enum EventUpdateFor{Image,Title,Time,GuestList,Location, Description, MultipleChanges, Nothing}
 	
 	@Id
 	@GeneratedValue (strategy=GenerationType.AUTO)

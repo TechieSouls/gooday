@@ -216,6 +216,10 @@ public class EventController {
 					countsForNumberOfChanges++;
 				}
 				
+				if (countsForNumberOfChanges == 0) {
+					event.setUpdatedFor(EventUpdateFor.Nothing);
+				}
+				
 				if (countsForNumberOfChanges > 1) {
 					event.setUpdatedFor(EventUpdateFor.MultipleChanges);
 				}

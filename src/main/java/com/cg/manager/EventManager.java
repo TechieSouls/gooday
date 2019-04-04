@@ -182,7 +182,7 @@ public class EventManager {
 		event = eventService.saveEvent(event);
 		
 		System.out.println("After Saving : "+event.toString());
-		if (event.getUpdatedFor() != null) {
+		if (!Event.EventUpdateFor.Nothing.equals(event.getUpdatedFor())) {
 			notificationManager.sendGatheringNotification(event);
 		}
 		
