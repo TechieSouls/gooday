@@ -10,6 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import com.cg.events.bo.Event;
 import com.cg.user.bo.User;
 
 @Entity
@@ -17,7 +18,7 @@ import com.cg.user.bo.User;
 public class Notification extends CgGeneral{
 	
 	public enum NotificationType {Event,Gathering,Reminder};
-	public enum NotificationTypeAction {Create, Accept, Decline, Delete};
+	public enum NotificationTypeAction {Create, Accept, Decline, Delete, Update};
 	public enum NotificationTypeStatus {New,Old}
 	public enum NotificationReadStatus {Read,UnRead}
 	
@@ -66,6 +67,9 @@ public class Notification extends CgGeneral{
 	
 	@Transient
 	private User user;
+	
+	@Transient
+	private Event event;
 	
 	public Long getNotificationId() {
 		return notificationId;
@@ -171,5 +175,12 @@ public class Notification extends CgGeneral{
 	public void setUser(User user) {
 		this.user = user;
 	}
-	
+
+	public Event getEvent() {
+		return event;
+	}
+
+	public void setEvent(Event event) {
+		this.event = event;
+	}
 }

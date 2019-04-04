@@ -60,6 +60,9 @@ public class EventMember extends CgGeneral {
 	@Column(name="processed")
 	private Integer processed = EventProcessedStatus.Processed.ordinal();	
 	
+	@Column(name="already_invited")
+	private boolean alreadyInvited;
+	
 	@Transient
 	private User user;
 	
@@ -147,6 +150,14 @@ public class EventMember extends CgGeneral {
 	public void setUserContactId(Long userContactId) {
 		this.userContactId = userContactId;
 	}
+			
+	public boolean isAlreadyInvited() {
+		return alreadyInvited;
+	}
+	public void setAlreadyInvited(boolean alreadyInvited) {
+		this.alreadyInvited = alreadyInvited;
+	}
+	
 	@Override
 	public String toString() {
 		return "EventMember [eventMemberId=" + eventMemberId + ", eventId=" + eventId + ", source=" + source

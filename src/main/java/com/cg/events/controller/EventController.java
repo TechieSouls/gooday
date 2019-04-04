@@ -41,6 +41,7 @@ import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.HomeScreenDto;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.Event.EventSource;
+import com.cg.events.bo.Event.EventUpdateFor;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventMember.MemberStatus;
 import com.cg.events.bo.EventTimeSlot;
@@ -182,6 +183,43 @@ public class EventController {
 			if (event.getEventId() != null) {
 				isOldEvent = true;
 				Event eventFromDatabase = eventManager.findEventByEventId(event.getEventId());
+				
+				//Check the update in Event
+				int countsForNumberOfChanges = 0;
+				if (!event.getTitle().equals(eventFromDatabase.getTitle())) {
+					event.setUpdatedFor(EventUpdateFor.Title);
+					countsForNumberOfChanges++;
+				}
+				if (event.getEventPicture() != null && !event.getEventPicture().equals(eventFromDatabase.getEventPicture())) {
+					event.setUpdatedFor(EventUpdateFor.Image);
+					countsForNumberOfChanges++;
+				}
+				if (!event.getStartTime().equals(eventFromDatabase.getStartTime()) || !event.getEndTime().equals(eventFromDatabase.getEndTime())) {
+					event.setUpdatedFor(EventUpdateFor.Time);
+					countsForNumberOfChanges++;
+				}
+				
+				if (event.getDescription() != null && !event.getDescription().equals(eventFromDatabase.getDescription())) {
+					event.setUpdatedFor(EventUpdateFor.Description);
+					countsForNumberOfChanges++;
+				}
+				
+				if (event.getLocation() != null && !event.getLocation().equals(eventFromDatabase.getLocation())) {
+					event.setUpdatedFor(EventUpdateFor.Location);
+					countsForNumberOfChanges++;
+				}
+				
+				int oldCounts = eventFromDatabase.getEventMembers().size();
+				int newCounts = event.getEventMembers().size();
+				if (oldCounts != newCounts) {
+					event.setUpdatedFor(EventUpdateFor.GuestList);
+					countsForNumberOfChanges++;
+				}
+				
+				if (countsForNumberOfChanges > 1) {
+					event.setUpdatedFor(EventUpdateFor.MultipleChanges);
+				}
+				
 				//eventManager.deleteTimeSlotsForEventMember(eventFromDatabase, eventMember);
 				eventManager.deleteTimeSlotsForEvent(eventFromDatabase);
 
@@ -1122,7 +1160,7 @@ public class EventController {
 			    String thumbnailPath = eventUploadPath+"thumbnail/"+fileName;
 			    
 			    Thumbnails.of(originalFile)
-		         .size(180, 180)
+		         .size(250, 250)
 		         .outputFormat("jpg").toFile(thumbnailPath);
 				
 			    String thumbnailImageUrl = domain + "/assets/uploads/events/thumbnail/" + fileName;

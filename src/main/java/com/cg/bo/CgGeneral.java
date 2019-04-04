@@ -15,11 +15,9 @@ import javax.persistence.Transient;
 public class CgGeneral {
 
 	
-	@ApiModelProperty(readOnly=true,hidden=true)
 	@Column
 	Date createdAt;
 	
-	@ApiModelProperty(readOnly=true,hidden=true)
 	@Column
 	Date updateAt;
 	@Transient

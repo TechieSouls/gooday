@@ -93,7 +93,12 @@ public class GatheringToDiaryUpdaterJob {
 			/*for (Event gathering : events) {
 				notificationManager.deleteNotificationByNotificationTypeId(gathering.getEventId());
 			}*/
-			eventService.deleteEventsBatch(events);
+			//eventService.deleteEventsBatch(events);
+			
+			for (Event event: events) {
+				event.setExpired(true);
+			}
+			eventService.saveEventsBatch(events);
 		}
 	}
 	

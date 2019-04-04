@@ -67,7 +67,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query("select e from Event e JOIN e.eventMembers em where DATE(e.startTime) >= now() and em.userId = :createdById and em.status = 'Going' and e.scheduleAs in ('Event','Holiday','Gathering') order by e.startTime asc")
 	List<Event> findByCreatedByIdAndStartDateOnlyAndEventMemberStatus(@Param("createdById") Long createdById);
 		
-	@Query("select e from Event e where  DATE_FORMAT(now(),'%Y-%m-%d %H:%i:00') >= DATE_FORMAT(e.endTime,'%Y-%m-%d %H:%i:00') and e.source = 'Cenes' and e.scheduleAs = 'Gathering' order by e.startTime asc")
+	@Query("select e from Event e where DATE_FORMAT(now(),'%Y-%m-%d %H:%i:00') >= DATE_FORMAT(e.endTime,'%Y-%m-%d %H:%i:00') and e.source = 'Cenes' and e.scheduleAs = 'Gathering' order by e.startTime asc")
 	List<Event> findPastUserGatherings();
 	
 	@Query("select e from Event e JOIN e.eventMembers em where em.processed = :processed and em.status = :status")

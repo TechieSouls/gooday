@@ -24,10 +24,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
+import com.cg.bo.Notification;
 import com.cg.dto.LocationDto;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventTimeSlot;
+import com.cg.mappers.EventDataMapper;
 import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
@@ -153,6 +155,22 @@ public class EventServiceDao {
 		for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
 			events.add(eventEntrySet.getValue());
 		}
+		return events;
+	}
+	
+	public List<Event> findEventsByNotifications(List<Notification> notifications) {
+		
+		
+		StringBuffer eventIds = new StringBuffer();
+		for (Notification notifiacton: notifications) {
+			eventIds.append(notifiacton.getNotificationTypeId()+",");
+		}
+		String eventIdsStr = eventIds.toString().substring(0, eventIds.toString().length() - 1);
+		String query = "select *, us.name as nameuser from events ev INNER JOIN event_members em on ev.event_id = em.event_id and ev.event_id in ("+eventIdsStr.toString()+")"
+				+ " LEFT JOIN users us on ev.created_by_id = us.user_id";
+		System.out.println(query);
+		
+		List<Event> events = jdbcTemplate.query(query, new EventDataMapper());
 		return events;
 	}
 	

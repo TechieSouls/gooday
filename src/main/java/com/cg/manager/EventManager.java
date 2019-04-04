@@ -161,6 +161,9 @@ public class EventManager {
 				if (null == eventMem.getStatus() || eventMem.getStatus().equals("Going")) {
 					eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 				}
+				if (eventMem.getEventMemberId() != null) {
+					eventMem.setAlreadyInvited(true);
+				}
 			}
 		}
 		
@@ -174,11 +177,14 @@ public class EventManager {
 	        }
 		}
 		
+		
 		System.out.println("Before Saving : "+event.toString());
 		event = eventService.saveEvent(event);
 		
 		System.out.println("After Saving : "+event.toString());
-		notificationManager.sendGatheringNotification(event);
+		if (event.getUpdatedFor() != null) {
+			notificationManager.sendGatheringNotification(event);
+		}
 		
 		System.out.println("[CreateEvent : "+new Date()+", ENDS]");
 		// saveEventsInSlots(event);
@@ -1302,4 +1308,5 @@ public class EventManager {
 			e.printStackTrace();
 		}
 	}*/
+	
 }

@@ -9,6 +9,8 @@ import java.util.Map;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,6 +32,7 @@ public class Event extends CgGeneral {
 	public enum EventType{Sport,Cafe,Entertainment,Travel,Birthday,Food,Seasonal};
 	public enum EventSource{Cenes,Facebook,Google,Outlook,Apple}
 	public enum EventProcessedStatus{UnProcessed,Waiting,Processed}
+	public enum EventUpdateFor{Image,Title,Time,GuestList,Location, Description, MultipleChanges}
 	
 	@Id
 	@GeneratedValue (strategy=GenerationType.AUTO)
@@ -114,10 +117,10 @@ public class Event extends CgGeneral {
 	private Date endTime;
 	
 	@Column(name="is_predictive_on")
-	private Boolean isPredictiveOn = false;
+	private boolean isPredictiveOn = false;
 	
 	@Column(name="is_full_day")
-	private Boolean isFullDay = false;
+	private boolean isFullDay = false;
 	
 	@Column(name="predictive_data",columnDefinition="TEXT")
 	private String predictiveData;
@@ -128,11 +131,18 @@ public class Event extends CgGeneral {
 	@Column(name="private_key")
 	private String key;
 	
+	@Enumerated(EnumType.STRING)
+	@Column(name="updated_for")
+	private EventUpdateFor updatedFor;
+	
 	@Transient
 	private Map<String,Object> predictiveDataForIos;
 	
 	@Column(name="processed")
 	private Integer processed = EventProcessedStatus.UnProcessed.ordinal();
+	
+	@Column(name="expired")
+	private boolean expired;
 	
 	public Long getEventId() {
 		return eventId;
@@ -303,6 +313,22 @@ public class Event extends CgGeneral {
 	public void setKey(String key) {
 		this.key = key;
 	}
+	
+	public boolean isExpired() {
+		return expired;
+	}
+	public void setExpired(boolean expired) {
+		this.expired = expired;
+	}
+	
+	public EventUpdateFor getUpdatedFor() {
+		return updatedFor;
+	}
+	public void setUpdatedFor(EventUpdateFor updatedFor) {
+		this.updatedFor = updatedFor;
+	}
+	
+	
 	@Override
 	public String toString() {
 		return "Event [eventId=" + eventId + ", title=" + title + ", type=" + type + ", recurringEventId="
@@ -312,6 +338,6 @@ public class Event extends CgGeneral {
 				+ ", scheduleAs=" + scheduleAs + ", eventPicture=" + eventPicture + ", eventMembers=" + eventMembers
 				+ ", startTime=" + startTime + ", endTime=" + endTime + ", isPredictiveOn=" + isPredictiveOn
 				+ ", isFullDay=" + isFullDay + ", predictiveData=" + predictiveData + ", predictiveDataForIos="
-				+ predictiveDataForIos + ", processed=" + processed + "]";
+				+ predictiveDataForIos + ", processed=" + processed + ", expired=" + expired + "]";
 	}
 }
