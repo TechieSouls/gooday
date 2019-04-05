@@ -45,20 +45,20 @@ public class PushNotificationService {
 	
 	/*public static void main(String[] args) {
 		List devices = new ArrayList<>();
-		devices.add("429e2452be7b0694ccaca988180233708abc3d74bfba0361de6a4da402b4ede0");
+		devices.add("a18b2f96eac9985efe7283167c78419b60b3d9b517e079f82dbe51e1c788e299");
 		
 		JSONObject notifyObj = new JSONObject();
 		
 		try {
 			JSONObject payloadObj = new JSONObject();
-			payloadObj.put("notificationTypeId","123");
-			payloadObj.put("notificationTypeLocation","asadsdfsdsfgfgfghfghfh");
-			payloadObj.put("notificationTypeTime","23435654676434");
-
-			payloadObj.put("notificationType",NotificationType.Reminder.toString());
+			//payloadObj.put("notificationTypeId","123");
+			//payloadObj.put("notificationTypeLocation","asadsdfsdsfgfgfghfghfh");
+			//payloadObj.put("notificationTypeTime","23435654676434");
+//
+			//payloadObj.put("notificationType",NotificationType.Reminder.toString());
 			
 			JSONObject alert = new JSONObject();
-			alert.put("title","Mandy called you to his event Welcome");
+			alert.put("title","Mandy called you");
 			//alert.put("content-available",1);
 			payloadObj.put("alert",alert);
 			notifyObj.put("aps", payloadObj);
@@ -147,7 +147,7 @@ public class PushNotificationService {
             //payload.addBadge(1);
             //payload.addSound("default");
             System.out.println(payload.toString());
-            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/prod/cenes-backend/src/main/resources/cenesGroupProd.p12", "123456", true, devices);
+            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/prod/cenes-backend/src/main/resources/cenesGroupProd.p12", "123456", false, devices);
             for (PushedNotification NOTIFICATION: NOTIFICATIONS) {
                 if (NOTIFICATION.isSuccessful()) {
                      //APPLE ACCEPTED THE NOTIFICATION AND SHOULD DELIVER IT 
