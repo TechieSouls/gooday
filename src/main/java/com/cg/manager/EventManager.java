@@ -424,6 +424,10 @@ public class EventManager {
 		eventService.deleteEventsByCreatedByIdAndSourceAndScheduleAs(createdById, source,scheduleAs);
 	}
 	
+	public void deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(Date startTime, Long createdById,String source,String scheduleAs) {
+		eventRepository.deleteByStartTimeGreaterThanAndCreatedByIdAndSourceAndScheduleAs(startTime, createdById, source,scheduleAs);
+	}
+	
 	public void deleteEventsByCreatedByIdScheduleAs(Long createdById,String scheduleAs) {
 		eventRepository.deleteEventsByCreatedByIdAndScheduleAs(createdById, scheduleAs);
 	}

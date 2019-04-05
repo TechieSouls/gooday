@@ -622,9 +622,13 @@ public class EventController {
 		
 		User user = userService.findUserById(userId);
 		
-		eventManager.deleteEventsByCreatedByIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
-		eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
+		//eventManager.deleteEventsByCreatedByIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
 		
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
+		eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(), userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
+		//eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
+		eventTimeSlotManager.deleteEventTimeSlotsByStartTimeGreaterThanAndUserIdAndSourceAndScheduleAs(cal.getTimeInMillis(), userId, Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 		System.out.println("[ Syncing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
 		List<Event> events = new ArrayList<>();
 		try {
