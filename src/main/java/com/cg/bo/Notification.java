@@ -18,7 +18,7 @@ import com.cg.user.bo.User;
 public class Notification extends CgGeneral{
 	
 	public enum NotificationType {Event,Gathering,Reminder};
-	public enum NotificationTypeAction {Create, Accept, Decline, Delete, Update};
+	public enum NotificationTypeAction {Create, AcceptDecline, Delete, Update};
 	public enum NotificationTypeStatus {New,Old}
 	public enum NotificationReadStatus {Read,UnRead}
 	

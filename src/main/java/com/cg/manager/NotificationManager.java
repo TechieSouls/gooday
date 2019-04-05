@@ -20,7 +20,6 @@ import com.cg.bo.NotificationCountData;
 import com.cg.constant.CgConstants;
 import com.cg.dao.NotificationDao;
 import com.cg.events.bo.Event;
-import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.events.bo.Event.EventUpdateFor;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventMember.MemberStatus;
@@ -313,6 +312,7 @@ public class NotificationManager {
 		notification.setRecepientId(event.getCreatedById());
 		notification.setNotificationTypeId(event.getEventId());
 		notification.setType(NotificationType.Gathering);
+		notification.setAction(NotificationTypeAction.AcceptDecline);
 		notification.setCreatedAt(new Date());
 		notification.setUpdateAt(new Date());
 		notificationRepository.save(notification);
