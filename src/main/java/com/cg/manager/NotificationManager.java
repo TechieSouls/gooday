@@ -228,7 +228,7 @@ public class NotificationManager {
 				}*/
 				
 				JSONObject notifyObj = new JSONObject();
-				notifyObj.put("title", fromUser.getName());
+				notifyObj.put("title", event.getTitle());
 				notifyObj.put("body", androidSet.getKey());
 				notifyObj.put("payload", payloadObj);
 				
@@ -257,7 +257,9 @@ public class NotificationManager {
 					}*/
 					
 					JSONObject alert = new JSONObject();
-					alert.put("title",iosSet.getKey());
+					alert.put("title",event.getTitle());
+					alert.put("body",iosSet.getKey());
+
 					payloadObj.put("alert",alert);
 					//payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 					payloadObj.put("badge",userIdBadgeCountMap.get(userDevice.getUserId()));
