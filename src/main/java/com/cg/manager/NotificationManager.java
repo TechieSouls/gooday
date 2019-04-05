@@ -77,7 +77,7 @@ public class NotificationManager {
 			}
 		}
 		if (owner != null) {
-			String pushMessage = "Event deleted by "+owner.getName()+" "+event.getTitle();
+			String pushMessage = "Event deleted by "+owner.getName();
 
 			for (EventMember eventMember : eventMembers) {
 				if (eventMember.getUserId() != null && !eventMember.getUserId().equals(event.getCreatedById())) {
@@ -101,7 +101,7 @@ public class NotificationManager {
 					notificationRepository.save(notification);
 					
 					
-					sendPushForAcceptAndDeclineRequest(pushMessage,eventMember.getUserId(),eventMember.getName(),Notification.NotificationType.Gathering);
+					sendPushForAcceptAndDeclineRequest(event.getTitle(), pushMessage,eventMember.getUserId(),eventMember.getName(),Notification.NotificationType.Gathering);
 				}
 			}
 		}
@@ -318,7 +318,7 @@ public class NotificationManager {
 		notificationRepository.save(notification);
 		
 
-		sendPushForAcceptAndDeclineRequest(pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
+		sendPushForAcceptAndDeclineRequest(event.getTitle(), pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
 	}
 
 	public void sendReminderAcceptDeclinedPush(ReminderMember reminderMember) {
@@ -331,7 +331,7 @@ public class NotificationManager {
 
 		Reminder reminder = reminderManager.findReminderByReminderId(reminderMember.getReminderId());
 		pushMessage = pushMessage.replace("[username]",reminderMember.getName()).replace("[title]", reminder.getTitle());
-		sendPushForAcceptAndDeclineRequest(pushMessage,reminder.getCreatedById(),reminderMember.getName(),Notification.NotificationType.Reminder);
+		sendPushForAcceptAndDeclineRequest(reminder.getTitle(), pushMessage,reminder.getCreatedById(),reminderMember.getName(),Notification.NotificationType.Reminder);
 	}
 	
 	public void sendReminderCompletedPush(Reminder reminder,User user) {
@@ -510,7 +510,9 @@ public class NotificationManager {
 						JSONObject notifyObj = new JSONObject();
 						JSONObject payloadObj = new JSONObject();
 						JSONObject alert = new JSONObject();
-						alert.put("title","Happening Now: "+pushMessage);
+						alert.put("title","Happening Now");
+						alert.put("body",pushMessage);
+
 						payloadObj.put("alert",alert);
 						payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 						payloadObj.put("sound","cenes-notification-ringtone.aiff");
@@ -530,7 +532,7 @@ public class NotificationManager {
 		}
 	}
 	
-	public void sendPushForAcceptAndDeclineRequest(String pushMessage,Long organizerId,String receipentName,Notification.NotificationType type) {
+	public void sendPushForAcceptAndDeclineRequest(String title, String pushMessage,Long organizerId,String receipentName,Notification.NotificationType type) {
 		JSONArray toAndroidArray = new JSONArray();
 		List toIosArray = new ArrayList<>();
 		
@@ -572,7 +574,8 @@ public class NotificationManager {
 					JSONObject notifyObj = new JSONObject();
 					JSONObject payloadObj = new JSONObject();
 					JSONObject alert = new JSONObject();
-					alert.put("title",pushMessage);
+					alert.put("title",title);
+					alert.put("body",pushMessage);
 					payloadObj.put("alert",alert);
 					payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 					payloadObj.put("sound","cenes-notification-ringtone.aiff");
