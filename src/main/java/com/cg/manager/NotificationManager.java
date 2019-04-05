@@ -191,29 +191,20 @@ public class NotificationManager {
 					for (UserDevice userDevice : toUserDeviceInfo) {
 						if ("android".equals(userDevice.getDeviceType())) {
 							JSONArray toAndroidArray = new JSONArray();
-							if (androidMap.containsKey("old")) {
-								toAndroidArray = androidMap.get("old");
+							if (androidMap.containsKey(eventMessage)) {
+								toAndroidArray = androidMap.get(eventMessage);
 							}
 							
-							String mapKey = "new";
-							if (notificationAlreadySent) {
-								mapKey = "old";
-							}
  							toAndroidArray.put(userDevice.getDeviceToken());
- 							androidMap.put(mapKey, toAndroidArray);
+ 							androidMap.put(eventMessage, toAndroidArray);
 						} else if ("ios".equals(userDevice.getDeviceType())) {
 							
 							List toIosArray = new ArrayList();
-							if (iOSMap.containsKey("old")) {
-								toIosArray = iOSMap.get("old");
-							}
-							
-							String mapKey = "new";
-							if (notificationAlreadySent) {
-								mapKey = "old";
+							if (iOSMap.containsKey(eventMessage)) {
+								toIosArray = iOSMap.get(eventMessage);
 							}
 							toIosArray.add(userDevice);
-							iOSMap.put(mapKey, toIosArray);
+							iOSMap.put(eventMessage, toIosArray);
 						}
 					}
 				}
@@ -223,22 +214,22 @@ public class NotificationManager {
 		try {
 			for (Entry<String,JSONArray> androidSet : androidMap.entrySet()) {
 
-				String pushMessage = " sent you an invitation ";
+				//String pushMessage = " sent you an invitation ";
 				
 				JSONObject payloadObj = new JSONObject();
 				payloadObj.put(CgConstants.notificationTypeTitle,event.getTitle());
 				payloadObj.put(CgConstants.notificationTypeId,event.getEventId());
 				payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
-				if (androidSet.getKey().equals("old")) {
+				/*if (androidSet.getKey().equals("old")) {
 					payloadObj.put(CgConstants.notificationTypeStatus,"Old");
 					pushMessage = " updated an invitation ";
 				} else {
 					payloadObj.put(CgConstants.notificationTypeStatus,"New");
-				}
+				}*/
 				
 				JSONObject notifyObj = new JSONObject();
 				notifyObj.put("title", fromUser.getName());
-				notifyObj.put("body", pushMessage+event.getTitle());
+				notifyObj.put("body", androidSet.getKey());
 				notifyObj.put("payload", payloadObj);
 				
 				PushNotificationService.sendAndroidPush(androidSet.getValue(),notifyObj);
@@ -251,22 +242,22 @@ public class NotificationManager {
 			for (Entry<String,List> iosSet : iOSMap.entrySet()) {
 				
 				for (UserDevice userDevice : (List<UserDevice>)iosSet.getValue()) {
-					String pushMessage = " sent you an invitation ";
+					//String pushMessage = " sent you an invitation ";
 					JSONObject notifyObj = new JSONObject();
 					
 					JSONObject payloadObj = new JSONObject();
 					payloadObj.put(CgConstants.notificationTypeTitle,event.getTitle());
 					payloadObj.put(CgConstants.notificationTypeId,event.getEventId());
 					payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
-					if (iosSet.getKey().equals("old")) {
+					/*if (iosSet.getKey().equals("old")) {
 						payloadObj.put(CgConstants.notificationTypeStatus,"Old");
 						pushMessage = " updated an invitation ";
 					} else {
 						payloadObj.put(CgConstants.notificationTypeStatus,"New");
-					}
+					}*/
 					
 					JSONObject alert = new JSONObject();
-					alert.put("title",fromUser.getName()+pushMessage+event.getTitle());
+					alert.put("title",iosSet.getKey());
 					payloadObj.put("alert",alert);
 					//payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 					payloadObj.put("badge",userIdBadgeCountMap.get(userDevice.getUserId()));
