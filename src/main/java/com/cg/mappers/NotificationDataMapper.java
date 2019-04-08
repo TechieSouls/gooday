@@ -38,10 +38,10 @@ public class NotificationDataMapper extends BaseMapper implements RowMapper<Noti
 		String typeAction = rs.getString("notification_type_action");
 		if ("Create".equals(typeAction)) {
 			notification.setAction(Notification.NotificationTypeAction.Create);
-		} else if ("Accept".equals(typeAction)) {
-			notification.setAction(Notification.NotificationTypeAction.Accept);
-		} else if ("Decline".equals(typeAction)) {
-			notification.setAction(Notification.NotificationTypeAction.Decline);
+		} else if ("AcceptDecline".equals(typeAction)) {
+			notification.setAction(Notification.NotificationTypeAction.AcceptDecline);
+		} else if ("AcceptDecline".equals(typeAction)) {
+			notification.setAction(Notification.NotificationTypeAction.AcceptDecline);
 		} else if ("Delete".equals(typeAction)) {
 			notification.setAction(Notification.NotificationTypeAction.Delete);
 		} else if ("Update".equals(typeAction)) {

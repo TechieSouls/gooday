@@ -628,7 +628,7 @@ public class EventController {
 		cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
 		eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(), userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
 		//eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
-		eventTimeSlotManager.deleteEventTimeSlotsByStartTimeGreaterThanAndUserIdAndSourceAndScheduleAs(cal.getTimeInMillis(), userId, Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+		eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 		System.out.println("[ Syncing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
 		List<Event> events = new ArrayList<>();
 		try {
@@ -665,7 +665,10 @@ public class EventController {
 					String accessToken = refreshTokenResponse.getString("access_token");
 
 					User user = userService.findUserById(userId);
-					eventManager.deleteEventsByCreatedByIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
+					
+					Calendar cal = Calendar.getInstance();
+					cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
+					eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(), userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
 					eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
 					
 					System.out.println("[ Syncing Google Refreshing Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
@@ -1220,7 +1223,9 @@ public class EventController {
 			System.out.println("[ Syncing Outlook Events - User Id : " + userId+ ", Saving Token]");
 			eventManager.saveCalendarSyncToken(calendarSyncToken);
 
-			eventManager.deleteEventsByCreatedByIdSource(userId, Event.EventSource.Outlook.toString());
+			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
+			eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(),userId, Event.EventSource.Outlook.toString(),Event.ScheduleEventAs.Event.toString());
 			eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(userId, Event.EventSource.Outlook.toString());
 			
 			OutlookService os = new OutlookService();
@@ -1274,7 +1279,9 @@ public class EventController {
 						User user = userService.findUserById(userId);
 						List<Event> events = null;
 						try {
-							eventManager.deleteEventsByCreatedByIdSource(userId, Event.EventSource.Outlook.toString());
+							Calendar cal = Calendar.getInstance();
+							cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
+							eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(),userId, Event.EventSource.Outlook.toString(),Event.ScheduleEventAs.Event.toString());
 							eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(userId, Event.EventSource.Outlook.toString());
 							
 							OutlookService os = new OutlookService();
