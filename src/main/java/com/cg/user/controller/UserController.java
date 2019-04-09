@@ -856,6 +856,8 @@ public class UserController {
 		Map<String,Object> response = new HashMap<>();
 		try {
 			
+			System.out.println("User Device : "+userDevice.toString());
+			
 			UserDevice savedUser = userService.findUserDeviceByDeviceTypeAndUserId(userDevice.getDeviceType(), userDevice.getUserId());
 			if (savedUser != null) {
 				savedUser.setDeviceToken(userDevice.getDeviceToken());
