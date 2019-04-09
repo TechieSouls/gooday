@@ -45,7 +45,7 @@ public class PushNotificationService {
 	
 	/*public static void main(String[] args) {
 		List devices = new ArrayList<>();
-		devices.add("a18b2f96eac9985efe7283167c78419b60b3d9b517e079f82dbe51e1c788e299");
+		devices.add("788025dd39f38dba20ff2f67583477b284821ada18a61635a389752f7dc5fc53");
 		
 		JSONObject notifyObj = new JSONObject();
 		
@@ -58,7 +58,8 @@ public class PushNotificationService {
 			//payloadObj.put("notificationType",NotificationType.Reminder.toString());
 			
 			JSONObject alert = new JSONObject();
-			alert.put("title","Mandy called you");
+			alert.put("title","Don't Panic");
+			alert.put("body","Harry don't panic i am checking push");
 			//alert.put("content-available",1);
 			payloadObj.put("alert",alert);
 			notifyObj.put("aps", payloadObj);
@@ -147,7 +148,9 @@ public class PushNotificationService {
             //payload.addBadge(1);
             //payload.addSound("default");
             System.out.println(payload.toString());
-            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/prod/cenes-backend/src/main/resources/cenesGroupProd.p12", "123456", false, devices);
+            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/prod/cenes-backend/src/main/resources/cenesGroupDistribution.p12", "123456", true, devices);
+
+            //List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/Users/cenes_dev/Desktop/Mandeep/projects/java/gooday/src/main/resources/cenesGroupProd.p12", "123456", false, devices);
             for (PushedNotification NOTIFICATION: NOTIFICATIONS) {
                 if (NOTIFICATION.isSuccessful()) {
                      //APPLE ACCEPTED THE NOTIFICATION AND SHOULD DELIVER IT 
