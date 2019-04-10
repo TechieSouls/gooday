@@ -787,7 +787,7 @@ public class EventController {
 			Calendar monthStartTimeCalendar = Calendar.getInstance();
 			monthStartTimeCalendar.setTime(searchCalDate.getTime());
 			monthStartTimeCalendar.add(Calendar.MONTH, -1);
-			monthStartTimeCalendar.set(Calendar.DAY_OF_MONTH, monthStartTimeCalendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+			monthStartTimeCalendar.set(Calendar.DAY_OF_MONTH, monthStartTimeCalendar.getActualMaximum(Calendar.DAY_OF_MONTH) - 1);
 			
 			Calendar monthEndTimeCalendar = Calendar.getInstance();
 			monthEndTimeCalendar.setTime(searchCalDate.getTime());
