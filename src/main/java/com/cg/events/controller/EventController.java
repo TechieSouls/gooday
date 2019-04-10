@@ -953,16 +953,20 @@ public class EventController {
 					
 					
 					Date dd = new SimpleDateFormat("yyyy-MM-dd").parse(mDate);
+					Calendar montlyDateCal = Calendar.getInstance();
+					montlyDateCal.setTime(dd);
+					
 					
 					Calendar dateCal = Calendar.getInstance();
 					dateCal.setTimeInMillis(eventStartTime);
-					dateCal.set(Calendar.DAY_OF_MONTH, dd.getDate());
+					dateCal.set(Calendar.DAY_OF_MONTH, montlyDateCal.get(Calendar.DAY_OF_MONTH));
+					dateCal.set(Calendar.MONTH, montlyDateCal.get(Calendar.MONTH));
 					//System.out.println("Event Date After adding mDate : "+dateCal.getTime());
 					
 					
 					System.out.println(dateCal.getTimeInMillis()+" - MIllis, Day : "+dateCal.get(Calendar.DAY_OF_MONTH)+", MONTH : "+dateCal.get(Calendar.MONTH)+" Predictive Percentage : "+predictivePercentage);
 					PredictiveCalendar pc = new PredictiveCalendar();
-					pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dd));
+					pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(montlyDateCal.getTime()));
 					pc.setDate(dateCal.getTimeInMillis());
 					pc.setTotalFriends(totalFriends);
 					pc.setAttendingFriends(friendsAttending);
