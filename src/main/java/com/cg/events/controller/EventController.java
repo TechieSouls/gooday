@@ -938,135 +938,6 @@ public class EventController {
 						
 					}
 				
-				/*
-				// Now we will find the free time slots of all the users.
-				List<EventTimeSlot> eventTimeSlots = eventServiceDao.getFreeTimeSlotsByDateAndUserId(userIds, sDateStr,eDateStr);
-				  
-				Map<Long,List<EventTimeSlot>> userIdMap = new HashMap<>();
-				for (EventTimeSlot eventTimeSlot : eventTimeSlots) {
-					List<EventTimeSlot> userSlots = null;
-					if (userIdMap.containsKey(eventTimeSlot.getUserId())) {
-						userSlots = userIdMap.get(eventTimeSlot.getUserId());
-					} else {
-						userSlots = new ArrayList<>();
-					}
-					userSlots.add(eventTimeSlot);
-					userIdMap.put(eventTimeSlot.getUserId(), userSlots);
-				}
-				
-				Long dbFetchEndTime = new Date().getTime();
-				System.out.println("[Predictive Calendar : Date : "+new Date()+", DB Fetch Ends");
-				System.out.println("[Predictive Calendar : Date : "+new Date()+", Total Time Taken to fetch "+(dbFetchEndTime - dbFetchStartTime)/1000+" seconds");
-
-				// Lets summarize the results from DB in respect of the each
-				// date of month
-				System.out.println("[Predictive Calendar : Date : "+new Date()+", Logic Starts");
-				dbFetchStartTime = new Date().getTime();
-				
-				Map<String,Set<Long>> dateUserMap = new HashMap<>();
-				Map<String,List<EventTimeSlot>> etsDateWiseMap = new HashMap<>();
-				for (Entry<Long,List<EventTimeSlot>> eventTimeSlotMap : userIdMap.entrySet()) {
-					List<EventTimeSlot> etListsFromMap = eventTimeSlotMap.getValue();
-					
-					for (EventTimeSlot etsFromList : etListsFromMap) {
-					
-						List<EventTimeSlot> etsMapList = null;
-						if (etsDateWiseMap.containsKey(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()))) {
-							etsMapList = etsDateWiseMap.get(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()));
-							etsMapList.add(etsFromList);
-						} else {
-							etsMapList = new ArrayList<>();
-							etsMapList.add(etsFromList);
-						}
-						
-						Set<Long> userSet = null;
-						if (dateUserMap.containsKey(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()))) {
-							userSet = dateUserMap.get(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()));
-						} else {
-							userSet = new HashSet<>();
-						}
-						userSet.add(eventTimeSlotMap.getKey());
-						
-						dateUserMap.put(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()), userSet);
-						etsDateWiseMap.put(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()), etsMapList);
-					}
-				}
-
-				for (String mDate : monthlyDates) {
-					System.out.println(mDate);
-					Calendar cal = Calendar.getInstance();
-					cal.setTime(CenesUtils.yyyyMMdd.parse(mDate));
-					cal.set(Calendar.HOUR_OF_DAY, searchCalDate.get(Calendar.HOUR_OF_DAY));
-					cal.set(Calendar.MINUTE, searchCalDate.get(Calendar.MINUTE));
-					cal.set(Calendar.SECOND, 0);
-					
-					if (etsDateWiseMap.containsKey(mDate)) {
-						List<EventTimeSlot> userTimeSlots = etsDateWiseMap.get(mDate);
-						
-						Boolean slotExistsBetweenTimeRange = false;
-						Long freeFriendIdForSlotsNotExistsInRange = null;
-						Set<Long> freeFriends = new HashSet<>();
-						//Set<Long> setOfUsersWithTimeSlots = new HashSet<>();
-						for (EventTimeSlot userEts : userTimeSlots) {
-							
-							freeFriendIdForSlotsNotExistsInRange = userEts.getUserId();
-							//System.out.println("User Id : "+userEts.getUserId()+", Status : "+userEts.getStatus());
-							//if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime())) && userEts.getStatus().equals(TimeSlotStatus.Free.toString())) {
-							//System.out.println(CenesUtils.hhmm.format(userEts.getStartTime()));
-							System.out.println("Time In Hour Format : "+CenesUtils.hhmm.format(userEts.getStartTime()));
-							if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime()))) {
-								slotExistsBetweenTimeRange = true;
-								System.out.println("Friend Found.."+userEts.getStatus());
-								
-								if (userEts.getStatus().equals(EventTimeSlot.TimeSlotStatus.Free.toString())) {
-									//This is to check if the events are of date yyyy-MM-dd
-									if (CenesUtils.yyyyMMdd.format(eventStartTime).equals(CenesUtils.yyyyMMdd.format(eventEndTime))) {
-										freeFriends.add(userEts.getUserId());
-									} else if (CenesUtils.yyyyMMdd.format(userEts.getEventStartTime()).equals(mDate)){
-										freeFriends.add(userEts.getUserId());
-									}
-								}
-								
-							}
-							//setOfUsersWithTimeSlots.add(userEts.getUserId());
-						}
- 						
-						if (!slotExistsBetweenTimeRange) {
-							System.out.println("slotExistsBetweenTimeRange NOooooooo");
-							freeFriends.add(freeFriendIdForSlotsNotExistsInRange);
-						}
-					
-						
-						//System.out.println("totalFriends : "+totalFriends+", Busy Friends : "+setOfUsersWithTimeSlots.size());
- 						//int totalFriendsComing = freeFriends.size() + (totalFriends - freeFriends.size() - setOfUsersWithTimeSlots.size());
-						
-						//If User is single and looking for his time slots then we will make total coming to total friends
-						
-						System.out.println("Total Friends: "+totalFriends+" && Friend Size : "+freeFriends.size());
-						int totalFriendsComing = freeFriends.size();
-						
-						
-						float predictivePercentage = Math.abs((Float.valueOf(totalFriendsComing) / Float.valueOf(totalFriends)) * 100);
-						
-						PredictiveCalendar pc = new PredictiveCalendar();
-						pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTimeInMillis()));
-						pc.setDate(cal.getTimeInMillis());
-						pc.setTotalFriends(totalFriends);
-						pc.setAttendingFriends(totalFriendsComing);
-						pc.setPredictivePercentage((int)predictivePercentage);
-						predictiveCalendarDateWise.add(pc);
-						
-					} else {//No Fried is busy
-						
-						PredictiveCalendar pc = new PredictiveCalendar();
-						pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTimeInMillis()));
-						pc.setDate(cal.getTimeInMillis());
-						pc.setTotalFriends(totalFriends);
-						pc.setAttendingFriends(totalFriends);
-						pc.setPredictivePercentage(100);
-						predictiveCalendarDateWise.add(pc);
-					}
-				} */
 				}
 				for (String mDate: monthlyDates) {
 					
@@ -1086,7 +957,10 @@ public class EventController {
 					Calendar dateCal = Calendar.getInstance();
 					dateCal.setTimeInMillis(eventStartTime);
 					dateCal.set(Calendar.DAY_OF_MONTH, dd.getDate());
-					System.out.println("Event Date After adding mDate : "+dateCal.getTime());
+					//System.out.println("Event Date After adding mDate : "+dateCal.getTime());
+					
+					
+					System.out.println(dateCal.getTimeInMillis()+" - MIllis, Day : "+dateCal.get(Calendar.DAY_OF_MONTH)+", MONTH : "+dateCal.get(Calendar.MONTH)+" Predictive Percentage : "+predictivePercentage);
 					PredictiveCalendar pc = new PredictiveCalendar();
 					pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(dd));
 					pc.setDate(dateCal.getTimeInMillis());
