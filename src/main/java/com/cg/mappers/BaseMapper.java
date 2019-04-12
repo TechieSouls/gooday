@@ -6,6 +6,7 @@ import java.util.Date;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
 import com.cg.user.bo.User;
+import com.cg.user.bo.UserContact;
 import com.cg.utils.CenesUtils;
 
 public class BaseMapper {
@@ -43,6 +44,35 @@ public class BaseMapper {
 			e.printStackTrace();
 		}
 		return user;
+	}
+	
+	public UserContact populateUserContactData(ResultSet rs) {
+		UserContact userContact = new UserContact();
+		
+		try {
+			rs.findColumn("phonebookName");
+			
+			if (rs.getString("phonebookName") == null) {
+				userContact = null;
+				return userContact;
+			}
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			userContact = null;
+			return userContact;
+		}
+		
+		try {
+						
+			if (rs.getString("phonebookName") != null) {
+				userContact.setName(rs.getString("phonebookName"));
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return userContact;
 	}
 	
 	public Event populateEventBo(ResultSet rs) {
@@ -90,6 +120,7 @@ public class BaseMapper {
 			event.setIsPredictiveOn(rs.getBoolean("is_predictive_on"));
 			event.setPredictiveData(rs.getString("predictive_data"));
 			event.setKey(rs.getString("private_key"));
+			event.setExpired(rs.getBoolean("expired"));
 			
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -125,7 +156,7 @@ public class BaseMapper {
 			eventMember.setProcessed(rs.getInt("processed"));
 			eventMember.setUserContactId(rs.getLong("user_contact_id"));
 			eventMember.setUser(populateUserData(rs));
-
+			eventMember.setUserContact(populateUserContactData(rs));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

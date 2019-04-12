@@ -158,7 +158,7 @@ public class EventServiceDao {
 		return events;
 	}
 	
-	public List<Event> findEventsByNotifications(List<Notification> notifications) {
+	public List<Event> findEventsByNotifications(List<Notification> notifications, Long recepientId) {
 		
 		
 		StringBuffer eventIds = new StringBuffer();
@@ -166,8 +166,8 @@ public class EventServiceDao {
 			eventIds.append(notifiacton.getNotificationTypeId()+",");
 		}
 		String eventIdsStr = eventIds.toString().substring(0, eventIds.toString().length() - 1);
-		String query = "select *, us.name as nameuser from events ev INNER JOIN event_members em on ev.event_id = em.event_id and ev.event_id in ("+eventIdsStr.toString()+")"
-				+ " LEFT JOIN users us on ev.created_by_id = us.user_id";
+		String query = "select *, us.name as nameuser, uc.cenes_name as phonebookName from events ev INNER JOIN event_members em on ev.event_id = em.event_id and ev.event_id in ("+eventIdsStr.toString()+")"
+				+ " LEFT JOIN users us on em.user_id = us.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.user_id = "+recepientId+"";
 		System.out.println(query);
 		
 		List<Event> events = jdbcTemplate.query(query, new EventDataMapper());

@@ -44,7 +44,7 @@ public class NotificationDao {
 			
 			
 			//Populating Events in Notifications
-			List<Event> events = eventServiceDao.findEventsByNotifications(notifications);
+			List<Event> events = eventServiceDao.findEventsByNotifications(notifications, recepientId);
 			Map<Long, Event> eventMap = new HashMap<>();
 			if (events != null && events.size() > 0) {
 				
@@ -54,16 +54,17 @@ public class NotificationDao {
 					Event eventTemp = null;
 					if (eventMap.containsKey(event.getEventId())) {
 						eventTemp = eventMap.get(event.getEventId());
+						
+						List<EventMember> members = eventTemp.getEventMembers();
+						if (members == null) {
+							members = new ArrayList<>();
+						}
+						members.add(event.getEventMembers().get(0));
+						eventTemp.setEventMembers(members);
+						
 					} else {
 						eventTemp = event;
 					}
-					
-					List<EventMember> members = eventTemp.getEventMembers();
-					if (members == null) {
-						members = new ArrayList<>();
-					}
-					members.add(event.getEventMembers().get(0));
-					eventTemp.setEventMembers(members);
 					eventMap.put(event.getEventId(), eventTemp);
 				}
 			}
