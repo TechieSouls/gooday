@@ -1100,6 +1100,16 @@ public class UserController {
 		return new ResponseEntity<List<UserContact>>(friends,HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/api/user/phonefriends/v2", method = RequestMethod.GET)
+	public Map<String, Object> getUserPhoneFriendsList(Long userId) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		List<UserContact> friends = (List)userContactRepository.findByUserIdOrderByNameAsc(userId);
+		response.put("data", friends);
+		return response;
+	}
+	
 	@RequestMapping(value = "/api/syncContacts", method = RequestMethod.POST)
 	public void syncUserContacts(@RequestBody Map<String,Object> contactsMap) {
 		userService.syncPhoneContacts(contactsMap);
