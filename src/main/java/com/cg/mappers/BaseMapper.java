@@ -106,8 +106,8 @@ public class BaseMapper {
 			event.setScheduleAs(rs.getString("schedule_as"));
 			event.setEventPicture(rs.getString("event_picture"));
 			event.setThumbnail(rs.getString("thumbnail"));
-			event.setStartTime(new Date(rs.getDate("start_time").getTime()));
-			event.setEndTime(new Date(rs.getDate("end_time").getTime()));
+			event.setStartTime(new Date(rs.getTimestamp("start_time").getTime()));
+			event.setEndTime(new Date(rs.getTimestamp("end_time").getTime()));
 			event.setTimezone(rs.getString("timezone"));
 			event.setIsFullDay(rs.getBoolean("is_full_day"));
 			event.setCreatedAt(rs.getDate("created_at"));
