@@ -711,13 +711,13 @@ public class EventController {
 
 	@RequestMapping(value = "/api/predictive/calendar", method = RequestMethod.GET)
 	public ResponseEntity<List<PredictiveCalendar>> predictiveCalendarData(
-			@RequestParam("userId") Long friendId,
+			Long userId,
 			@RequestParam("start_time") Long eventStartTime,
 			@RequestParam("end_time") Long eventEndTime,
 			@RequestParam(value = "friends", required = false, defaultValue = "") String selectedFriendIds) {
-		System.out.println("[Predictive Calendar URL : /api/predictive/calendar?userId="+friendId+"&start_time="+eventStartTime+"&end_time="+eventEndTime+"&friends="+selectedFriendIds);
+		System.out.println("[Predictive Calendar URL : /api/predictive/calendar?userId="+userId+"&start_time="+eventStartTime+"&end_time="+eventEndTime+"&friends="+selectedFriendIds);
 		System.out.println("[Predictive Calendar -> Date : " + new Date()
-				+ ", User ID : " + friendId + ", Start Time : "
+				+ ", User ID : " + userId + ", Start Time : "
 				+ eventStartTime + ", End Time : " + eventEndTime + " STARTS]");
 		int slotsInMinutes = 5;
 		List<PredictiveCalendar> predictiveCalendarDateWise = new ArrayList<>();
@@ -730,9 +730,9 @@ public class EventController {
 		boolean friendsExists = false;
 		String userIds = "";
 		if (selectedFriendIds.length() > 0) {
-			selectedFriendIds += ","+friendId;
+			selectedFriendIds += ","+userId;
 		} else {
-			selectedFriendIds = friendId+"";
+			selectedFriendIds = userId+"";
 		}
 		if (selectedFriendIds != "" && selectedFriendIds.length() > 0) {
 			userIds = selectedFriendIds;
@@ -751,7 +751,7 @@ public class EventController {
 				totalFriends = friends.size() - 1;
 				String users = "";
 				for (User user : friends) {
-					if (user.getUserId().equals(friendId)) {
+					if (user.getUserId().equals(userId)) {
 						continue;
 					}
 					users += user.getUserId() + ",";
@@ -827,8 +827,8 @@ public class EventController {
 				Map<String, Long> dateHoursMap = new HashMap<String, Long>();
 
 				
-				for (String userId: userIds.split(",")) {
-					List<EventTimeSlot> eventTimeSlots = eventServiceDao.getFreeTimeSlotsByUserIdAndStartDateAndEndDate(Long.valueOf(userId), sDateStr, eDateStr);
+				for (String friendId: userIds.split(",")) {
+					List<EventTimeSlot> eventTimeSlots = eventServiceDao.getFreeTimeSlotsByUserIdAndStartDateAndEndDate(Long.valueOf(friendId), sDateStr, eDateStr);
 					Map<String,List<EventTimeSlot>> etsDateWiseMap = new HashMap<>();
 
 					for (EventTimeSlot etsFromList : eventTimeSlots) {
@@ -984,10 +984,299 @@ public class EventController {
 			}
 		}
 		System.out.println("[Predictive Calendar -> Date : " + new Date()
-				+ ", User ID : " + friendId + ", Start Time : "
+				+ ", User ID : " + userId + ", Start Time : "
 				+ eventStartTime + ", End Time : " + eventEndTime + " ENDS]");
 		return new ResponseEntity<List<PredictiveCalendar>>(
 				predictiveCalendarDateWise, HttpStatus.OK);
+	}
+	
+	
+	@RequestMapping(value = "/api/predictive/calendar/v2", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> predictiveCalendarDataV2(
+			Long userId,
+			Long startTime,
+			Long endTime,
+			String friends) {
+		System.out.println("[Predictive Calendar URL : /api/predictive/calendar/v2?userId="+userId+"&startTime="+startTime+"&endTime="+endTime+"&friends="+friends);
+		System.out.println("[Predictive Calendar -> Date : " + new Date()
+				+ ", User ID : " + userId + ", Start Time : "
+				+ startTime + ", End Time : " + endTime + " STARTS]");
+		
+		Map<String, Object> response = new HashMap();
+		response.put("success", true);
+		
+		int slotsInMinutes = 5;
+		List<PredictiveCalendar> predictiveCalendarDateWise = new ArrayList<>();
+
+		// Find all Friends Of User by its id which is friend id
+		// List<UserFriend> friends =
+		// userFriendRepository.findByFriendId(friendId, null);
+
+		int totalFriends = 0;
+		boolean friendsExists = false;
+		String userIds = "";
+		if (friends != null && friends.length() > 0) {
+			friends += ","+userId;
+		} else {
+			friends = userId+"";
+		}
+		if (friends != null && friends != "" && friends.length() > 0) {
+			userIds = friends;
+			totalFriends = friends.split(",").length;
+			friendsExists = true;
+		} /*else {
+			
+			List<User> friends = (List) userRepository.findAll();
+			if (friends != null && friends.size() > 0) {
+				List<Long> friendUserIds = new ArrayList<>();
+				/*
+				 * for (UserFriend userFriend : friends) { userIds +=
+				 * userFriend.getUserId()+",";
+				 * friendUserIds.add(userFriend.getUserId()); }
+				 */
+				/*totalFriends = friends.size() - 1;
+				String users = "";
+				for (User user : friends) {
+					if (user.getUserId().equals(userId)) {
+						continue;
+					}
+					users += user.getUserId() + ",";
+					friendUserIds.add(user.getUserId());
+				}
+				userIds = users.substring(0,users.length()-1);
+				friendsExists = true;
+			}
+		}*/
+		
+		//select * from event_time_slots where DATE(event_date) >= DATE('2018-01-01') and DATE(event_date) <= '2018-01-05' and HOUR(event_date) >= HOUR('2018-01-01 02:00:00') and HOUR(event_date) <= HOUR('2018-01-01 03:00:00') and user_id in (149,150);
+		
+		if (friendsExists) {
+			
+			Calendar searchCalDate = Calendar.getInstance();
+			searchCalDate.setTimeInMillis(startTime);
+			
+			// Now we have to divide the time of event to be created by user
+			// into slots of milliseconds. we will then check other users slots
+			// to match these event slots.
+			List<Long> createEventTimeSlotList = CenesUtils.divideTimeIntoMinuteSlots(new Date(startTime),
+							new Date(endTime), slotsInMinutes);
+
+			//Lets Calculate the hours list from time slots.
+			List<String> hoursList = new ArrayList<>();
+			for (Long timeSlot : createEventTimeSlotList) {
+				hoursList.add(CenesUtils.hhmm.format(new Date(timeSlot)));
+			}
+			
+			// We will create the month's start date
+			// and month's end date
+			// and find all the event slots within this date
+			Calendar monthStartTimeCalendar = Calendar.getInstance();
+			monthStartTimeCalendar.setTime(searchCalDate.getTime());
+			monthStartTimeCalendar.add(Calendar.MONTH, -1);
+			monthStartTimeCalendar.set(Calendar.DAY_OF_MONTH, monthStartTimeCalendar.getActualMaximum(Calendar.DAY_OF_MONTH) - 1);
+			
+			Calendar monthEndTimeCalendar = Calendar.getInstance();
+			monthEndTimeCalendar.setTime(searchCalDate.getTime());
+			monthEndTimeCalendar.add(Calendar.MONTH, 1);
+			monthEndTimeCalendar.set(Calendar.DAY_OF_MONTH,monthEndTimeCalendar.getActualMinimum(Calendar.DAY_OF_MONTH));
+			
+			Calendar currentMonthCal = Calendar.getInstance();
+			currentMonthCal.setTime(searchCalDate.getTime());
+
+			// Lets create list of all the dates in month
+			// We will then use this to check which is returned by DB and which
+			// is not.
+			List<String> monthlyDates = new ArrayList<>();
+			for (int i = 0; i < currentMonthCal.getActualMaximum(Calendar.DAY_OF_MONTH)+2; i++) {
+				monthlyDates.add(CenesUtils.yyyyMMdd.format(CenesUtils.getDateAfterAddingDays(monthStartTimeCalendar.getTime(), i)));
+			}
+			try {
+				
+				monthStartTimeCalendar.set(Calendar.HOUR, 0);
+				monthStartTimeCalendar.set(Calendar.MINUTE, 0);
+				monthStartTimeCalendar.set(Calendar.SECOND, 0);
+				monthStartTimeCalendar.set(Calendar.MILLISECOND, 0);
+				String sDateStr = CenesUtils.yyyyMMddTHHmmss.format(monthStartTimeCalendar.getTime());
+
+				
+				monthStartTimeCalendar.set(Calendar.HOUR, 23);
+				monthStartTimeCalendar.set(Calendar.MINUTE, 59);
+				monthStartTimeCalendar.set(Calendar.SECOND, 59);
+				monthStartTimeCalendar.set(Calendar.MILLISECOND, 999);
+				String eDateStr = CenesUtils.yyyyMMddTHHmmss
+						.format(monthEndTimeCalendar.getTime());
+
+				Long dbFetchStartTime = new Date().getTime();
+				
+				//List<Long> friendAttending = new ArrayList<>();
+				Map<String, String> dateFriendsAvailabilityMap = new HashMap<String, String>();
+				Map<String, Long> dateHoursMap = new HashMap<String, Long>();
+
+				
+				for (String friendId: userIds.split(",")) {
+					List<EventTimeSlot> eventTimeSlots = eventServiceDao.getFreeTimeSlotsByUserIdAndStartDateAndEndDate(Long.valueOf(friendId), sDateStr, eDateStr);
+					Map<String,List<EventTimeSlot>> etsDateWiseMap = new HashMap<>();
+
+					for (EventTimeSlot etsFromList : eventTimeSlots) {
+					
+						List<EventTimeSlot> etsMapList = null;
+						if (etsDateWiseMap.containsKey(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()))) {
+							etsMapList = etsDateWiseMap.get(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()));
+							etsMapList.add(etsFromList);
+						} else {
+							etsMapList = new ArrayList<>();
+							etsMapList.add(etsFromList);
+						}
+						etsDateWiseMap.put(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()), etsMapList);
+					}
+					
+					for (String mDate : monthlyDates) {
+						System.out.println(mDate);
+						Calendar cal = Calendar.getInstance();
+						cal.setTime(CenesUtils.yyyyMMdd.parse(mDate));
+						cal.set(Calendar.HOUR_OF_DAY, searchCalDate.get(Calendar.HOUR_OF_DAY));
+						cal.set(Calendar.MINUTE, searchCalDate.get(Calendar.MINUTE));
+						cal.set(Calendar.SECOND, 0);
+						
+						if (etsDateWiseMap.containsKey(mDate)) {
+							List<EventTimeSlot> userTimeSlots = etsDateWiseMap.get(mDate);
+							
+							Boolean slotExistsBetweenTimeRange = false;
+							Long freeFriendIdForSlotsNotExistsInRange = null;
+							Set<Long> freeFriends = new HashSet<>();
+							List<String> checkForNumberOfSlotsUserIsBusy = new ArrayList<>();
+							for (EventTimeSlot userEts : userTimeSlots) {
+								
+								freeFriendIdForSlotsNotExistsInRange = userEts.getUserId();
+								//System.out.println("User Id : "+userEts.getUserId()+", Status : "+userEts.getStatus());
+								//if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime())) && userEts.getStatus().equals(TimeSlotStatus.Free.toString())) {
+								//System.out.println(CenesUtils.hhmm.format(userEts.getStartTime()));
+								System.out.println("Time In Hour Format : "+CenesUtils.hhmm.format(userEts.getStartTime()));
+								//System.out.println("userEts.getStatus() : "+userEts.getStatus());
+								if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime()))) {
+									slotExistsBetweenTimeRange = true;
+									System.out.println("Friend Found.."+userEts.getStatus());
+									checkForNumberOfSlotsUserIsBusy.add(userEts.getStatus());
+									if (userEts.getStatus().equals(EventTimeSlot.TimeSlotStatus.Free.toString())) {
+										//This is to check if the events are of date yyyy-MM-dd
+										if (CenesUtils.yyyyMMdd.format(startTime).equals(CenesUtils.yyyyMMdd.format(endTime))) {
+											//freeFriends.add(userEts.getUserId());
+											slotExistsBetweenTimeRange = false;
+											break;
+										} else if (CenesUtils.yyyyMMdd.format(userEts.getEventStartTime()).equals(mDate)){
+											//freeFriends.add(userEts.getUserId());
+											slotExistsBetweenTimeRange = false;
+											break;
+										}
+									}
+									
+								}
+								//setOfUsersWithTimeSlots.add(userEts.getUserId());
+							}
+							
+							if (slotExistsBetweenTimeRange && checkForNumberOfSlotsUserIsBusy.size() < 2) {
+								slotExistsBetweenTimeRange = false;
+							}
+	 						
+							if (!slotExistsBetweenTimeRange) {
+								//System.out.println("slotExistsBetweenTimeRange NOooooooo");
+								//freeFriends.add(freeFriendIdForSlotsNotExistsInRange);
+								String userAvailabilityIds = "";
+								if (dateFriendsAvailabilityMap.containsKey(mDate)) {
+									userAvailabilityIds = dateFriendsAvailabilityMap.get(mDate);
+									userAvailabilityIds += ","+userId;
+								} else {
+									userAvailabilityIds += userId;
+								}
+								dateFriendsAvailabilityMap.put(mDate, userAvailabilityIds);
+							}
+						
+							
+							//System.out.println("totalFriends : "+totalFriends+", Busy Friends : "+setOfUsersWithTimeSlots.size());
+	 						//int totalFriendsComing = freeFriends.size() + (totalFriends - freeFriends.size() - setOfUsersWithTimeSlots.size());
+							
+							//If User is single and looking for his time slots then we will make total coming to total friends
+							
+							/*System.out.println("Total Friends: "+totalFriends+" && Friend Size : "+freeFriends.size());
+							int totalFriendsComing = freeFriends.size();
+							
+							
+							float predictivePercentage = Math.abs((Float.valueOf(totalFriendsComing) / Float.valueOf(totalFriends)) * 100);
+							
+							PredictiveCalendar pc = new PredictiveCalendar();
+							pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(cal.getTimeInMillis()));
+							pc.setDate(cal.getTimeInMillis());
+							pc.setTotalFriends(totalFriends);
+							pc.setAttendingFriends(totalFriendsComing);
+							pc.setPredictivePercentage((int)predictivePercentage);
+							predictiveCalendarDateWise.add(pc);*/
+							
+						} else {
+							String userAvailabilityIds = "";
+							if (dateFriendsAvailabilityMap.containsKey(mDate)) {
+								userAvailabilityIds = dateFriendsAvailabilityMap.get(mDate);
+								userAvailabilityIds += ","+userId;
+							} else {
+								userAvailabilityIds += userId;
+							}
+							dateFriendsAvailabilityMap.put(mDate, userAvailabilityIds);
+						}
+						
+					}
+				
+				}
+				for (String mDate: monthlyDates) {
+					
+					String availableUserIds = dateFriendsAvailabilityMap.get(mDate);
+					int friendsAttending = 0;
+					if (availableUserIds != null) {
+						friendsAttending = availableUserIds.split(",").length;
+					}
+					
+					float predictivePercentage = Math.abs((Float.valueOf(friendsAttending) / Float.valueOf(totalFriends)) * 100);
+
+					
+					
+					
+					Date dd = new SimpleDateFormat("yyyy-MM-dd").parse(mDate);
+					Calendar montlyDateCal = Calendar.getInstance();
+					montlyDateCal.setTime(dd);
+					
+					
+					Calendar dateCal = Calendar.getInstance();
+					dateCal.setTimeInMillis(startTime);
+					dateCal.set(Calendar.DAY_OF_MONTH, montlyDateCal.get(Calendar.DAY_OF_MONTH));
+					dateCal.set(Calendar.MONTH, montlyDateCal.get(Calendar.MONTH));
+					//System.out.println("Event Date After adding mDate : "+dateCal.getTime());
+					
+					
+					System.out.println(dateCal.getTimeInMillis()+" - MIllis, Day : "+dateCal.get(Calendar.DAY_OF_MONTH)+", MONTH : "+dateCal.get(Calendar.MONTH)+" Predictive Percentage : "+predictivePercentage);
+					PredictiveCalendar pc = new PredictiveCalendar();
+					pc.setReadableDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(montlyDateCal.getTime()));
+					pc.setDate(dateCal.getTimeInMillis());
+					pc.setTotalFriends(totalFriends);
+					pc.setAttendingFriends(friendsAttending);
+					pc.setPredictivePercentage((int)predictivePercentage);
+					predictiveCalendarDateWise.add(pc);
+					
+				}
+					
+				System.out.println("[Predictive Calendar : Date : "+new Date()+", Logic Ends");
+				//dbFetchEndTime = new Date().getTime();
+				//System.out.println("[Predictive Calendar : Date : "+new Date()+", Total Time Taken By Logic "+(dbFetchEndTime - dbFetchStartTime)/1000+" seconds");
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		response.put("data", predictiveCalendarDateWise);
+		
+		System.out.println("[Predictive Calendar -> Date : " + new Date()
+				+ ", User ID : " + userId + ", Start Time : "
+				+ startTime + ", End Time : " + endTime + " ENDS]");
+		return new ResponseEntity<Map<String, Object>>(
+				response, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/api/event/upload", method = RequestMethod.POST)
