@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import com.cg.bo.Notification;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
-import com.cg.events.dao.EventServiceDao;
 import com.cg.mappers.NotificationDataMapper;
 
 @Service

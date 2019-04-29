@@ -1,4 +1,4 @@
-package com.cg.events.dao;
+package com.cg.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,17 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
@@ -30,11 +21,8 @@ import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventTimeSlot;
 import com.cg.mappers.EventDataMapper;
-import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
-
-import io.swagger.annotations.ApiModelProperty;
 
 @Service
 public class EventServiceDao {
@@ -371,6 +359,67 @@ public class EventServiceDao {
 		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"') as event_temp "
 				+ "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
+		
+		System.out.println(query);
+		
+		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
+		
+		
+		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
+		for (Map<String, Object> userGatheringMap: userGatheringsMapList) {
+			Event event = null;
+			if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+				event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
+				
+				List<EventMember> eventMmembers = event.getEventMembers();
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			} else {
+				event = populateEventBo(userGatheringMap);
+				List<EventMember> eventMmembers = null;
+				if (event.getEventMembers() == null) {
+					eventMmembers = new ArrayList<>();
+				} else {
+					eventMmembers = event.getEventMembers();
+				}
+				
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			}
+			eventIdMap.put(event.getEventId(), event);
+		}
+		
+		List<Event> events = new ArrayList<>();
+		for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
+			events.add(eventEntrySet.getValue());
+		}
+		
+
+		events.sort(Comparator.comparing(Event::getStartTime, (star1, star2) -> {
+		    if(star1 == star2){
+		         return 0;
+		    }
+		    return (star1.getTime() > star2.getTime()) ? -1 : 1;
+		}));
+                      
+		
+		return events;
+	}
+	
+public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String status, int pageNumber, int offSet) {
+		
+	String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname "
+			+ "from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+			+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and ";
+	
+			if (status == null) {
+				query += "em.status is NULL) as event_temp ";
+			} else {
+				query += "em.status = '"+status+"') as event_temp ";
+			}
+					
+			query += "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
+			+ "order by event_temp.start_time asc limit "+pageNumber+","+offSet+" ";
 		
 		System.out.println(query);
 		

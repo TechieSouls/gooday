@@ -38,6 +38,7 @@ import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.constant.CgConstants.ErrorCodes;
+import com.cg.dao.EventServiceDao;
 import com.cg.dto.HomeScreenDto;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.Event.EventSource;
@@ -48,7 +49,6 @@ import com.cg.events.bo.EventTimeSlot;
 import com.cg.events.bo.OutlookEvents;
 import com.cg.events.bo.PredictiveCalendar;
 import com.cg.events.bo.RecurringPattern;
-import com.cg.events.dao.EventServiceDao;
 import com.cg.events.repository.EventRepository;
 import com.cg.events.repository.EventTimeSlotRepository;
 import com.cg.events.repository.RecurringPatternRepository;
@@ -1593,6 +1593,63 @@ public class EventController {
 		return  new ResponseEntity<Map<String,Object>>(responseMap, HttpStatus.OK);
 	}
 
+	@RequestMapping(value = "/api/user/gatherings/v2", method = RequestMethod.GET)
+	public ResponseEntity<Map<String,Object>> getUserGatheringsV2(Long userId, String status, int pageNumber, int offSet) {
+		Map<String,Object> responseMap = new HashMap<>();
+		try {
+				responseMap.put("data", new ArrayList<>());
+
+				List<Event> events = null;
+				if ("Pending".equalsIgnoreCase(status)) {
+					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, null, pageNumber, offSet);
+				} else if ("NotGoing".equalsIgnoreCase(status)) {
+					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, status, pageNumber, offSet);
+				} else {
+					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, status, pageNumber, offSet);
+				}
+				if (events == null || events.size() == 0) {
+					events = new ArrayList<>();
+				} else {
+					
+					for (Event iteratableEvent : events) {
+						List<EventMember> members = new ArrayList<>();
+						if (iteratableEvent.getEventMembers() != null && iteratableEvent.getEventMembers().size() > 0) {
+							for (EventMember eventMember : iteratableEvent.getEventMembers()) {
+								if (eventMember.getUserId() != null && eventMember.getUserId().equals(iteratableEvent.getCreatedById())) {
+									eventMember.setOwner(true);
+									members.add(eventMember);
+									break;
+								}
+							}
+							for (EventMember eventMember : iteratableEvent.getEventMembers()) {
+								if (eventMember.getUserId() != null && !eventMember.getUserId().equals(iteratableEvent.getCreatedById())) {
+									members.add(eventMember);
+								}
+							}
+						}
+						
+						iteratableEvent.setEventMembers(members);
+					}
+				}
+				responseMap.put("data", events);
+				responseMap.put("errorCode",0);
+				responseMap.put("errorDetail",null);
+				responseMap.put("success",true);
+				responseMap.put("status", "ok");
+				return new ResponseEntity<Map<String,Object>>(responseMap, HttpStatus.OK);
+		} catch(Exception e) {
+				e.printStackTrace();
+				responseMap.put("success",false);
+				responseMap.put("status", "fail");
+				responseMap.put("data", new ArrayList<>());
+				responseMap.put("errorCode",ErrorCodes.InternalServerError.ordinal());
+				responseMap.put("errorDetail",ErrorCodes.InternalServerError.toString());
+		}
+		
+		return  new ResponseEntity<Map<String,Object>>(responseMap, HttpStatus.OK);
+	}
+	
+	
 	@RequestMapping(value = "/api/user/syncdevicecalendar", method = RequestMethod.POST)
 	public ResponseEntity<Map<String,Object>> syncDeviceCalendar(@RequestBody Map<String,List<Event>> eventMap) {
 		System.out.println("[Syncing Device Calendar : Date : "+new Date()+" STARTS]");
