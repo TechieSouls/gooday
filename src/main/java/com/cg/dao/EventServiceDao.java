@@ -460,7 +460,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		    if(star1 == star2){
 		         return 0;
 		    }
-		    return (star1.getTime() > star2.getTime()) ? -1 : 1;
+		    return (star1.getTime() < star2.getTime()) ? -1 : 1;
 		}));
                       
 		
