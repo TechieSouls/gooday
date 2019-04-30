@@ -450,11 +450,11 @@ public class EventServiceDao {
 		return events;
 	}
 	
-public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String status, int pageNumber, int offSet) {
+public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String status, String startDate, int pageNumber, int offSet) {
 		
 	String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname "
 			+ "from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
-			+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and ";
+			+ "DATE(e.end_time) >= '"+startDate+"') and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and ";
 	
 			if (status == null) {
 				query += "em.status is NULL) as event_temp ";

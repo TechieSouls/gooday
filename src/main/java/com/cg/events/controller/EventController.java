@@ -1623,18 +1623,21 @@ public class EventController {
 	}
 
 	@RequestMapping(value = "/api/user/gatherings/v2", method = RequestMethod.GET)
-	public ResponseEntity<Map<String,Object>> getUserGatheringsV2(Long userId, String status, int pageNumber, int offSet) {
+	public ResponseEntity<Map<String,Object>> getUserGatheringsV2(Long userId, String status, Long timestamp, int pageNumber, int offSet) {
 		Map<String,Object> responseMap = new HashMap<>();
 		try {
 				responseMap.put("data", new ArrayList<>());
 
+				String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(timestamp);
+
+				
 				List<Event> events = null;
 				if ("Pending".equalsIgnoreCase(status)) {
-					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, null, pageNumber, offSet);
+					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, null, startDateStr, pageNumber, offSet);
 				} else if ("NotGoing".equalsIgnoreCase(status)) {
-					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, status, pageNumber, offSet);
+					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, status, startDateStr, pageNumber, offSet);
 				} else {
-					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, status, pageNumber, offSet);
+					events = eventServiceDao.findPageableGatheringsByUserIdAndStatus(userId, status, startDateStr, pageNumber, offSet);
 				}
 				if (events == null || events.size() == 0) {
 					events = new ArrayList<>();
