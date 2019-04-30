@@ -487,6 +487,35 @@ public class EventController {
 		}
 	}
 	
+	@RequestMapping(value = "/api/getEvents/v2", method = RequestMethod.GET)
+	public ResponseEntity<Map<String,Object>> getUserEventsByDate(Long userId, Long timestamp, int pageNumber, int offSet) {
+		Map<String,Object> response = new HashMap<>();
+		try {
+
+			System.out.println("[USER EVENTS V2 -  User Id : " + userId + "]");
+			
+			
+			String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(timestamp);
+			
+		    List<HomeScreenDto> responseDataToSend = eventManager.getPageableHomeScreenData(userId,startDateStr,pageNumber, offSet);
+			System.out.println("[USER EVENTS V2 -  Events list : " + responseDataToSend.size()+ "]");
+
+			response.put("success", true);
+			response.put("data", responseDataToSend);
+			response.put("errorCode", 0);
+			response.put("errorDetail", null);
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			response.put("success", false);
+			response.put("data", new ArrayList<>());
+			response.put("errorCode", ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail", ErrorCodes.InternalServerError.toString());
+
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+	}
+	
 	
 	@RequestMapping(value = "/api/events", method = RequestMethod.GET)
 	@ResponseBody
