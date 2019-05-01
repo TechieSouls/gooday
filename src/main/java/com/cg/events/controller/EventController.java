@@ -1663,6 +1663,15 @@ public class EventController {
 						iteratableEvent.setEventMembers(members);
 					}
 				}
+				
+				int totalCounts = 0;
+				
+				try {
+					totalCounts = eventServiceDao.findCountByGatheringsByUserIdAndStatus(userId, status, startDateStr);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+				responseMap.put("totalCounts", totalCounts);
 				responseMap.put("data", events);
 				responseMap.put("errorCode",0);
 				responseMap.put("errorDetail",null);
