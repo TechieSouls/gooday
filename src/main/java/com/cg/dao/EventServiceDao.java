@@ -469,7 +469,7 @@ public class EventServiceDao {
 	
 public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String status, String startDate, int pageNumber, int offSet) {
 		
-	String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname, "
+	String query = "select *, event_temp.source as event_source, em.user_id as em_user_id, em.source as member_source, em.name as non_cenes_member_name, u.name as origname, "
 			+ "uc.name as phonebookName from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 			+ "e.end_time >= '"+startDate+"' and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and ";
 	
@@ -687,9 +687,14 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 			if  (eventMembersMap.get("status") != null) {
 				eventMember.setStatus(eventMembersMap.get("status").toString());
 			}
-			if  (eventMembersMap.get("user_id") != null) {
+			
+			if (eventMembersMap.get("em_user_id") != null) {
+				eventMember.setUserId(Long.valueOf(eventMembersMap.get("em_user_id").toString()));
+			} else if  (eventMembersMap.get("user_id") != null) {
 				eventMember.setUserId(Long.valueOf(eventMembersMap.get("user_id").toString()));
 			}
+			
+			
 			if  (eventMembersMap.get("processed") != null) {
 				eventMember.setProcessed(Integer.valueOf(eventMembersMap.get("processed").toString()));
 			}
@@ -697,7 +702,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 				eventMember.setUserContactId(Long.valueOf(eventMembersMap.get("user_contact_id").toString()));
 			}
 			
-			if  (eventMembersMap.get("user_id") != null) {
+			if  (eventMembersMap.get("em_user_id") != null || eventMembersMap.get("user_id") != null) {
 				eventMember.setUser(populateUser(eventMembersMap));
 			}
 		} catch(Exception e) {
