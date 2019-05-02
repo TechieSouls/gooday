@@ -22,6 +22,7 @@ import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventTimeSlot;
 import com.cg.mappers.EventDataMapper;
 import com.cg.user.bo.User;
+import com.cg.user.bo.UserContact;
 import com.cg.utils.CenesUtils;
 
 @Service
@@ -485,7 +486,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		
 		System.out.println(query);
 		
-		/*List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
+	List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
 		
 		
 		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
@@ -525,8 +526,8 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		    return (star1.getTime() < star2.getTime()) ? -1 : 1;
 		}));
                       
-		*/
-		List<Event> events = jdbcTemplate.query(query, new EventDataMapper());
+		
+		//List<Event> events = jdbcTemplate.query(query, new EventDataMapper());
 		
 		return events;
 	}
@@ -707,6 +708,21 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 			if  (eventMembersMap.get("em_user_id") != null || eventMembersMap.get("user_id") != null) {
 				eventMember.setUser(populateUser(eventMembersMap));
 			}
+			
+			if (eventMembersMap.get("user_id") != null) {
+				try {
+					UserContact userContact = null;
+					if (eventMembersMap.get("phonebookName") != null) {
+						userContact =  new UserContact();
+						userContact.setName(eventMembersMap.get("phonebookName").toString());
+					}
+					eventMember.setUserContact(userContact);
+				} catch (Exception e) {
+					// TODO: handle exception
+					e.printStackTrace();
+				}
+			}
+			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
@@ -722,13 +738,16 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		}
 		if (userMap.get("name") != null) {
 			user.setName(userMap.get("name").toString());
+		} else if (userMap.get("nameuser") != null) {
+			user.setName(userMap.get("nameuser").toString());
 		}
+		
 		if (userMap.get("photo") != null) {
 			user.setPhoto(userMap.get("photo").toString());
 		}
 		if (userMap.get("phone") != null) {
 			user.setPhone(userMap.get("phone").toString());
-		}
+		}		
 		return user;
 	}
 	
