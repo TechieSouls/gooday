@@ -736,8 +736,8 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		if (userMap.get("user_id") != null) {
 			user.setUserId(Long.valueOf(userMap.get("user_id").toString()));
 		}
-		if (userMap.get("name") != null) {
-			user.setName(userMap.get("name").toString());
+		if (userMap.get("origname") != null) {
+			user.setName(userMap.get("origname").toString());
 		} else if (userMap.get("nameuser") != null) {
 			user.setName(userMap.get("nameuser").toString());
 		}
