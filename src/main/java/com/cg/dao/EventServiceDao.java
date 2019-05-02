@@ -469,8 +469,8 @@ public class EventServiceDao {
 	
 public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String status, String startDate, int pageNumber, int offSet) {
 		
-	String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname "
-			+ "from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+	String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname, "
+			+ "uc.name as phonebookName from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 			+ "e.end_time >= '"+startDate+"' and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and ";
 	
 			if (status == null) {
@@ -480,6 +480,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 			}
 					
 			query += "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
+			+ "LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.user_id = "+userId+" "
 			+ "order by event_temp.start_time asc limit "+pageNumber+","+offSet+" ";
 		
 		System.out.println(query);
