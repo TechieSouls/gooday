@@ -152,7 +152,12 @@ public class BaseMapper {
 			eventMember.setSourceEmail(rs.getString("source_email"));
 			eventMember.setSourceId(rs.getString("source_id"));
 			eventMember.setStatus(rs.getString("status"));
-			eventMember.setUserId(rs.getLong("user_id"));
+			if (rs.getLong("em_user_id") != 0) {
+				eventMember.setUserId(rs.getLong("em_user_id"));
+			} else {
+				eventMember.setUserId(rs.getLong("user_id"));
+			}
+
 			eventMember.setProcessed(rs.getInt("processed"));
 			eventMember.setUserContactId(rs.getLong("user_contact_id"));
 			eventMember.setUser(populateUserData(rs));

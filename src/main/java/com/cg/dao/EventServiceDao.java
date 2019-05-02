@@ -485,7 +485,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		
 		System.out.println(query);
 		
-		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
+		/*List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
 		
 		
 		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
@@ -525,6 +525,8 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		    return (star1.getTime() < star2.getTime()) ? -1 : 1;
 		}));
                       
+		*/
+		List<Event> events = jdbcTemplate.query(query, new EventDataMapper());
 		
 		return events;
 	}
