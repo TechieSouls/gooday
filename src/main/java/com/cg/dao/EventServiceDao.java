@@ -147,6 +147,14 @@ public class EventServiceDao {
 		return events;
 	}
 	
+	public int findCountByGatheringsByUserIdAndDate(Long userId, String startDate) {
+
+		String countQuery = "select count(*) from events e JOIN event_members em on e.event_id = em.event_id where e.start_time >= '"+startDate+"' and  "
+				+ "em.user_id = "+userId+" and em.status = 'Going' and e.schedule_as in ('Event','Holiday','Gathering')";
+		
+		int numberOfTotalCounts = jdbcTemplate.queryForInt(countQuery);
+		return numberOfTotalCounts;
+	}
 	
 	public List<Event> findPaginationByCreatedByIdAndStartDate(Long createdById, String eventDate, int pageNumber, int offSet) {
 		
@@ -569,6 +577,18 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		}
 		return events;
 	}
+	
+	public List<Map<String, Object>> findHomeCalendarEventsString(Long userId, String startDate, String endDate) {
+		
+		String query = "select start_time, schedule_as from events where created_by_id = "+userId+" and start_time >= '"+startDate+"' and "
+				+ "start_time <= '"+endDate+"'";
+		System.out.println(query);
+		
+		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
+		return userGatheringsMapList;
+	}
+	
+	
 	
 	public Event populateEventBo(Map<String, Object> eventMap) {
 		Event event = new Event();
