@@ -130,6 +130,22 @@ public class UserService {
 		return holidayCalendarRepository.findByUserId(userId);
 	}
 	
+	public void updateNameByUserId(String name, Long userId) {
+		userRepository.updateNameByUserId(name, userId);
+	}
+	
+	public void updateGenderByUserId(String gender, Long userId) {
+		userRepository.updateGenderByUserId(gender, userId);
+	}
+	
+	public void updateBirthDayByUserId(String birthDayStr, Long userId) {
+		userRepository.updateDobStrByUserId(birthDayStr, userId);
+	}
+	
+	public void updatePasswordByUserId(String password, Long userId) {
+		userRepository.updatePasswordByUserId(password, userId);
+	}
+	
 	/**
 	 * Method to Sync the user phone contacts.
 	 * */
@@ -428,6 +444,7 @@ public class UserService {
 					} else {//Increment Attended counts
 						userStat.setEventsAttendedCounts(1l);
 					}
+					userStat.setUserId(goingMember.getUserId());
 					usersStatToUpdate.add(userStat);
 				}
 			}

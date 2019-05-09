@@ -1016,6 +1016,37 @@ public class UserController {
 		return response;
 	}
 	
+	
+	@RequestMapping(value = "/api/user/updateDetails", method = RequestMethod.POST)
+	public Map<String, Object> updateUserDetails(@RequestBody Map<String, Object> updateUserDetails) {
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		Long userId = Long.valueOf(updateUserDetails.get("userId").toString());
+		
+		if (updateUserDetails.containsKey("username")) {
+			String userName =  updateUserDetails.get("username").toString();
+			
+			userService.updateNameByUserId(userName, userId);
+		} else if (updateUserDetails.containsKey("gender")) {
+			String gender =  updateUserDetails.get("gender").toString();
+			userService.updateGenderByUserId(gender, userId);
+		} else if (updateUserDetails.containsKey("birthDayStr")) {
+			String birthDayStr =  updateUserDetails.get("birthDayStr").toString();
+			userService.updateBirthDayByUserId(birthDayStr, userId);
+		} else if (updateUserDetails.containsKey("newPassword")) {
+			
+			String newPassword = updateUserDetails.get("newPassword").toString();
+			//Now lets create new password and update it.
+			String newPass = new Md5PasswordEncoder().encodePassword(newPassword, salt);
+			userService.updatePasswordByUserId(newPass, userId);
+		}
+		
+		response.put("success", true);
+		return response;
+	}
+	
 	@RequestMapping(value = "/api/user/holidayCalendar", method = RequestMethod.POST)
 	public Map<String, Object> saveHolidayCalendar(@RequestBody HolidayCalendar holidayCalendar) {
 		
@@ -1086,6 +1117,36 @@ public class UserController {
 				response.put("message", "Reset Password Link Expired");
 				return response;
 			}
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	@RequestMapping(value = "/auth/validatePassword", method = RequestMethod.GET)
+	public Map<String, Object> validatePassword(@RequestBody ChangePasswordDto changePasswordDto) {
+		try {
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			
+			User user = userService.findUserById(changePasswordDto.getUserId());
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "User does not exists.");
+				return response;
+			}
+			
+			String currentPassword = changePasswordDto.getCurrentPassword();
+			
+			if (!user.getPassword().equals(new Md5PasswordEncoder().encodePassword(currentPassword, salt))) {
+				response.put("success", false);
+				response.put("message", "Wrong Password.");
+				return response;
+			}
+			
+			response.put("success", true);
+			response.put("data", user);
 			return response;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1191,6 +1252,22 @@ public class UserController {
 		userService.deleteUserByUserId(user.getUserId());
 		return response;
 	}
+	
+	@RequestMapping(value = "/api/user/userStatsByUserId", method = RequestMethod.GET)
+	public Map<String, Object> findUserStatsByUserId(Long userId) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		UserStat userStat = userService.findUserStatByUserId(userId);
+		if (userStat == null) {
+			userStat = new UserStat();
+		}
+		
+		response.put("data", userStat);
+		response.put("message", "User not found");
+		return response;
+	}
+
 	
 	@Autowired
 	TokenAuthenticationService tokenAuthenticationService;

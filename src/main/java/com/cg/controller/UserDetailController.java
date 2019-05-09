@@ -104,7 +104,7 @@ public class UserDetailController {
 			}
 		}
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user "+user.toString());	
-		user.setPassword(null);
+		user.setPassword("password");
 		return new ResponseEntity<User>(user, HttpStatus.OK);
 	}
 	
