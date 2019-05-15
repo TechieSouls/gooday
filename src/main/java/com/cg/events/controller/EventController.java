@@ -648,11 +648,7 @@ public class EventController {
 	}
 
 	// Method to get Google events from API.
-	@ApiOperation(value = "Get Google events", notes = "Get Google events and save in db", code = 200, httpMethod = "GET", produces = "application/json")
-	@ModelAttribute(value = "events")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "Events Fetched Successfuly") })
 	@RequestMapping(value = "/api/google/events", method = RequestMethod.GET)
-	@ResponseBody
 	public ResponseEntity<List<Event>> getGoogleEvents(
 			@RequestParam("access_token") String accessToken,
 			@RequestParam("user_id") Long userId, String serverAuthCode, String refreshToken) {
@@ -715,6 +711,73 @@ public class EventController {
 		System.out.println("[ Syncing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
 		return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value = "/api/google/events/v2", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> syncGoogleEventsV2(@RequestBody Map<String, Object> syncParams) {
+		
+		Map<String, Object> response = new HashMap<String, Object>();
+		response.put("success", true);
+		
+		System.out.println("[Google Sync V2] Date : "+new Date()+" Getting Refresh Token Response from AuthCode");
+		Long userId = Long.valueOf(syncParams.get("userId").toString());
+
+		GoogleService googleService = new GoogleService();
+		
+		if (syncParams.containsKey("serverAuthCode") && syncParams.get("serverAuthCode") != null) {
+			JSONObject authCodeResponse = googleService.getRefreshTokenFromCode(syncParams.get("serverAuthCode").toString());
+			System.out.println("[Google Sync V2] Date : "+new Date()+" Response from AuthCode : "+authCodeResponse.toString());
+			if (authCodeResponse != null) {
+				try {
+					String refToken = authCodeResponse.getString("refresh_token");
+					System.out.println("[Google Sync V2] Date : "+new Date()+" Refresh Token : "+refToken);
+
+					CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Google);
+					if (calendarSyncToken == null) {
+						System.out.println("[Google Sync V2] Date : "+new Date()+" New Entry");
+
+						calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Google, refToken);
+						
+						String email = syncParams.get("email").toString();
+						calendarSyncToken.setEmailId(email);
+						
+					} else {
+						System.out.println("[Google Sync V2] Date : "+new Date()+" Updating Existing Entry");
+
+						calendarSyncToken.setRefreshToken(refToken);
+					}
+					System.out.println("[Google Sync V2] Date : "+new Date()+" Saving Refresh Token : "+authCodeResponse.toString());
+
+					eventManager.saveCalendarSyncToken(calendarSyncToken);
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	
+	
+		User user = userService.findUserById(userId);
+		String accessToken = syncParams.get("accessToken").toString();
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
+		eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(), userId, Event.EventSource.Google.toString(),Event.ScheduleEventAs.Event.toString());
+		eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+		System.out.println("[ Syncing Google Events V2 - User Id : " + userId+ ", Access Token : " + accessToken + "]");
+		List<Event> events = new ArrayList<>();
+		try {
+			events = eventManager.syncGoogleEvents(false, accessToken, user);
+			if (events == null) {
+				Event errorEvent = new Event();
+				errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
+				events = new ArrayList<>();
+				events.add(errorEvent);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("[ Syncing Google Events - User Id : " + userId+ ", Access Token : " + accessToken + "]");
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);	
+	}
+	
 	
 	@RequestMapping(value = "/api/google/refreshEvents", method = RequestMethod.GET)
 	@ResponseBody
@@ -1494,6 +1557,53 @@ public class EventController {
 		}
 		return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
 	}
+	
+	
+	// Method to get Outlook events from API.
+		@RequestMapping(value = "/api/outlook/events/v2", method = RequestMethod.GET)
+		@ResponseBody
+		public ResponseEntity<Map<String, Object>> syncOutlookEventsV2(@RequestBody Map<String, Object> postData) {
+			
+			Map<String, Object> response = new HashMap<String, Object>();
+			response.put("success", true);
+			
+			Long userId = Long.valueOf(postData.get("userId").toString());
+			System.out.println("[ Syncing Outlook Events V2 - User Id : " + userId+ ", Access Token : " + postData.get("accessToken").toString() + "]");
+			User user = userService.findUserById(userId);
+			List<Event> events = null;
+			try {
+				
+				CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Outlook);
+				if (calendarSyncToken == null) {
+					System.out.println("[ Syncing Outlook Events - User Id : " + userId+ ", New Token]");
+
+					calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Outlook, postData.get("refreshToken").toString());
+				} else {
+					System.out.println("[ Syncing Outlook Events - User Id : " + userId+ ", Existing Token]");
+					calendarSyncToken.setRefreshToken(postData.get("refreshToken").toString());
+				}
+				System.out.println("[ Syncing Outlook Events - User Id : " + userId+ ", Saving Token]");
+				eventManager.saveCalendarSyncToken(calendarSyncToken);
+
+				Calendar cal = Calendar.getInstance();
+				cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
+				eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(),userId, Event.EventSource.Outlook.toString(),Event.ScheduleEventAs.Event.toString());
+				eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(userId, Event.EventSource.Outlook.toString());
+				
+				OutlookService os = new OutlookService();
+				List<OutlookEvents> outlookEventList = os.getOutlookCalenderEvents(postData.get("refreshToken").toString());
+				if (outlookEventList != null && outlookEventList.size() > 0) {
+					System.out.println("Outlook Calendar events size v2: "+outlookEventList.size());
+					events = eventManager.populateOutlookEventsInCenes(outlookEventList,user);
+					System.out.println("Events to Sync V2 : "+events.size());
+
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+	
 	
 	// Method to get Outlook events from API.
 		@RequestMapping(value = "/api/outlook/refreshevents", method = RequestMethod.GET)

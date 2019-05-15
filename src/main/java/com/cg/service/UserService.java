@@ -10,11 +10,14 @@ import java.util.Map.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cg.bo.CalendarSyncToken;
+import com.cg.bo.CenesProperty;
 import com.cg.bo.HolidayCalendar;
 import com.cg.bo.UserStat;
 import com.cg.dao.UserDao;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
+import com.cg.repository.CalendarSyncTokenRepository;
 import com.cg.repository.HolidayCalendarRepository;
 import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserDeviceRepository;
@@ -42,6 +45,9 @@ public class UserService {
 	
 	@Autowired
 	UserStatRepository userStatRepository;
+	
+	@Autowired
+	CalendarSyncTokenRepository calendarSyncTokenRepository;
 	
 	@Autowired
 	UserDao userDao;
@@ -367,6 +373,14 @@ public class UserService {
 	public UserStat saveUpdateUserStat(UserStat userStat) {
 		return userStatRepository.save(userStat);
 	}
+	
+	
+	
+	/************** Cenes Properties ************************/
+	public List<CalendarSyncToken> fincSyncTokensByUserId(Long userId) {
+		return calendarSyncTokenRepository.findByUserId(userId);
+	}
+	
 	
 	//This function will update the cenes member counts in user contacts.
 	public void updateCenesMemberCountsByUserContacts(List<UserContact> userContacts) {

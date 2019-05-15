@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.FacebookProfile;
@@ -299,6 +300,70 @@ public class UserController {
 		user.setErrorDetail(ErrorCodes.InternalServerError.toString());
 		return new ResponseEntity<User>(user, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+	
+	@RequestMapping(value = "/api/users/signupstep1", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> signupUserStep1(@RequestBody User user, HttpServletResponse httpServletResponse) {
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		User emailUser = userRepository.findUserByEmail(user.getEmail());
+		if (emailUser != null) {
+			response.put("success", false);
+			response.put("message", "This Account Already Exists");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+
+		try {
+			user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
+			user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+			user.setToken(establishUserAndLogin(httpServletResponse, user));
+			user = userService.saveUser(user);
+			
+			
+			//Updating this user in other users contact list.
+			if (user.getPhone() != null) {
+				String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+				List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
+				if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+					for (UserContact userContact : userContactInOtherContacts) {
+						userContact.setCenesMember(CenesMember.yes);
+						userContact.setFriendId(user.getUserId());
+					}
+					userContactRepository.save(userContactInOtherContacts);
+					
+					//Now lets update the counts of cenes member counts under user stats
+					//UserThread userThread = new UserThread();
+					//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			user.setErrorCode(ErrorCodes.InternalServerError.ordinal());
+			user.setErrorDetail(ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+		
+		response.put("data", user);
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/api/users/signupstep2", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> signupUserStep2(@RequestBody User user) {
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		User emailUser = userRepository.findUserByEmail(user.getEmail());
+		if (emailUser != null) {
+			response.put("success", false);
+			response.put("message", "This Account Already Exists");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+		response.put("data", user);
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
 
 	@ResponseBody
 	@RequestMapping(value="/api/user/update/", method = RequestMethod.POST)
@@ -566,6 +631,60 @@ public class UserController {
         	return new ResponseEntity<User>(user, HttpStatus.OK);
         }
         return new ResponseEntity<User>(user, HttpStatus.OK);
+    }
+	
+	@RequestMapping(value = "/api/user/profile/upload/v2", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> uploadImagev2(MultipartFile mediaFile, Long userId) {
+    	
+		Map<String, Object> response = new HashMap<String, Object>();
+		response.put("success", true);
+		
+		User user = userRepository.findOne(Long.valueOf(userId));
+		
+		InputStream inputStream = null;
+        OutputStream outputStream = null;
+        String extension = mediaFile.getOriginalFilename().substring(mediaFile.getOriginalFilename().trim().lastIndexOf("."),mediaFile.getOriginalFilename().length());
+        
+        String fileName = UUID.randomUUID().toString()+extension;
+
+        File f = new File(profileImageUploadPath);
+        if(!f.exists()) { 
+        	try {
+				f.mkdirs();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }        
+        File newFile = new File(profileImageUploadPath+fileName);
+        try {
+            inputStream = mediaFile.getInputStream();
+
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            outputStream = new FileOutputStream(newFile);
+            int read = 0;
+            byte[] bytes = new byte[1024];
+
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+           
+            String profilePicUrl = domain+"/assets/uploads/profile/"+fileName;
+            user.setPhoto(profilePicUrl);
+            userService.saveUser(user);
+    		response.put("data", profilePicUrl);
+
+                        
+        } catch (Exception e) {
+        	e.printStackTrace();
+    		response.put("success", false);
+    		response.put("message", e.getLocalizedMessage());
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+
+        }
+        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
     }
 	
 	
@@ -1124,7 +1243,7 @@ public class UserController {
 		return null;
 	}
 	
-	@RequestMapping(value = "/auth/validatePassword", method = RequestMethod.GET)
+	@RequestMapping(value = "/api/user/validatePassword", method = RequestMethod.POST)
 	public Map<String, Object> validatePassword(@RequestBody ChangePasswordDto changePasswordDto) {
 		try {
 			Map<String, Object> response = new HashMap<>();
@@ -1266,6 +1385,21 @@ public class UserController {
 		response.put("data", userStat);
 		response.put("message", "User not found");
 		return response;
+	}
+	
+	@RequestMapping(value = "/api/user/syncDetails", method = RequestMethod.GET)
+	public Map<String, Object> findUserSyncDetailsByUserId(Long userId) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		List<CalendarSyncToken> syncTokens = userService.fincSyncTokensByUserId(userId);
+		if (syncTokens == null) {
+			syncTokens = new ArrayList<CalendarSyncToken>();
+		}
+		
+		response.put("data", syncTokens);
+		return response;
+		
 	}
 
 	
