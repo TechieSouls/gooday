@@ -65,6 +65,8 @@ import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -748,6 +750,8 @@ public class EventController {
 					System.out.println("[Google Sync V2] Date : "+new Date()+" Saving Refresh Token : "+authCodeResponse.toString());
 
 					eventManager.saveCalendarSyncToken(calendarSyncToken);
+					response.put("data", calendarSyncToken);
+
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -1560,7 +1564,7 @@ public class EventController {
 	
 	
 	// Method to get Outlook events from API.
-		@RequestMapping(value = "/api/outlook/events/v2", method = RequestMethod.GET)
+		@RequestMapping(value = "/api/outlook/events/v2", method = RequestMethod.POST)
 		@ResponseBody
 		public ResponseEntity<Map<String, Object>> syncOutlookEventsV2(@RequestBody Map<String, Object> postData) {
 			
@@ -1583,20 +1587,31 @@ public class EventController {
 					calendarSyncToken.setRefreshToken(postData.get("refreshToken").toString());
 				}
 				System.out.println("[ Syncing Outlook Events - User Id : " + userId+ ", Saving Token]");
+				calendarSyncToken.setEmailId(postData.get("email").toString());
 				eventManager.saveCalendarSyncToken(calendarSyncToken);
 
+				response.put("data", calendarSyncToken);
+				
+				
 				Calendar cal = Calendar.getInstance();
 				cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
 				eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(),userId, Event.EventSource.Outlook.toString(),Event.ScheduleEventAs.Event.toString());
 				eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(userId, Event.EventSource.Outlook.toString());
 				
 				OutlookService os = new OutlookService();
-				List<OutlookEvents> outlookEventList = os.getOutlookCalenderEvents(postData.get("refreshToken").toString());
+				List<OutlookEvents> outlookEventList = os.getOutlookCalenderEvents(postData.get("accessToken").toString());
 				if (outlookEventList != null && outlookEventList.size() > 0) {
 					System.out.println("Outlook Calendar events size v2: "+outlookEventList.size());
 					events = eventManager.populateOutlookEventsInCenes(outlookEventList,user);
 					System.out.println("Events to Sync V2 : "+events.size());
 
+				} else {
+					outlookEventList = os.getIosOutlookEvents(postData.get("accessToken").toString());
+					if (outlookEventList != null && outlookEventList.size() > 0) {
+						System.out.println("Outlook Calendar events size : "+outlookEventList.size());
+						events = eventManager.populateOutlookEventsInCenes(outlookEventList,user);
+						System.out.println("Events to Sync : "+events.size());
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -1690,7 +1705,7 @@ public class EventController {
 				events = eventManager.populateOutlookEventsInCenes(outlookEventList,user);
 				System.out.println("Events to Sync : "+events.size());
 			}
-			CenesProperty cenesProperty = eventService.findCenesPropertyByNameAndOwner("outlook_calendar", PropertyOwningEntity.User);
+			/*CenesProperty cenesProperty = eventService.findCenesPropertyByNameAndOwner("outlook_calendar", PropertyOwningEntity.User);
 			if (cenesProperty != null) {
 				CenesPropertyValue cenesPropertyValue = new CenesPropertyValue();
 				cenesPropertyValue.setCenesProperty(cenesProperty);
@@ -1699,7 +1714,7 @@ public class EventController {
 				cenesPropertyValue.setOwningEntity(PropertyOwningEntity.User);
 				cenesPropertyValue.setValue("true");
 				eventService.saveCenesPropertyValue(cenesPropertyValue);
-			}
+			}*/
 		} catch (Exception e) {
 			e.printStackTrace();
 			Event errorEvent = new Event();
@@ -1842,19 +1857,19 @@ public class EventController {
 	
 	
 	@RequestMapping(value = "/api/user/syncdevicecalendar", method = RequestMethod.POST)
-	public ResponseEntity<Map<String,Object>> syncDeviceCalendar(@RequestBody Map<String,List<Event>> eventMap) {
+	public ResponseEntity<Map<String,Object>> syncDeviceCalendar(@RequestBody Map<String,Object> eventMap) {
 		System.out.println("[Syncing Device Calendar : Date : "+new Date()+" STARTS]");
 		System.out.println("syncdevicecalendar : "+eventMap);
 		Map<String,Object> response = new HashMap<>();
 		try {
 			if (eventMap.containsKey("data")) {
-				Event event = eventMap.get("data").get(0);
-				User user = userService.findUserById(event.getCreatedById());
+				//Event event = ((ArrayList<Event>)eventMap.get("data")).get(0);
+				User user = userService.findUserById(Long.valueOf(eventMap.get("userId").toString()));
 				
 				eventManager.deleteEventsByCreatedByIdSource(user.getUserId(), Event.EventSource.Apple.toString());
 				eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(user.getUserId(), Event.EventSource.Apple.toString());
 				
-				List<Event> deviceEvents = eventMap.get("data");
+				List<Event> deviceEvents = new ObjectMapper().convertValue(eventMap.get("data"), new TypeReference<List<Event>>(){});
 				for (Event deviceEvent : deviceEvents) {
 					List<EventMember> members = new ArrayList<>();
 					
@@ -1870,10 +1885,10 @@ public class EventController {
 					members.add(eventMember);
 					deviceEvent.setEventMembers(members);
 				}
-				eventService.saveEventsBatch(eventMap.get("data"));
+				eventService.saveEventsBatch(deviceEvents);
 				
 				
-				CenesProperty cenesProperty = eventService.findCenesPropertyByNameAndOwner("device_calendar", PropertyOwningEntity.User);
+				/*CenesProperty cenesProperty = eventService.findCenesPropertyByNameAndOwner("device_calendar", PropertyOwningEntity.User);
 				if (cenesProperty != null) {
 					CenesPropertyValue cenesPropertyValue = new CenesPropertyValue();
 					cenesPropertyValue.setCenesProperty(cenesProperty);
@@ -1882,11 +1897,17 @@ public class EventController {
 					cenesPropertyValue.setOwningEntity(PropertyOwningEntity.User);
 					cenesPropertyValue.setValue("true");
 					eventService.saveCenesPropertyValue(cenesPropertyValue);
+				}*/
+				CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(user.getUserId(), CalendarSyncToken.AccountType.Apple);
+				if (calendarSyncToken == null) {
+					calendarSyncToken = new CalendarSyncToken(user.getUserId(), CalendarSyncToken.AccountType.Apple, "");
 				}
+				calendarSyncToken.setEmailId(eventMap.get("name").toString());
+				eventManager.saveCalendarSyncToken(calendarSyncToken);
+				response.put("data", calendarSyncToken);
+
 			}
 			response.put("success", true);
-			response.put("errorCode", 0);
-			response.put("errorDetail", null);
 		} catch(Exception e){
 			e.printStackTrace();
 			response.put("success", false);

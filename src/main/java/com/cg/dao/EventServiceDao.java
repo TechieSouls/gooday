@@ -158,12 +158,45 @@ public class EventServiceDao {
 	
 	public List<Event> findPaginationByCreatedByIdAndStartDate(Long createdById, String eventDate, int pageNumber, int offSet) {
 		
-		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
+		String sourcesQuery = "";
+				
+		StringBuffer sources = new StringBuffer();
+		sources.append("'Cenes',");
+		
+		StringBuffer scheduleAs = new StringBuffer();
+		scheduleAs.append("'Gathering',");
+		
+		String calendarsQuery = "select account_type from calendar_sync_tokens where user_id = "+createdById+" ";
+		List<Map<String, Object>> results = jdbcTemplate.queryForList(calendarsQuery);
+		if (results != null && results.size() > 0) {
+			for (Map<String, Object> result: results) {
+				if (result.get("account_type").toString().equals("Google") ||  result.get("account_type").toString().equals("Outlook") || result.get("account_type").toString().equals("Apple")) {
+					sources.append("'"+result.get("account_type").toString()+"'").append(",");
+				}
+			}
+			sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
+		}
+		//Check if user has Holidays Synced.?
+		if (sources.indexOf("Holiday") != -1) {
+			scheduleAs.append("'Holiday'").append(",");
+		}
+		if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
+			scheduleAs.append("'Event'").append(",");
+		}
+		sourcesQuery += " and e.schedule_as in ("+scheduleAs.substring(0, scheduleAs.length()-1)+") ";
+
+		/*String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
 				+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "e.start_time >= '"+eventDate+"' and  em.user_id = "+createdById+" and em.status = 'Going' "
 				+ "and e.schedule_as in ('Event','Holiday','Gathering')) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
-				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc limit "+pageNumber+","+offSet+"";
+				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc limit "+pageNumber+","+offSet+"";*/
 	
+				
+		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
+						+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+						+ "e.start_time >= '"+eventDate+"' and  em.user_id = "+createdById+" and em.status = 'Going' "
+						+ " "+sourcesQuery+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
+						+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc limit "+pageNumber+","+offSet+"";
 		System.out.println("Home Events Query : "+query);
 		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
 		

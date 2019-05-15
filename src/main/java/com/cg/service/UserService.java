@@ -380,7 +380,9 @@ public class UserService {
 	public List<CalendarSyncToken> fincSyncTokensByUserId(Long userId) {
 		return calendarSyncTokenRepository.findByUserId(userId);
 	}
-	
+	public void deleteCalendarSyncTokenByCalendarSyncTokenId(Long calendarSyncTokenId) {
+		calendarSyncTokenRepository.deleteByRefreshTokenId(calendarSyncTokenId);
+	}
 	
 	//This function will update the cenes member counts in user contacts.
 	public void updateCenesMemberCountsByUserContacts(List<UserContact> userContacts) {
@@ -403,7 +405,7 @@ public class UserService {
 				}
 			}
 			
-			if (userStat == null) {
+			if (userStat == null) {	
 				userStat  = new UserStat();
 				userStat.setCenesMemberCounts(1l);
 				userStatToUpdate.add(userStat);

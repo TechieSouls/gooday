@@ -17,7 +17,7 @@ import com.cg.user.bo.User;
 @Table(name="calendar_sync_tokens")
 public class CalendarSyncToken {
 
-	public enum AccountType {Google,Outlook}
+	public enum AccountType {Google,Outlook, Apple, Holiday}
 	
 	public CalendarSyncToken() {
 		

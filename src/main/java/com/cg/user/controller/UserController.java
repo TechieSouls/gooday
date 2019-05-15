@@ -1401,6 +1401,16 @@ public class UserController {
 		return response;
 		
 	}
+	
+	@RequestMapping(value = "/api/user/deleteSyncBySyncId", method = RequestMethod.DELETE)
+	public Map<String, Object> deleteSyncTokenBySyncTokenId(Long calendarSyncTokenId) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		userService.deleteCalendarSyncTokenByCalendarSyncTokenId(calendarSyncTokenId);
+		return response;
+		
+	}
 
 	
 	@Autowired
