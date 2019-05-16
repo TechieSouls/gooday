@@ -177,8 +177,12 @@ public class EventServiceDao {
 			sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
 		}
 		//Check if user has Holidays Synced.?
-		if (sources.indexOf("Holiday") != -1) {
-			scheduleAs.append("'Holiday'").append(",");
+		if (results != null && results.size() > 0) {
+			for (Map<String, Object> result: results) {
+				if (result.get("account_type").toString().equals("Holiday")) {
+					scheduleAs.append("'Holiday'").append(",");
+				}
+			}
 		}
 		if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
 			scheduleAs.append("'Event'").append(",");

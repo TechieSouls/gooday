@@ -993,6 +993,9 @@ public class EventManager {
 	}
 	
 	public List<Event> syncHolidays(String calendarId,User user) {
+		
+		this.eventRepository.deleteEventsByCreatedByIdAndScheduleAs(user.getUserId(), "Holiday");
+		
 		List<Event> events = new ArrayList<>();
 		try {
 			GoogleService gs = new GoogleService();

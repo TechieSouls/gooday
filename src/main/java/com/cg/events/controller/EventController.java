@@ -844,6 +844,37 @@ public class EventController {
 		List<Event> events = eventManager.syncHolidays(calendarId, user);
 		return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value = "/api/holiday/calendar/events/v2", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> syncGoogleHolidayCalendar(@RequestBody Map<String, Object> postData) {
+
+		Map<String, Object> response = new HashMap<String, Object>();
+		response.put("success", true);
+		
+		Long userId = Long.valueOf(postData.get("userId").toString());
+		String calendarId = postData.get("calendarId").toString();
+		System.out.println("[ Holiday Calendar Events Sync V2  - User Id : "
+				+ userId + ", Calendar Id : " + calendarId + " STARTS]");
+		
+		
+		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId, CalendarSyncToken.AccountType.Holiday);
+		if (calendarSyncToken == null) {
+			System.out.println("[Holiday Sync V2] Date : "+new Date()+" New Entry");
+			calendarSyncToken = new CalendarSyncToken(userId, CalendarSyncToken.AccountType.Holiday, postData.get("calendarId").toString());
+		} else {
+			calendarSyncToken.setRefreshToken(postData.get("calendarId").toString());
+		}
+		String email = postData.get("name").toString();
+		calendarSyncToken.setEmailId(email);	
+		eventManager.saveCalendarSyncToken(calendarSyncToken);
+
+		User user = userRepository.findOne(userId);
+		
+		List<Event> events = eventManager.syncHolidays(calendarId, user);
+		response.put("data", events);
+		
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+	}
 
 	@RequestMapping(value = "/api/predictive/calendar", method = RequestMethod.GET)
 	public ResponseEntity<List<PredictiveCalendar>> predictiveCalendarData(
