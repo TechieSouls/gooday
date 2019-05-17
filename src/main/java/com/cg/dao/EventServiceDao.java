@@ -149,10 +149,46 @@ public class EventServiceDao {
 	
 	public int findCountByGatheringsByUserIdAndDate(Long userId, String startDate) {
 
-		String countQuery = "select count(*) from events e JOIN event_members em on e.event_id = em.event_id where e.start_time >= '"+startDate+"' and  "
-				+ "em.user_id = "+userId+" and em.status = 'Going' and e.schedule_as in ('Event','Holiday','Gathering')";
+		//String countQuery = "select count(*) from events e JOIN event_members em on e.event_id = em.event_id where e.start_time >= '"+startDate+"' and  "
+			//	+ "em.user_id = "+userId+" and em.status = 'Going' and e.schedule_as in ('Event','Holiday','Gathering')";
 		
-		int numberOfTotalCounts = jdbcTemplate.queryForInt(countQuery);
+		String sourcesQuery = "";
+		
+		StringBuffer sources = new StringBuffer();
+		sources.append("'Cenes',");
+		
+		StringBuffer scheduleAs = new StringBuffer();
+		scheduleAs.append("'Gathering',");
+		
+		String calendarsQuery = "select account_type from calendar_sync_tokens where user_id = "+userId+" ";
+		List<Map<String, Object>> results = jdbcTemplate.queryForList(calendarsQuery);
+		if (results != null && results.size() > 0) {
+			for (Map<String, Object> result: results) {
+				if (result.get("account_type").toString().equals("Google") ||  result.get("account_type").toString().equals("Outlook") || result.get("account_type").toString().equals("Apple")) {
+					sources.append("'"+result.get("account_type").toString()+"'").append(",");
+				}
+			}
+			sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
+		}
+		//Check if user has Holidays Synced.?
+		if (results != null && results.size() > 0) {
+			for (Map<String, Object> result: results) {
+				if (result.get("account_type").toString().equals("Holiday")) {
+					scheduleAs.append("'Holiday'").append(",");
+				}
+			}
+		}
+		if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
+			scheduleAs.append("'Event'").append(",");
+		}
+		sourcesQuery += " and e.schedule_as in ("+scheduleAs.substring(0, scheduleAs.length()-1)+") ";
+		String query = "select count(*) from events e JOIN event_members em on e.event_id = em.event_id where "
+				+ "e.start_time >= '"+startDate+"' and  em.user_id = "+userId+" and em.status = 'Going' "
+				+ " "+sourcesQuery+"";
+		System.out.println("Home Events Query : "+query);
+
+		
+		int numberOfTotalCounts = jdbcTemplate.queryForInt(query);
 		return numberOfTotalCounts;
 	}
 	
