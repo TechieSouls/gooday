@@ -625,7 +625,7 @@ public class EventController {
 		try {
 			System.out.println("[Facebook Sync Events -> FacebookId : "+ facebookId + ", Access Token : " + accessToken+ " STARTS]");
 			
-			User user = userRepository.findUserByFacebookID(facebookId);
+			User user = userRepository.findUserByFacebookId(facebookId);
 			
 			eventManager.deleteEventsByCreatedByIdSource(user.getUserId(), Event.EventSource.Facebook.toString());
 			eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(user.getUserId(), Event.EventSource.Facebook.toString());

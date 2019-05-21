@@ -145,7 +145,7 @@ public class UserController {
 		
 		//Setting auth type in case it is not passed in the api
 		if (user.getAuthType() == null) {
-			if (user.getFacebookID() != null) {
+			if (user.getFacebookId() != null) {
 				user.setAuthType(AuthenticateType.facebook);
 			} else if (user.getEmail() != null) {
 				user.setAuthType(AuthenticateType.email);
@@ -234,14 +234,14 @@ public class UserController {
 				user.setErrorDetail(ErrorCodes.FacebookTokenNotPresent.toString());
 				return new ResponseEntity<User>(user, HttpStatus.PARTIAL_CONTENT);
 			}
-			if (user.getFacebookID() == null) {
+			if (user.getFacebookId() == null) {
 				user.setErrorCode(ErrorCodes.FacebookIdNotPresent.getErrorCode());
 				user.setErrorDetail(ErrorCodes.FacebookIdNotPresent.toString());
 				return new ResponseEntity<User>(user, HttpStatus.PARTIAL_CONTENT);
 			}
 			
 			System.out.println("[ Date : "+new Date()+" ] ,UserType : Facebook, Message : Facebook Type User");
-			userInfo = userRepository.findUserByFacebookID(user.getFacebookID());
+			userInfo = userRepository.findUserByFacebookId(user.getFacebookId());
 			if (userInfo == null) {
 				System.out.println("[ Date : "+new Date()+" ] ,UserType : Facebook, Message : New signup request");
 				try {
@@ -307,20 +307,84 @@ public class UserController {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
-		User emailUser = userRepository.findUserByEmail(user.getEmail());
-		if (emailUser != null) {
-			response.put("success", false);
-			response.put("message", "This Account Already Exists");
-			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
-		}
-
-		try {
+		
+		//If User signup via Email
+		if (user.getAuthType().equals(AuthenticateType.email)) {
+			User emailUser = userRepository.findUserByEmail(user.getEmail());
+			if (emailUser != null) {
+				response.put("success", false);
+				response.put("message", "This Account Already Exists");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			
 			user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
 			user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
 			user.setToken(establishUserAndLogin(httpServletResponse, user));
 			user = userService.saveUser(user);
+		}
+		
+		User emailUser = null;
+		//If its a Facebook User Request
+		if (user.getAuthType().equals(AuthenticateType.facebook)) {
+			
+			//Lets first find the user for the email used in facebook
+			if (user.getEmail() != null) {
+				emailUser = userRepository.findByEmailAndFacebookIdIsNull(user.getEmail());
+			}
+			
+			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
+			if (facebookIdUser != null) {
+				facebookIdUser.setIsNew(false);
+				response.put("success", true);
+				response.put("data", facebookIdUser);
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
 			
 			
+		}
+		
+		//If its a Google User Request
+		if (user.getAuthType().equals(AuthenticateType.google)) {
+			
+			//Lets first find the user for the email used in facebook
+			if (user.getEmail() != null) {
+				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
+			}
+			
+			User googleIdUser = userRepository.findUserByGoogleId(user.getGoogleId());
+			if (googleIdUser != null) {
+				googleIdUser.setIsNew(false);
+				response.put("success", true);
+				response.put("data", googleIdUser);
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+		}
+
+		//We will get email user if user did not logged in via Facebook/Google
+		if (emailUser != null) {
+			 
+			emailUser.setPhoto(user.getPhoto());
+			emailUser.setName(user.getName());
+			emailUser.setGender(user.getGender());
+			if (user.getAuthType().equals(AuthenticateType.facebook)) {
+				emailUser.setFacebookId(user.getFacebookId());
+				emailUser.setFacebookAuthToken(user.getFacebookAuthToken());
+			} else if (user.getAuthType().equals(AuthenticateType.google)) {
+				emailUser.setGoogleId(user.getGoogleId());
+				emailUser.setGoogleAuthToken(user.getGoogleAuthToken());
+			}
+		
+			user = emailUser;
+			user.setIsNew(false);
+
+		} else {
+			user.setIsNew(true);
+			user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
+			user.setToken(establishUserAndLogin(httpServletResponse, user));
+		}
+		
+		user = userService.saveUser(user);
+		try {
 			//Updating this user in other users contact list.
 			if (user.getPhone() != null) {
 				String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
@@ -334,7 +398,7 @@ public class UserController {
 					
 					//Now lets update the counts of cenes member counts under user stats
 					//UserThread userThread = new UserThread();
-					//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);
+					//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);`
 				}
 			}
 		} catch(Exception e) {
@@ -1042,6 +1106,7 @@ public class UserController {
 				} else {
 					response.put("success", false);
 					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
 				}
 				response.put("errorCode", 0);
 			} else {
@@ -1055,6 +1120,114 @@ public class UserController {
 			response.put("success", false);
 			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
 			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/forgetPassword/v2", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> getForgetPasswordV2(String email) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					
+					String resetPasswordToken = CenesUtils.getAlphaNumeric(40);
+					user.setResetToken(resetPasswordToken);
+					user.setResetTokenCreatedAt(new Date());
+					user = userService.saveUser(user);
+					response.put("success", true);
+				} else {
+					response.put("success", false);
+					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
+				}
+				response.put("errorCode", 0);
+			} else {
+				response.put("success", false);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/forgetPassword/v2/sendEmail", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> sendForgetPasswordEmail(String email) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					
+					emailManager.sendForgotPasswordConfirmationLink(user);
+					response.put("success", true);
+				} else {
+					response.put("success", false);
+					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
+				}
+				response.put("errorCode", 0);
+			} else {
+				response.put("success", false);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	
+	@RequestMapping(value = "/auth/forgetPasswordConfirmation", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> forgetPasswordConfirmationLinRequest(String resetToken) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			
+			user = userService.findUserByResetToken(resetToken);
+			
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Invalid Reset Token");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
+
+			user.setResetToken(null);
+			userService.saveUser(user);
+			response.put("success", true);
+			response.put("message", "Email Confirmed Successfully");
+
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
 		}
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 	}
@@ -1064,31 +1237,45 @@ public class UserController {
 	 * 
 	 * */
 	@RequestMapping(value = "/auth/updatePassword", method = RequestMethod.POST)
-	public ResponseEntity<Map<String, Object>> updatePassword(Map<String, Object> requestBody) {
+	public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody Map<String, Object> requestBody) {
 		
 		System.out.println(requestBody.toString());
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
-		if (!requestBody.containsKey("resetToken")) {
-			response.put("success", false);
-			response.put("message", "ResetToken is missing");
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-		}
-		
+		User user = null;
 		if (!requestBody.containsKey("password")) {
 			response.put("success", false);
 			response.put("message", "Password is missing");
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 		}
 		
-		String resetToken = requestBody.get("resetToken").toString();
-		User user = userService.findUserByResetToken(resetToken);
-		
-		if (user == null) {
-			response.put("success", false);
-			response.put("message", "Invalid Reset Token");
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		if (requestBody.containsKey("requestFrom") && requestBody.get("requestFrom").toString().equals("App")) {
+			
+			String email = requestBody.get("email").toString();
+			user = userRepository.findByEmailAndResetTokenIsNull(email);
+			
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Please click confirmation link in Email");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
+
+		} else {
+			if (!requestBody.containsKey("resetToken")) {
+				response.put("success", false);
+				response.put("message", "ResetToken is missing");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
+			
+			String resetToken = requestBody.get("resetToken").toString();
+			user = userService.findUserByResetToken(resetToken);
+			
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Invalid Reset Token");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
 		}
 		
 		try {
@@ -1438,4 +1625,5 @@ public class UserController {
 		user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
 		return establishUserAndLogin(null, user);
 	}
+	
 }

@@ -15,12 +15,15 @@ import com.cg.user.bo.User;
 public interface UserRepository extends CrudRepository<User, Long> {
 
 	User findUserByUsername(String username);
-	User findUserByFacebookID(String facebookID);
+	User findUserByFacebookId(String facebookID);
+	User findUserByGoogleId(String googleId);
 	User findUserByEmail(String email);
+	User findByEmailAndFacebookIdIsNull(String email);
+	User findByEmailAndGoogleIdIsNull(String email);
 	User findUserByEmailAndPassword(String email,String password);
 	//User findByPhone(String phone);
 	List<User> findByPhoneContaining(String phone);
-	
+	User findByEmailAndResetTokenIsNull(String email);
 	
 	@Query("select u from User u where resetToken =:resetToken and HOUR(TIMEDIFF(resetTokenCreatedAt,now())) <= 1")
 	User findByResetTokenAndResetTokenCreatedAt(@Param("resetToken") String resetToken);

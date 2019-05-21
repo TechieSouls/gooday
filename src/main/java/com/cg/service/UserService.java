@@ -85,7 +85,7 @@ public class UserService {
 	}
 	
 	public User findUserByFacebookId(String facebookId) {
-		return userRepository.findUserByFacebookID(facebookId);
+		return userRepository.findUserByFacebookId(facebookId);
 	}
 	
 	public User findUserByEmail(String email) {
