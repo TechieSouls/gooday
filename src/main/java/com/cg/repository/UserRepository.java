@@ -21,7 +21,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
 	User findByEmailAndFacebookIdIsNull(String email);
 	User findByEmailAndGoogleIdIsNull(String email);
 	User findUserByEmailAndPassword(String email,String password);
-	//User findByPhone(String phone);
+	User findByPhone(String phone);
 	List<User> findByPhoneContaining(String phone);
 	User findByEmailAndResetTokenIsNull(String email);
 	
@@ -52,5 +52,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
 	@Query("update User u set u.password = :password where u.userId = :userId")
 	public void updatePasswordByUserId(@Param("password") String password, @Param("userId") Long userId);
 
+	@Transactional
+	@Modifying
 	public void deleteByUserId(Long userId);
 }

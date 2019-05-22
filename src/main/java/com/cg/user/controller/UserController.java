@@ -68,6 +68,7 @@ import com.cg.events.bo.RecurringPattern;
 import com.cg.manager.EmailManager;
 import com.cg.manager.EventManager;
 import com.cg.manager.EventTimeSlotManager;
+import com.cg.manager.GeoLocationManager;
 import com.cg.manager.RecurringManager;
 import com.cg.repository.CenesPropertyValueRepository;
 import com.cg.repository.UserContactRepository;
@@ -85,6 +86,7 @@ import com.cg.user.bo.UserContact.CenesMember;
 import com.cg.user.bo.UserDevice;
 import com.cg.utils.CenesUtils;
 import com.google.common.collect.Sets;
+import com.maxmind.geoip2.record.Country;
 
 @RestController
 @Api(value = "User", description = "Create User data")
@@ -113,6 +115,9 @@ public class UserController {
 	
 	@Autowired
 	EmailManager emailManager;
+	
+	@Autowired
+	GeoLocationManager geoLoactionManager;
 	
 	@Autowired
 	CenesPropertyValueRepository cenesPropertyValueRepository;
@@ -1559,6 +1564,37 @@ public class UserController {
 		return response;
 	}
 	
+	@RequestMapping(value = "/api/deleteUserByPhonePassword", method = RequestMethod.POST)
+	public Map<String, Object> deleteUserByPhoneAndPassword(@RequestBody User user) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		response.put("message", "User Deleted SuccessFully");
+		
+		User userByPhone = userRepository.findByPhone(user.getPhone());
+		if (userByPhone == null) {
+			response.put("success", false);
+			response.put("message", "User not found");
+			return response;
+		}
+		
+		System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+		if (!userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+			response.put("success", false);
+			response.put("message", "Incorrect Password");
+			return response;
+		}
+		
+		//eventManager.deleteEventsByCreatedById(user.getUserId());
+		userService.deleteContactsByUserId(userByPhone.getUserId());
+		userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone());
+		//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+		//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+		userService.deleteUserDeviceByUserId(userByPhone.getUserId());
+		userService.deleteUserByUserId(userByPhone.getUserId());
+		return response;
+	}
+	
+	
 	@RequestMapping(value = "/api/user/userStatsByUserId", method = RequestMethod.GET)
 	public Map<String, Object> findUserStatsByUserId(Long userId) {
 		Map<String, Object> response = new HashMap<>();
@@ -1599,6 +1635,22 @@ public class UserController {
 		
 	}
 
+	@RequestMapping(value = "/auth/getCountryByIpAddress", method = RequestMethod.GET)
+	public Map<String, Object> getCountryByIpAddress(String ipAddress) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		Country country = geoLoactionManager.getLocation(ipAddress);
+		if (country != null) {
+			response.put("data", country);
+		} else {
+			response.put("data", null);
+			response.put("success", false);
+		}
+		
+		return response;
+		
+	}
 	
 	@Autowired
 	TokenAuthenticationService tokenAuthenticationService;
