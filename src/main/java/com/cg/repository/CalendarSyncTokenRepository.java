@@ -16,8 +16,16 @@ import com.cg.bo.CalendarSyncToken.AccountType;
 public interface CalendarSyncTokenRepository extends JpaRepository<CalendarSyncToken, Long>{
 
 	public List<CalendarSyncToken> findByAccountType(AccountType accountType);
-	public void deleteByUserId(Long userId);
+	
+	@Transactional
+	@Modifying
+	@Query("delete from CalendarSyncToken cst where cst.userId = :userId")
+	public void deleteByUserId(@Param("userId")  Long userId);
+	
+	@Transactional
+	@Modifying
 	public void deleteByUserIdAndAccountType(Long userId, AccountType accountType);
+	
 	public List<CalendarSyncToken> findByUserId(Long userId);
 	public CalendarSyncToken findByUserIdAndEmailId(Long userId,String email);
 	public CalendarSyncToken findByUserIdAndAccountType(Long userId,AccountType accountType);

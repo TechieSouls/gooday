@@ -383,6 +383,9 @@ public class UserService {
 	public void deleteCalendarSyncTokenByCalendarSyncTokenId(Long calendarSyncTokenId) {
 		calendarSyncTokenRepository.deleteByRefreshTokenId(calendarSyncTokenId);
 	}
+	public void deleteCalendarSyncTokensByUserId(Long userId) {
+		calendarSyncTokenRepository.deleteByUserId(userId);
+	}
 	
 	//This function will update the cenes member counts in user contacts.
 	public void updateCenesMemberCountsByUserContacts(List<UserContact> userContacts) {
