@@ -342,7 +342,11 @@ public class EventManager {
 			}
 			
 			HomeScreenDto homeScreenDto =  new HomeScreenDto();
-			homeScreenDto.setId(event.getEventId());
+			homeScreenDto.setType("Event");
+			homeScreenDto.setEvent(event);
+			
+			
+			/*homeScreenDto.setId(event.getEventId());
 			homeScreenDto.setTitle(event.getTitle());
 			homeScreenDto.setDescription(event.getDescription());
 			homeScreenDto.setPicture(event.getEventPicture());
@@ -411,7 +415,7 @@ public class EventManager {
 				}
 				homeScreenDto.setMembers(members);
 			}
-			
+			*/
 			homeScreenDtos.add(homeScreenDto);
 			homeScreenDataMap.put(dateKey, homeScreenDtos);
 		}

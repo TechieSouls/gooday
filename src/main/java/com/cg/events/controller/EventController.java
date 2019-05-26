@@ -568,9 +568,11 @@ public class EventController {
 			System.out.println("[USER EVENTS -  User Id : " + userId + "]");
 			Date eDate = new Date(startTime);
 
-		    List<HomeScreenDto> responseDataToSend = eventManager.getHomeScreenData(userId,eDate, offSet);
+		    /*List<HomeScreenDto> responseDataToSend = eventManager.getHomeScreenData(userId,eDate, offSet);
 			System.out.println("[USER EVENTS -  Events list : " + responseDataToSend.size()+ "]");
-
+		     */
+			
+			List<HomeScreenDto> responseDataToSend = eventManager.getHomeScreenData(userId,eDate, offSet);
 			response.put("success", true);
 			response.put("data", responseDataToSend);
 			response.put("errorCode", 0);
@@ -1837,7 +1839,7 @@ public class EventController {
 				}
 				if (events == null || events.size() == 0) {
 					events = new ArrayList<>();
-				} else {
+				} /*else {
 					
 					for (Event iteratableEvent : events) {
 						List<EventMember> members = new ArrayList<>();
@@ -1858,7 +1860,7 @@ public class EventController {
 						
 						iteratableEvent.setEventMembers(members);
 					}
-				}
+				}*/
 				
 				int totalCounts = 0;
 				

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.cg.bo.Member;
+import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
 
 public class HomeScreenDto {
@@ -19,6 +20,7 @@ public class HomeScreenDto {
 	private Long startTime;
 	private Long endTime;
 	private String type;
+	private Event event;
 	private Boolean isFullDay;
 	private String fullDayStartTime;
 
@@ -108,6 +110,13 @@ public class HomeScreenDto {
 	}
 	public void setFullDayStartTime(String fullDayStartTime) {
 		this.fullDayStartTime = fullDayStartTime;
+	}
+	
+	public Event getEvent() {
+		return event;
+	}
+	public void setEvent(Event event) {
+		this.event = event;
 	}
 	@Override
 	public String toString() {
