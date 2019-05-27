@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1762,9 +1764,12 @@ public class EventController {
 	}
 	
 	@RequestMapping(value = "/api/event/outlook/notifyWebhook", method = RequestMethod.POST)
-	public String outlookWebHookUrl(String validationtoken)  {
+	public String outlookWebHookUrl(String validationtoken, HttpServletRequest request)  {
 		
 		System.out.println("Notification From Outlook");
+		System.out.println("Parameter Map : "+request.getParameterMap().toString());
+		System.out.println("Parameter Map : "+request.getParameter("ResourceData").toString());
+
 		System.out.println(validationtoken);
 		return validationtoken;
 	}
