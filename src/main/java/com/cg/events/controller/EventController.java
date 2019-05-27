@@ -1762,10 +1762,11 @@ public class EventController {
 	}
 	
 	@RequestMapping(value = "/api/event/outlook/notifyWebhook", method = RequestMethod.POST)
-	public void outlookWebHookUrl(String validationToken)  {
+	public String outlookWebHookUrl(String validationToken)  {
 		
 		System.out.println("Notification From Outlook");
 		System.out.println(validationToken);
+		return validationToken;
 	}
 	
 	// Method to get Outlook events from API.
