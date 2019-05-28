@@ -378,9 +378,10 @@ public class OutlookService {
 	
 	public String subscribeToCalendarNotifications(String accessToken) {
 		
+		String apiUrl = "https://outlook.office.com/api/v2.0/me/subscriptions";
+		JSONObject postData = new JSONObject();
+
 		try {
-			String apiUrl = "https://outlook.office.com/api/v2.0/me/subscriptions";
-			JSONObject postData = new JSONObject();
 			try {
 				postData.put("@odata.type", "#Microsoft.OutlookServices.PushSubscription");
 				postData.put("Resource", "https://outlook.office.com/api/v2.0/me/events");
@@ -401,9 +402,35 @@ public class OutlookService {
 					// TODO: handle exception
 					e.printStackTrace();
 				}
+			} else {
+				apiUrl = "https://graph.microsoft.com/v1.0/subscriptions";
+				try {
+					postData = new JSONObject();
+					postData.put("resource", "/me/events");
+					postData.put("notificationUrl", "https://deploy.cenesgroup.com/api/event/outlook/notifyWebhook");
+					postData.put("changeType", "created");
+					postData.put("expirationDateTime", "2020-11-20T18:23:45.9356913Z");
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+				response = httpPostQueryStrWithBearer(apiUrl, postData.toString(), accessToken);
+				System.out.println("Response : "+response);
+				if (response != null) {
+					try {
+						JSONObject jsonObject = new JSONObject(response);
+						return jsonObject.getString("Id");
+						
+					} catch (Exception ex) {
+						// TODO: handle exception
+						ex.printStackTrace();
+					}
+				}
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
+			
+			
+			
 		}	
 		return null;
 	}
@@ -461,7 +488,7 @@ public class OutlookService {
 	
 	/*public static void main(String[] args) {
 		OutlookService os = new OutlookService();
-		os.subscribeToCalendarNotifications("EwAYA61DBAAUcSSzoTJJsy+XrnQXgAKO5cj4yc8AAVOJXOLG1JeoYxLMVWTpuqwNyzi3341l4Lx3NNIMV6Ve99fGdk3XwEpIc3zGEcR2XDzGAiGEDdMsnN7VMjHDFlAgzUtB32wYmR8OdpJYHY17tNuOkQ4ToCqAuRnpmwnj+iNSg106AkfomaT/D1UlGiEJ5J6+MU+qmov0hSMG9wgh5GWo1VxJJkAhaE+I1d1yN+bQ4KLWbFGY26qQaJ+tv3wBsPtgS5itjLTT1nc27+zOG4p87m6UZ6SwXaZROKM/9LAEgXQ+OkHNx/wVv+wbvea4sFh7+KxKxv7bU5hhHeKZLmzIUNJdEf2Z7LZg2QxeLd5DnaZaqOt0TmImsG/SfDUDZgAACIhgwIq9LIoO6AE+uGoHslvTNQhIKOiEDpZae8Uk6VC5eNOTlEAJ5nCyblSeFpi/uGadIXuScNxfPSWqjMgLmrICprndP/UQNTpXwi2nkAiYwv9LLdvEPYkfpHNJ1lK5yreR16QEViSxjFKcaoCDVXQ1HTBNJEDI3KpURI05XTJc3vLf6J2eaXvUmba81bIbsOkJf23pZ0+qyz91FvdkEdxLsza3tQcA5+EvGF+05eLu+ldQb1k7YuZFOKudyDV+eDzPHvPdGve32irNEv+ZIuD+gEnNwqveL3JXVcEZd8bhUnUWgg14DdoogbM0t8DisRgSI/m0KMBK1sUvFarAfhXSSKmWtwN2w+YrN6U8teNmFL+08Fcd7VtDknZLAItRCXt7/HdwO0Ap6FpQEArI9t2Po2qYnUPwI41d/OqVhhCDUYsaxdiz5TL7kwS1Efg0I+p6Z8PyFW6tY8zt7gAPjR0Fn2a15JnLN7Oyrp7fNKMalREddUDoQeWuFBjOmqCYOMdTf/ovfH6FGSZBHb8joKSflKZH9gx3E/u2Hh906EPdHdHWpU+7GvUMgB2Q9N+rhgnzGR2XDg6plTnFt8Gzk96dwjfoM2otMs1vAq1xyJoQlYWgJn6LvcZW7jhpToFyS8lagPmRBd5xTnsUTVf2hsPebycC");
+		os.subscribeToCalendarNotifications("EwB4A8l6BAAURSN/FHlDW5xN74t6GzbtsBBeBUYAATBzdiqRL4O98ETkFU2lO+F8BMPKeIHZwoZTvE4GLYscnSInqPh+71oLYliuN2ZbdBWxpbwxOCtsQNa2jos3Hwr1h9uiNEK7XQxOn8xtRUIpIOqxSiuC9M59DxHeWNQrNILxcUAnbzUoLWO6a3DhieVisM2BRVk22bJ+v0Wpa8B6gyC7+84U/jrYTdA7ZQ8ybq43zbsgPVeIuUmjtUM/uwXGPcOuQ6SFMFqhUJoNZpmwIy63o/B8+oj+aEE+eAGFLobQ+ReEon0tUt8o+dWEgDRThwc8EJu2rxQm0s6VnV4PALAbos8noftRkX7G8SDChTkWrILQtImGT/fu5/aXeKQDZgAACOJPgsGOFj0tSAKbVQqH/f0odMngQ3F7KUAs2C253IOPQo5KbIm/ZQjcb77ddMRx9x+zcap2rgTw92adT3ncI93j+0tyEDdeHMp8kjDlcr1Q+y5ry7eJod5rgVQ1CIdLuipf+nPmHRhBsBMGICPP8RgFisC3AAG1Q0ypNsD7WvdenT8a+R6EsqOs2kaqTEr/3b7kO1YybUzT2RflqQ6+HG9BEbH1kDaObrJHgCgoM7YwvmHSWdt+JGUWKlwbh/ULtUrgPxyyOfRjxsvSSBQj7UBMevLgKy1O4AFnLdZV/TH4GUC8hxhzigxAVlbjd6ahavQNnE61UfUzCnnjRtyp979CWsobfnnqtY74H73tSpQbwzdZSY3EAhrV001uykkOlam0x6vW/gugqvqYjQoa70js0eDEmgjrdcDBFhG5qQNEeEOuptMOhqKJ4ACTQ389Yp9MtfQ2v5t/6Yp4QHTQw2PkqxII8YkOilZgvpuW/P7nmpn26+d1DE+XtjX5a4da2AvJg2mJtOksX6RYYzSqYL/gYEB/T5pHRYn1uiJ4SpfJuL96RPL3Y8FbAWWaPpMHhrX/FMfqtFxZ5mrLZlpR73HuOvlzNY4aCEZHxVY87xrsIuKvPX0NjCEoNDzExRo4smiZ4HZr9f/NN0UR1SWlO3P1oWQE4My4/wT8jJEVBvmIpuCyovuZJCS6j0qJP37t7Bcav2AGRK2uqJgI4B1achomQu2g5TUHFvyABqKkcvDRiUJjQHVofq841MsHvDUNWPF5QZ2OpadiuPscJsistrypMo4C");
 	
 		//os.getSubscriptionData();
 	
