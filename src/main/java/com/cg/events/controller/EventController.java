@@ -1811,6 +1811,12 @@ public class EventController {
 		return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
 	}
 
+	@RequestMapping(value = "/api/event/outlook/iosNotifyWebhook", method = RequestMethod.POST)
+	public String iosOutlookWebHookUrl(String validationToken) {
+		
+		return validationToken;
+	}
+	
 	@RequestMapping(value = "/api/event/outlook/notifyWebhook", method = RequestMethod.POST)
 	public String outlookWebHookUrl(HttpServletRequest request) {
 
