@@ -253,6 +253,57 @@ public class OutlookService {
 	
 	}
 	
+	
+	public OutlookEvents parseOutlookEventInfo(JSONObject outlookJson) {
+
+		OutlookEvents events = null;
+		try {
+				
+				events = new OutlookEvents();
+				List<OutlookEventItem> items = new ArrayList<>();
+					
+					OutlookEventItem item = new OutlookEventItem();
+					item.setSubject(outlookJson.getString("subject"));
+					
+					if (outlookJson.has("start")) {
+						Map<String,String>  startDateMap = new HashMap<>();
+						startDateMap.put("DateTime", outlookJson.getJSONObject("start").getString("dateTime"));
+						item.setStart(startDateMap);
+					}
+					if (outlookJson.has("End")) {
+						Map<String,String>  endDateMap = new HashMap<>();
+						endDateMap.put("DateTime", outlookJson.getJSONObject("start").getString("dateTime"));
+						item.setEnd(endDateMap);
+					}
+					item.setId(outlookJson.getString("id"));
+					if (outlookJson.has("location")) {
+						Map<String,String>  addressMap = new HashMap<>();
+						JSONObject location = outlookJson.getJSONObject("location");
+						addressMap.put("DisplayName",location.getString("displayName"));
+						item.setLocation(addressMap);
+					}
+					
+					if (outlookJson.has("attendees") && outlookJson.getJSONArray("attendees").length() > 0) {
+						//item.setAttendees(attendees);
+					} else {
+						item.setAttendees(new ArrayList<OutlookEventAttendees>());
+					}
+					
+					if (outlookJson.has("isAllDay")) {
+						item.setIsAllDay(outlookJson.getBoolean("isAllDay"));
+					}
+					
+					items.add(item);
+				
+				events.setValue(items);
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return events;
+	
+	}
+	
 	public String httpPostQueryStr(String apiUrl, String queryStr) {
 		StringBuffer response = new StringBuffer();
 
@@ -472,11 +523,11 @@ public class OutlookService {
 				if (responseStr != null) {
 					JSONObject jsonResponse = new JSONObject(responseStr);
 					
-				    OutlookEvents outlookEvents = parseIosOutlookEvents(jsonResponse);
+				    OutlookEvents outlookEvents = parseOutlookEventInfo(jsonResponse);
 				    if (outlookEvents != null) {
 					    outlookCalenderEvents.add(outlookEvents);
 				    } else {
-				    	OutlookEvents androidEvents = parseOutlookResponse(jsonResponse);
+				    	OutlookEvents androidEvents = parseOutlookEventInfo(jsonResponse);
 				    	if (androidEvents != null) {
 						    outlookCalenderEvents.add(androidEvents);
 				    	}

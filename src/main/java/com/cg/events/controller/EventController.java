@@ -1829,6 +1829,7 @@ public class EventController {
 				
 				
 				System.out.println("String Buffer : "+sb.toString());
+				//String resp = "{\"value\":[{\"subscriptionId\":\"3384308e-ac0d-41a1-9476-c299a4f25180\",\"subscriptionExpirationDateTime\":\"2019-05-29T23:19:06.006+00:00\",\"tenantId\":\"\",\"changeType\":\"created\",\"resource\":\"Users/3f674dde22c48491/Events/AQMkADAwATM0MDAAMS1kOWNmLWFiZWUALTAwAi0wMAoARgAABKpLzewHd0aqXPJwbt36YAcABKuHDM08AUSh-3RPLq3nQAAAAgENAAAABKuHDM08AUSh-3RPLq3nQAABXyRemAAAAA==\",\"resourceData\":{\"@odata.type\":\"#Microsoft.Graph.Event\",\"@odata.id\":\"Users/3f674dde22c48491/Events/AQMkADAwATM0MDAAMS1kOWNmLWFiZWUALTAwAi0wMAoARgAABKpLzewHd0aqXPJwbt36YAcABKuHDM08AUSh-3RPLq3nQAAAAgENAAAABKuHDM08AUSh-3RPLq3nQAABXyRemAAAAA==\",\"@odata.etag\":\"W/\\\"DwAAABYAAAAEq4cMzTwBRKH/dE8uredAAAFfI0sD\\\"\",\"id\":\"AQMkADAwATM0MDAAMS1kOWNmLWFiZWUALTAwAi0wMAoARgAABKpLzewHd0aqXPJwbt36YAcABKuHDM08AUSh-3RPLq3nQAAAAgENAAAABKuHDM08AUSh-3RPLq3nQAABXyRemAAAAA==\"},\"clientState\":null}]}";
 				JSONObject notificationData = new JSONObject(sb.toString());
 				JSONArray value = notificationData.getJSONArray("value");
 				if (value.length() > 0) {
