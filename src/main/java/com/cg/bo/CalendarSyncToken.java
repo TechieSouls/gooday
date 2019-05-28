@@ -1,5 +1,7 @@
 package com.cg.bo;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -54,6 +56,9 @@ public class CalendarSyncToken {
 	
 	@Column(name="subscription_id")
 	private String subscriptionId;
+	
+	@Column(name="sub_expiry_date")
+	private Date subExpiryDate;
 	
 	@ManyToOne
 	@JoinColumn(name="user_id",updatable=false,insertable=false)
@@ -114,5 +119,13 @@ public class CalendarSyncToken {
 
 	public void setSubscriptionId(String subscriptionId) {
 		this.subscriptionId = subscriptionId;
+	}
+
+	public Date getSubExpiryDate() {
+		return subExpiryDate;
+	}
+
+	public void setSubExpiryDate(Date subExpiryDate) {
+		this.subExpiryDate = subExpiryDate;
 	}
 }
