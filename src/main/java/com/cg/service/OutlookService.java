@@ -427,17 +427,23 @@ public class OutlookService {
 		return null;
 	}
 	
-	public String subscribeToCalendarNotifications(String accessToken) {
+	public JSONObject subscribeToCalendarNotifications(String accessToken) {
 		
 		String apiUrl = "https://outlook.office.com/api/v2.0/me/subscriptions";
 		JSONObject postData = new JSONObject();
-
-		try {
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.DAY_OF_MONTH, 2);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.sssZ");
+		String oneWeekDate = sdf.format(cal.getTime());
+		
+		try {//Flwo For Android
+			//For android Keys are Capitalized
 			try {
 				postData.put("@odata.type", "#Microsoft.OutlookServices.PushSubscription");
 				postData.put("Resource", "https://outlook.office.com/api/v2.0/me/events");
 				postData.put("NotificationURL", "https://deploy.cenesgroup.com/api/event/outlook/notifyWebhook");
 				postData.put("ChangeType", "Created");
+				postData.put("SubscriptionExpirationDateTime", ""+oneWeekDate+"");
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
@@ -447,7 +453,7 @@ public class OutlookService {
 			if (response != null) {
 				try {
 					JSONObject jsonObject = new JSONObject(response);
-					return jsonObject.getString("Id");
+					return jsonObject;
 					
 				} catch (Exception e) {
 					// TODO: handle exception
@@ -455,11 +461,8 @@ public class OutlookService {
 				}
 			} else {
 				
-				//ios outlook flow
-				Calendar cal = Calendar.getInstance();
-				cal.add(Calendar.DAY_OF_MONTH, 2);
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.sssZ");
-				String oneWeekDate = sdf.format(cal.getTime());
+				//Flow For IOS
+				//For ios Keys are of smallcase
 				apiUrl = "https://graph.microsoft.com/v1.0/subscriptions";
 				try {
 					postData = new JSONObject();
@@ -475,7 +478,7 @@ public class OutlookService {
 				if (response != null) {
 					try {
 						JSONObject jsonObject = new JSONObject(response);
-						return jsonObject.getString("id");
+						return jsonObject;
 						
 					} catch (Exception ex) {
 						// TODO: handle exception
