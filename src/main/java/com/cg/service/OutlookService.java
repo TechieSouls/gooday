@@ -403,13 +403,19 @@ public class OutlookService {
 					e.printStackTrace();
 				}
 			} else {
+				
+				//ios outlook flow
+				Calendar cal = Calendar.getInstance();
+				cal.add(Calendar.DAY_OF_MONTH, 2);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.sssZ");
+				String oneWeekDate = sdf.format(cal.getTime());
 				apiUrl = "https://graph.microsoft.com/v1.0/subscriptions";
 				try {
 					postData = new JSONObject();
 					postData.put("resource", "/me/events");
-					postData.put("notificationUrl", "https://deploy.cenesgroup.com/api/event/outlook/notifyWebhook");
+					postData.put("notificationUrl", "https://deploy.cenesgroup.com/api/event/outlook/iosNotifyWebhook");
 					postData.put("changeType", "created");
-					postData.put("expirationDateTime", "2020-11-20T18:23:45.9356913Z");
+					postData.put("expirationDateTime", ""+oneWeekDate+"");
 				} catch(Exception e) {
 					e.printStackTrace();
 				}
@@ -418,7 +424,7 @@ public class OutlookService {
 				if (response != null) {
 					try {
 						JSONObject jsonObject = new JSONObject(response);
-						return jsonObject.getString("Id");
+						return jsonObject.getString("id");
 						
 					} catch (Exception ex) {
 						// TODO: handle exception
@@ -488,7 +494,7 @@ public class OutlookService {
 	
 	/*public static void main(String[] args) {
 		OutlookService os = new OutlookService();
-		os.subscribeToCalendarNotifications("EwB4A8l6BAAURSN/FHlDW5xN74t6GzbtsBBeBUYAATBzdiqRL4O98ETkFU2lO+F8BMPKeIHZwoZTvE4GLYscnSInqPh+71oLYliuN2ZbdBWxpbwxOCtsQNa2jos3Hwr1h9uiNEK7XQxOn8xtRUIpIOqxSiuC9M59DxHeWNQrNILxcUAnbzUoLWO6a3DhieVisM2BRVk22bJ+v0Wpa8B6gyC7+84U/jrYTdA7ZQ8ybq43zbsgPVeIuUmjtUM/uwXGPcOuQ6SFMFqhUJoNZpmwIy63o/B8+oj+aEE+eAGFLobQ+ReEon0tUt8o+dWEgDRThwc8EJu2rxQm0s6VnV4PALAbos8noftRkX7G8SDChTkWrILQtImGT/fu5/aXeKQDZgAACOJPgsGOFj0tSAKbVQqH/f0odMngQ3F7KUAs2C253IOPQo5KbIm/ZQjcb77ddMRx9x+zcap2rgTw92adT3ncI93j+0tyEDdeHMp8kjDlcr1Q+y5ry7eJod5rgVQ1CIdLuipf+nPmHRhBsBMGICPP8RgFisC3AAG1Q0ypNsD7WvdenT8a+R6EsqOs2kaqTEr/3b7kO1YybUzT2RflqQ6+HG9BEbH1kDaObrJHgCgoM7YwvmHSWdt+JGUWKlwbh/ULtUrgPxyyOfRjxsvSSBQj7UBMevLgKy1O4AFnLdZV/TH4GUC8hxhzigxAVlbjd6ahavQNnE61UfUzCnnjRtyp979CWsobfnnqtY74H73tSpQbwzdZSY3EAhrV001uykkOlam0x6vW/gugqvqYjQoa70js0eDEmgjrdcDBFhG5qQNEeEOuptMOhqKJ4ACTQ389Yp9MtfQ2v5t/6Yp4QHTQw2PkqxII8YkOilZgvpuW/P7nmpn26+d1DE+XtjX5a4da2AvJg2mJtOksX6RYYzSqYL/gYEB/T5pHRYn1uiJ4SpfJuL96RPL3Y8FbAWWaPpMHhrX/FMfqtFxZ5mrLZlpR73HuOvlzNY4aCEZHxVY87xrsIuKvPX0NjCEoNDzExRo4smiZ4HZr9f/NN0UR1SWlO3P1oWQE4My4/wT8jJEVBvmIpuCyovuZJCS6j0qJP37t7Bcav2AGRK2uqJgI4B1achomQu2g5TUHFvyABqKkcvDRiUJjQHVofq841MsHvDUNWPF5QZ2OpadiuPscJsistrypMo4C");
+		os.subscribeToCalendarNotifications("EwB4A8l6BAAURSN/FHlDW5xN74t6GzbtsBBeBUYAAUem71BNvypUbsHmrw8AvKEOY8Y9Xl9jWjWAT3NGGhnBR79HUvCrLgrwdWa8W5OuGLtfofro2iD+95aqN5wbdzq8jlb4AjruF7r5aEqOwXOCxsKWFawbZwzQ1cyAdTQXL1cNo+DsuGk9MZ08zz0qUMeEsljHquTKpE87TXIajYLzdiH7IpGikjrhHXDw8bqM4nFOPFi2g8RDmhpW/G5KwP2Ijem8Sf4VLy/u3Qk+BUg5OCHsuqg4OqADoLgdMU0Nr1jnx7bypSt3tb6BYGlamDjueHb805ILUEkR7ZcfMtIHIxivIn7SpKRUPEYRI50wZ3KGbCk0A0qCAtsF2z4CK34DZgAACD5IqSDNp5S6SALmqtJOQMgLFNkpMDXhX39YPcfUazbhV8+gKXw3xbZvt1qMGzxvbl1nkUINT03mTOMSs9rvj8hxHMdwltewafNALlRIf+RS74vK/gjV4xXtUhevpukO++fMIsM+H+I8YsInTjCJKs13u5M6bpb1aJcA9RF2yd726pztELdqRL/oYRAOmFfNem3XPRWFeGQMxgK6lR4pwzUDLg1GOQCNlUQPO7iDOjzTTnoyTyM8w2tfg8JuyVw1laVEurl4Tv1ApQ9vk6Bp8qQJZsCSzKkFhMRg+mAbCExUZfkLWb1wH0cpl0C71JDTsvKnw4XSKeORE3ELajIDgD+m6BfPrQ1Cdz+ARhkvzhLRkUih8x7lb4DM6bXDz8h1TuomBMTvGbc/eh3Qp8YqAOnk6ja3PAfyvQccwU39vOmY4OXYMnCn7YdhONtLR9dOq4aFExudOwNzHag3CWd0QVU8+zgALkml2iFsoPW3ephX1YAoNeDKs/lOT97XFmzWcM4hhQaLInGoWcqV5R+cOuAlhe3oXEDORta17GUgAvgbS1fF8FEakjlWApagDQ79p5gbEV73jt2yNy199YjIzgEeFIz28UbOh6GQtFmX6fP0D7fZN2v0UF4fe0AK/IK1PMggFjReBEwKS8fhHG0qA34+0Cp1ZW9wBIOWmeewXHgxnAM4d0HNPHTGPuuowdXW2+Zv/ttYBL46TLQghMpYATaZdTxq1K6TJ09eO9ILKip0hGqbo4Vg5cmwwi1jGI1RfPCZsC3qqJj4QJgl2dJtkm+xPY4C");
 	
 		//os.getSubscriptionData();
 	
