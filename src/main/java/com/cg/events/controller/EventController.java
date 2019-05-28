@@ -1771,19 +1771,33 @@ public class EventController {
 		System.out.println("Notification From Outlook");
 		try {
 			System.out.println("Parameter Map : "+request.getParameterMap().toString());
-			System.out.println("Parameter Map : "+request.getParameter("value").toString());
-			System.out.println("Parameter Map : "+request.getParameter("@odata.context").toString());
 			
-			
-			Enumeration<String> itr = request.getParameterNames();
-			while (itr.hasMoreElements()) {
-				String string = (String) itr.nextElement();
-				System.out.println("Parameter Name : "+string);
+			try {
+				System.out.println("Parameter Map : "+request.getParameter("value").toString());
+			} catch(Exception e) {
+				e.printStackTrace();
 			}
-		} catch(Exception e) {
 			
+			try {
+				System.out.println("Parameter Map : "+request.getParameter("@odata.context").toString());
 
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				Enumeration<String> itr = request.getParameterNames();
+				while (itr.hasMoreElements()) {
+					String string = (String) itr.nextElement();
+					System.out.println("Parameter Name : "+string);
+				}
 
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+					
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 		System.out.println(validationtoken);
 		return validationtoken;
