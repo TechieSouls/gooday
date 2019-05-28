@@ -1,8 +1,10 @@
 package com.cg.events.controller;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1774,22 +1776,36 @@ public class EventController {
 			
 			
 			try {
+				
+				System.out.println("Checking String buffer");
+				
+				BufferedReader reader = request.getReader();
+				StringBuffer sb = new StringBuffer();
+				String line = "";
+				while ((line = reader.readLine()) != null) {
+					sb.append(line);
+				}
+				System.out.println(sb.toString());
+
+				reader.close();
+			} catch(Exception e) {
+				
+			}
+			
+			try {
 				System.out.println("Parameter Map SubscriptionId : "+request.getParameter("SubscriptionId").toString());
 			} catch(Exception e) {
-				e.printStackTrace();
 			}
 			
 			try {
 				System.out.println("Parameter Map value : "+request.getParameter("value").toString());
 			} catch(Exception e) {
-				e.printStackTrace();
 			}
 			
 			try {
 				System.out.println("Parameter Map odata.context : "+request.getParameter("@odata.context").toString());
 
 			} catch(Exception e) {
-				e.printStackTrace();
 			}
 			
 			
@@ -1798,13 +1814,14 @@ public class EventController {
 				Enumeration<String> itr = request.getHeaderNames();
 				while (itr.hasMoreElements()) {
 					String string = (String) itr.nextElement();
-					System.out.println("Parameter Name : "+string);
+					System.out.println("Header Name : "+string);
 				}
 				
 			} catch(Exception e) {
-				e.printStackTrace();
 			}
 			
+			
+			System.out.println("Parsing Params");
 			try {
 				Enumeration<String> itr = request.getParameterNames();
 				while (itr.hasMoreElements()) {
@@ -1813,7 +1830,18 @@ public class EventController {
 				}
 
 			} catch(Exception e) {
-				e.printStackTrace();
+			}
+			
+			
+			System.out.println("Parsing Attributes");
+			try {
+				Enumeration<String> itr = request.getAttributeNames();
+				while (itr.hasMoreElements()) {
+					String string = (String) itr.nextElement();
+					System.out.println("Attribute Name : "+string);
+				}
+
+			} catch(Exception e) {
 			}
 					
 		} catch(Exception e) {
