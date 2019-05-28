@@ -1817,6 +1817,8 @@ public class EventController {
 		String validationtoken = "";
 		if (request.getParameterMap().containsKey("validationtoken")) {
 			validationtoken = request.getParameterMap().get("validationtoken").toString();
+		} if (request.getParameterMap().containsKey("validationToken")) {
+			validationtoken = request.getParameterMap().get("validationToken").toString();
 		} else {
 			System.out.println("Notification From Outlook");
 			try {
