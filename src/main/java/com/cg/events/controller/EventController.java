@@ -8,8 +8,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1768,10 +1770,20 @@ public class EventController {
 		
 		System.out.println("Notification From Outlook");
 		try {
-			
-		} catch(Exception e) {
 			System.out.println("Parameter Map : "+request.getParameterMap().toString());
 			System.out.println("Parameter Map : "+request.getParameter("value").toString());
+			System.out.println("Parameter Map : "+request.getParameter("@odata.context").toString());
+			
+			
+			Enumeration<String> itr = request.getParameterNames();
+			while (itr.hasMoreElements()) {
+				String string = (String) itr.nextElement();
+				System.out.println("Parameter Name : "+string);
+			}
+		} catch(Exception e) {
+			
+
+
 		}
 		System.out.println(validationtoken);
 		return validationtoken;
