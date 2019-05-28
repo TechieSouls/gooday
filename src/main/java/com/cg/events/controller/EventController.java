@@ -1662,9 +1662,32 @@ public class EventController {
 			
 			
 			OutlookService oservice = new OutlookService();
-			String subscriberId = oservice.subscribeToCalendarNotifications(postData.get("accessToken").toString());
-			if (subscriberId != null) {
-				calendarSyncToken.setSubscriptionId(subscriberId);
+			JSONObject subScribeJson = oservice.subscribeToCalendarNotifications(postData.get("accessToken").toString());
+			if (subScribeJson != null) {
+				
+				//This is for IOS
+				if (subScribeJson.has("id")) {
+					calendarSyncToken.setSubscriptionId(subScribeJson.getString("id"));
+				} else if (subScribeJson.has("Id")) {
+					//This is for Android
+					calendarSyncToken.setSubscriptionId(subScribeJson.getString("Id"));
+				}
+				
+				
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.sssZ");
+				
+				//This is for IOS
+				if (subScribeJson.has("expirationDateTime")) {
+					Date oneWeekDate = sdf.parse(subScribeJson.getString("expirationDateTime"));
+
+					calendarSyncToken.setSubExpiryDate(oneWeekDate);
+				} else if (subScribeJson.has("SubscriptionExpirationDateTime")) {
+					//This is for Android
+					
+					Date oneWeekDate = sdf.parse(subScribeJson.getString("SubscriptionExpirationDateTime"));
+					calendarSyncToken.setSubscriptionId(subScribeJson.getString("Id"));
+				}
+				
 			}
 			eventManager.saveCalendarSyncToken(calendarSyncToken);
 
