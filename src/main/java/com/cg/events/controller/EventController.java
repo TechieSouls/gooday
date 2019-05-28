@@ -1685,7 +1685,7 @@ public class EventController {
 					//This is for Android
 					
 					Date oneWeekDate = sdf.parse(subScribeJson.getString("SubscriptionExpirationDateTime"));
-					calendarSyncToken.setSubscriptionId(subScribeJson.getString("Id"));
+					calendarSyncToken.setSubExpiryDate(oneWeekDate);
 				}
 				
 			}
