@@ -1812,7 +1812,47 @@ public class EventController {
 	}
 
 	@RequestMapping(value = "/api/event/outlook/iosNotifyWebhook", method = RequestMethod.POST)
-	public String iosOutlookWebHookUrl(String validationToken) {
+	public String iosOutlookWebHookUrl(String validationToken, HttpServletRequest request) {
+		
+		if (validationToken == null) {
+			System.out.println("Notification From Outlook");
+			try {
+
+				System.out.println("Checking String buffer");
+				BufferedReader reader = request.getReader();
+				StringBuffer sb = new StringBuffer();
+				String line = "";
+				while ((line = reader.readLine()) != null) {
+					sb.append(line);
+				}
+				reader.close();
+				
+				JSONObject notificationData = new JSONObject(sb.toString());
+				JSONArray value = notificationData.getJSONArray("value");
+				if (value.length() > 0) {
+					JSONObject payload = value.getJSONObject(0);
+					
+					String subScriptionId = payload.getString("subscriptionId");
+					CalendarSyncToken calSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Outlook, subScriptionId);
+					if (calSyncToken != null) {
+						
+						String resourceUrl = payload.getString("resource");
+						OutlookService oservice = new OutlookService();
+						List<OutlookEvents> olevents = oservice.getEventDetailsByResourceUrl(resourceUrl, calSyncToken);
+						if (olevents != null && olevents.size() > 0) {
+							
+							User user = userService.findUserById(calSyncToken.getUserId());
+							eventManager.populateOutlookEventsInCenes(olevents, user);
+						}
+					}
+
+				}
+				
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		
 		return validationToken;
 	}
