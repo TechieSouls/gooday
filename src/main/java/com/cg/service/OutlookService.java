@@ -270,7 +270,7 @@ public class OutlookService {
 						startDateMap.put("DateTime", outlookJson.getJSONObject("start").getString("dateTime"));
 						item.setStart(startDateMap);
 					}
-					if (outlookJson.has("End")) {
+					if (outlookJson.has("end")) {
 						Map<String,String>  endDateMap = new HashMap<>();
 						endDateMap.put("DateTime", outlookJson.getJSONObject("start").getString("dateTime"));
 						item.setEnd(endDateMap);
