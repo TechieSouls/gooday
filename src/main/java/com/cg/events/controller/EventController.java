@@ -1838,7 +1838,7 @@ public class EventController {
 					CalendarSyncToken calSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Outlook, subScriptionId);
 					if (calSyncToken != null) {
 						
-						String resourceUrl = payload.getString("resource");
+						String resourceUrl = "https://graph.microsoft.com/v1.0/"+payload.getString("resource");
 						OutlookService oservice = new OutlookService();
 						List<OutlookEvents> olevents = oservice.getEventDetailsByResourceUrl(resourceUrl, calSyncToken);
 						if (olevents != null && olevents.size() > 0) {
