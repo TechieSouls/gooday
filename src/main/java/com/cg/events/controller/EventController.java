@@ -1827,6 +1827,8 @@ public class EventController {
 				}
 				reader.close();
 				
+				
+				System.out.println("String Buffer : "+sb.toString());
 				JSONObject notificationData = new JSONObject(sb.toString());
 				JSONArray value = notificationData.getJSONArray("value");
 				if (value.length() > 0) {
