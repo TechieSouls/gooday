@@ -1767,9 +1767,12 @@ public class EventController {
 	public String outlookWebHookUrl(String validationtoken, HttpServletRequest request)  {
 		
 		System.out.println("Notification From Outlook");
-		System.out.println("Parameter Map : "+request.getParameterMap().toString());
-		System.out.println("Parameter Map : "+request.getParameter("value").toString());
-
+		try {
+			
+		} catch(Exception e) {
+			System.out.println("Parameter Map : "+request.getParameterMap().toString());
+			System.out.println("Parameter Map : "+request.getParameter("value").toString());
+		}
 		System.out.println(validationtoken);
 		return validationtoken;
 	}
