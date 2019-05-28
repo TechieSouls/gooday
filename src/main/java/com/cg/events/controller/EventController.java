@@ -1768,7 +1768,7 @@ public class EventController {
 		
 		System.out.println("Notification From Outlook");
 		System.out.println("Parameter Map : "+request.getParameterMap().toString());
-		System.out.println("Parameter Map : "+request.getParameter("ResourceData").toString());
+		System.out.println("Parameter Map : "+request.getParameter("value").toString());
 
 		System.out.println(validationtoken);
 		return validationtoken;
