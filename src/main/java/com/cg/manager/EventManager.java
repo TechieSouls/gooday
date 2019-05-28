@@ -101,7 +101,9 @@ public class EventManager {
 	@Autowired
 	EventTimeSlotRepository eventTimeSlotRepository;
 	
-	
+	@Autowired
+	CalendarSyncTokenRepository calendarSyncTokenRepository;
+
 	public Event saveUpdateEvent(Event event) {
 		return eventService.saveEvent(event);
 	}
@@ -1346,6 +1348,10 @@ public class EventManager {
 	
 	public List<GatheringPreviousLocation> findTop15PreviousLocationsByUserId(Long userId) {
 		return gatheringPreviousLocationRepository.findTop15ByUserIdOrderByGatheringPreviousLocationIdDesc(userId);
+	}
+	
+	public CalendarSyncToken findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType accountType, String subscriptionId) {
+		return calendarSyncTokenRepository.findByAccountTypeAndSubscriptionId(accountType, subscriptionId);
 	}
 	
 	/*public static void main(String[] args) {

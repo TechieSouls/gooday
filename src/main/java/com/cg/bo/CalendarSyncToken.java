@@ -52,6 +52,9 @@ public class CalendarSyncToken {
 	@Column(name="email_id")
 	private String emailId;
 	
+	@Column(name="subscription_id")
+	private String subscriptionId;
+	
 	@ManyToOne
 	@JoinColumn(name="user_id",updatable=false,insertable=false)
 	private User user;
@@ -103,5 +106,13 @@ public class CalendarSyncToken {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public String getSubscriptionId() {
+		return subscriptionId;
+	}
+
+	public void setSubscriptionId(String subscriptionId) {
+		this.subscriptionId = subscriptionId;
 	}
 }

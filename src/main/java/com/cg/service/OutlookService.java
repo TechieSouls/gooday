@@ -1,12 +1,11 @@
 package com.cg.service;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,6 +17,7 @@ import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.apache.http.client.methods.HttpGet;
 import org.primefaces.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +27,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.cg.bo.CalendarSyncToken;
 import com.cg.events.bo.OutlookEventAttendees;
 import com.cg.events.bo.OutlookEventItem;
 import com.cg.events.bo.OutlookEvents;
@@ -286,6 +287,78 @@ public class OutlookService {
 		return response.toString();
 	}
 	
+	public String httpPostQueryStrWithBearer(String apiUrl, String queryStr, String accessToken) {
+		StringBuffer response = new StringBuffer();
+
+		try {
+			URL obj = new URL(apiUrl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+			//add reuqest header
+			con.setRequestMethod("POST");
+			con.setRequestProperty("Authorization", "Bearer " + accessToken);
+			con.setRequestProperty("Content-Type", "application/json");
+			con.setRequestProperty("Accept", "application/json");
+
+			con.setDoOutput(true);
+
+			OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+
+			//OutputStream writer = con.getOutputStream();
+			//byte[] input = queryStr.getBytes("utf-8");
+			//writer.write(input, 0, input.length);
+			writer.write(queryStr);
+			writer.flush();
+
+			String line;
+			BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+
+			while ((line = reader.readLine()) != null) {
+				response.append(line);
+			}
+			System.out.println(response.toString());
+
+			writer.close();
+			reader.close();     
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return response.toString();
+	}
+	
+	public String httpGetWithBearer(String apiUrl, String accessToken) {
+		StringBuffer response = new StringBuffer();
+
+		try {
+			URL obj = new URL(apiUrl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+			//add reuqest header
+			con.setRequestMethod("GET");
+			con.setRequestProperty("Authorization", "Bearer " + accessToken);
+			con.setRequestProperty("Content-Type", "application/json");
+			con.setRequestProperty("Accept", "application/json");
+
+			con.setDoOutput(true);
+
+			String line;
+			BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+
+			while ((line = reader.readLine()) != null) {
+				response.append(line);
+			}
+			System.out.println(response.toString());
+
+			reader.close();     
+		} catch(Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return response.toString();
+	}
+	
+	
 	public JSONObject getAccessTokenFromRefreshToken(String refreshToken) {
 		
 		String apiUrl = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
@@ -303,6 +376,96 @@ public class OutlookService {
 		return null;
 	}
 	
+	public String subscribeToCalendarNotifications(String accessToken) {
+		
+		try {
+			String apiUrl = "https://outlook.office.com/api/v2.0/me/subscriptions";
+			JSONObject postData = new JSONObject();
+			try {
+				postData.put("@odata.type", "#Microsoft.OutlookServices.PushSubscription");
+				postData.put("Resource", "https://outlook.office.com/api/v2.0/me/events");
+				postData.put("NotificationURL", "https://deploy.cenesgroup.com/api/event/outlook/notifyWebhook");
+				postData.put("ChangeType", "Created");
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			String response = httpPostQueryStrWithBearer(apiUrl, postData.toString(), accessToken);
+			System.out.println("Response : "+response);
+			if (response != null) {
+				try {
+					JSONObject jsonObject = new JSONObject(response);
+					return jsonObject.getString("Id");
+					
+				} catch (Exception e) {
+					// TODO: handle exception
+					e.printStackTrace();
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}	
+		return null;
+	}
+	
+	public void checkNewEventAdded() {
+			String accessToken = "EwAYA61DBAAUcSSzoTJJsy+XrnQXgAKO5cj4yc8AAWvHEpyi4fEXWPRmRmt2hS0KaKZa4AVkOi5j9uksX4rtKAuyfdPx6jjeT/mHNrgiyp2iIcf5RS5iZjmKnpzEZHjUVL4sEPFBVBcdcbDTtg7Qeh5Fr2iwSmDaNS37Guz+8mg44y1D23QPtdVhzk59QQylyuXRqe/wsyDDDG5pIi9zjGTIt1d6WkN9veiwJWl0Odv8k71WYHr9k3W07BoT8Y3kG/UphejovIVBmwTfk3ODFseR1wVyT7YW/vIdUrCfqQZGb0zGBPRG/oJfjFKfYC8FCK3g2nyjvZ6wE1Pm8d1rPf4FFSQ2zF7NdyQxsAwCrPLA8KZzbW20PELXzK+mIyADZgAACKI1fK8/Pif76AEgjYkthc7/TCABPWG0Ec0G5rip0LpmcGGIFs/IHaQR3NE42fGAuEXUms1Lv1M2v5wKnIqKA/HfpCr8K4WKpTOnZcI4BLoPiUJ0YGL7NCSlUdoq8heFbgYiyTG5uVACdcFFJqdODbFuTmid7EkHovSopDPRuaSvm4l/bVWquy9VORq48E3tE+MAc64C4FfY575dHTVrN86iMtDicUheQZImCofb1CObFchUlLzupay891brZKlUEihmvrJSlazTE9c71BrcsAR+PYdN5sWfSgYjyvomrQYQ6XIDnYvjx2hYHhDk4JQAGAzIxoujpbtGaKq77To/vFDRQUgLVdJW2+oCGGosqyqoxlVuKYM0mvQtiGwIMftbZxZkQDKY0yWJk5XPIiUvPy9xZSnWQxN6OQveEWhvTnwtpmeL/6aiSt11HQcY9dv3fx7cfKNPgpj0PtArE9nY5fChFyOsvcovoo5ckafVgqYgvazEZkQX5w+goq7ehSH2Dzr6CKQlCEZoi6dM4usWvIZwMA6xEHyKKw4dIvvpCLSC3c58fPJJfqsuNGkzUcdccPfnRTENBKSy2rSU/hkmOVgeXgFmUf+RQ+RewJZOLE9PJudznU4Z4l36uvmfKRb8BbcjfC0aN021kV3rTjQrjnc2MycC";
+			String apiUrl = "https://outlook.office.com/api/v2.0/me/events";
+		
+			String response = httpGetWithBearer(apiUrl, accessToken);
+			System.out.println("Response : "+response);
+
+	}
+	
+	
+	public void getSubscriptionData() {
+		String accessToken = "EwAYA61DBAAUcSSzoTJJsy+XrnQXgAKO5cj4yc8AAWvHEpyi4fEXWPRmRmt2hS0KaKZa4AVkOi5j9uksX4rtKAuyfdPx6jjeT/mHNrgiyp2iIcf5RS5iZjmKnpzEZHjUVL4sEPFBVBcdcbDTtg7Qeh5Fr2iwSmDaNS37Guz+8mg44y1D23QPtdVhzk59QQylyuXRqe/wsyDDDG5pIi9zjGTIt1d6WkN9veiwJWl0Odv8k71WYHr9k3W07BoT8Y3kG/UphejovIVBmwTfk3ODFseR1wVyT7YW/vIdUrCfqQZGb0zGBPRG/oJfjFKfYC8FCK3g2nyjvZ6wE1Pm8d1rPf4FFSQ2zF7NdyQxsAwCrPLA8KZzbW20PELXzK+mIyADZgAACKI1fK8/Pif76AEgjYkthc7/TCABPWG0Ec0G5rip0LpmcGGIFs/IHaQR3NE42fGAuEXUms1Lv1M2v5wKnIqKA/HfpCr8K4WKpTOnZcI4BLoPiUJ0YGL7NCSlUdoq8heFbgYiyTG5uVACdcFFJqdODbFuTmid7EkHovSopDPRuaSvm4l/bVWquy9VORq48E3tE+MAc64C4FfY575dHTVrN86iMtDicUheQZImCofb1CObFchUlLzupay891brZKlUEihmvrJSlazTE9c71BrcsAR+PYdN5sWfSgYjyvomrQYQ6XIDnYvjx2hYHhDk4JQAGAzIxoujpbtGaKq77To/vFDRQUgLVdJW2+oCGGosqyqoxlVuKYM0mvQtiGwIMftbZxZkQDKY0yWJk5XPIiUvPy9xZSnWQxN6OQveEWhvTnwtpmeL/6aiSt11HQcY9dv3fx7cfKNPgpj0PtArE9nY5fChFyOsvcovoo5ckafVgqYgvazEZkQX5w+goq7ehSH2Dzr6CKQlCEZoi6dM4usWvIZwMA6xEHyKKw4dIvvpCLSC3c58fPJJfqsuNGkzUcdccPfnRTENBKSy2rSU/hkmOVgeXgFmUf+RQ+RewJZOLE9PJudznU4Z4l36uvmfKRb8BbcjfC0aN021kV3rTjQrjnc2MycC";
+		
+		String apiUrl = "https://outlook.office.com/api/v2.0/Users('00034001-d9cf-abee-0000-000000000000@84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa')/Subscriptions('MDNDNUY2OUQtRTA1OS00MUZELTk3OUEtQUJGNkVCRDE3ODJBXzAwMDM0MDAxLUQ5Q0YtQUJFRS0wMDAwLTAwMDAwMDAwMDAwMA==')";
+		String response = httpGetWithBearer(apiUrl, accessToken);
+		System.out.println("Response : "+response);
+	}
+	
+	public List<OutlookEvents> getEventDetailsByResourceUrl(String resourceUrl, CalendarSyncToken calSyncToken) {
+		List<OutlookEvents> outlookCalenderEvents = new ArrayList<>();
+
+		JSONObject refreshTokenResponse = getAccessTokenFromRefreshToken(calSyncToken.getRefreshToken());
+		if (refreshTokenResponse != null) {
+			try {
+				String accessToken = refreshTokenResponse.getString("access_token");
+				
+				
+				String responseStr = httpGetWithBearer(resourceUrl, accessToken);
+				if (responseStr != null) {
+					JSONObject jsonResponse = new JSONObject(responseStr);
+					
+				    OutlookEvents outlookEvents = parseIosOutlookEvents(jsonResponse);
+				    if (outlookEvents != null) {
+					    outlookCalenderEvents.add(outlookEvents);
+				    } else {
+				    	OutlookEvents androidEvents = parseOutlookResponse(jsonResponse);
+				    	if (androidEvents != null) {
+						    outlookCalenderEvents.add(androidEvents);
+				    	}
+				    }
+					return outlookCalenderEvents;
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+		}
+		return outlookCalenderEvents;
+	}
+	
+	
+	/*public static void main(String[] args) {
+		OutlookService os = new OutlookService();
+		os.subscribeToCalendarNotifications("EwAYA61DBAAUcSSzoTJJsy+XrnQXgAKO5cj4yc8AAVOJXOLG1JeoYxLMVWTpuqwNyzi3341l4Lx3NNIMV6Ve99fGdk3XwEpIc3zGEcR2XDzGAiGEDdMsnN7VMjHDFlAgzUtB32wYmR8OdpJYHY17tNuOkQ4ToCqAuRnpmwnj+iNSg106AkfomaT/D1UlGiEJ5J6+MU+qmov0hSMG9wgh5GWo1VxJJkAhaE+I1d1yN+bQ4KLWbFGY26qQaJ+tv3wBsPtgS5itjLTT1nc27+zOG4p87m6UZ6SwXaZROKM/9LAEgXQ+OkHNx/wVv+wbvea4sFh7+KxKxv7bU5hhHeKZLmzIUNJdEf2Z7LZg2QxeLd5DnaZaqOt0TmImsG/SfDUDZgAACIhgwIq9LIoO6AE+uGoHslvTNQhIKOiEDpZae8Uk6VC5eNOTlEAJ5nCyblSeFpi/uGadIXuScNxfPSWqjMgLmrICprndP/UQNTpXwi2nkAiYwv9LLdvEPYkfpHNJ1lK5yreR16QEViSxjFKcaoCDVXQ1HTBNJEDI3KpURI05XTJc3vLf6J2eaXvUmba81bIbsOkJf23pZ0+qyz91FvdkEdxLsza3tQcA5+EvGF+05eLu+ldQb1k7YuZFOKudyDV+eDzPHvPdGve32irNEv+ZIuD+gEnNwqveL3JXVcEZd8bhUnUWgg14DdoogbM0t8DisRgSI/m0KMBK1sUvFarAfhXSSKmWtwN2w+YrN6U8teNmFL+08Fcd7VtDknZLAItRCXt7/HdwO0Ap6FpQEArI9t2Po2qYnUPwI41d/OqVhhCDUYsaxdiz5TL7kwS1Efg0I+p6Z8PyFW6tY8zt7gAPjR0Fn2a15JnLN7Oyrp7fNKMalREddUDoQeWuFBjOmqCYOMdTf/ovfH6FGSZBHb8joKSflKZH9gx3E/u2Hh906EPdHdHWpU+7GvUMgB2Q9N+rhgnzGR2XDg6plTnFt8Gzk96dwjfoM2otMs1vAq1xyJoQlYWgJn6LvcZW7jhpToFyS8lagPmRBd5xTnsUTVf2hsPebycC");
+	
+		//os.getSubscriptionData();
+	
+	}*/
 	
 	/*public static void main(String[] args) {
 		
