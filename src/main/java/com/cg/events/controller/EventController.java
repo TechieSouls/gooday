@@ -1772,15 +1772,35 @@ public class EventController {
 		try {
 			System.out.println("Parameter Map : "+request.getParameterMap().toString());
 			
+			
 			try {
-				System.out.println("Parameter Map : "+request.getParameter("value").toString());
+				System.out.println("Parameter Map SubscriptionId : "+request.getParameter("SubscriptionId").toString());
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 			
 			try {
-				System.out.println("Parameter Map : "+request.getParameter("@odata.context").toString());
+				System.out.println("Parameter Map value : "+request.getParameter("value").toString());
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			try {
+				System.out.println("Parameter Map odata.context : "+request.getParameter("@odata.context").toString());
 
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			
+			System.out.println("Parsing Headers");
+			try {
+				Enumeration<String> itr = request.getHeaderNames();
+				while (itr.hasMoreElements()) {
+					String string = (String) itr.nextElement();
+					System.out.println("Parameter Name : "+string);
+				}
+				
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
