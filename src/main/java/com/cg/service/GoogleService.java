@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -190,6 +191,20 @@ public class GoogleService {
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
 		/*	}
 		}	*/
+		return googleCalendarEvents;
+	}
+	
+	
+	public List<GoogleEvents> getGoogleEventsOnNotification(String resourceUrl, String accessToken) {
+		
+		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
+
+		//String resourceUrl = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=250&alt=json";
+		HttpService httpService = new HttpService();
+		JSONObject calResponse = httpService.getRequestWithAuthorization(resourceUrl, "GET", accessToken);
+		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
+
+		
 		return googleCalendarEvents;
 	}
 	
@@ -395,6 +410,50 @@ public class GoogleService {
 		return null;
 	}
 	
+	public String httpPostWithoutData(String apiUrl, String accessToken, String postData) {
+		try {
+			URL obj = new URL(apiUrl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+			//add request header
+			con.setRequestMethod("POST");
+			//con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+			con.setRequestProperty("Authorization", "Bearer "+accessToken+"");
+			con.setRequestProperty("Content-Type", "application/json");
+			con.setRequestProperty("Content-Length", "0");
+
+			// Send post request
+			con.setDoOutput(true);
+
+			// Send post request
+			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes(postData);
+			wr.flush();
+			wr.close();
+
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'POST' request to URL : " + apiUrl);
+			System.out.println("Response Code : " + responseCode);
+
+			BufferedReader in = new BufferedReader(
+			        new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			
+			//print result
+			System.out.println(response.toString());
+			return response.toString();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public JSONObject getRefreshTokenFromCode(String serverAuthCode) {
 		
 		String authUrl = "https://accounts.google.com/o/oauth2/token";
@@ -439,6 +498,32 @@ public class GoogleService {
 		}
 		
 		return null;
+	}
+	
+	public JSONObject subscribeToGoogleEventWatcher(String accessToken) {
+		
+		String apiUrl = "https://www.googleapis.com/calendar/v3/calendars/primary/events/watch";
+		try {
+			String uuidChannelId = UUID.randomUUID().toString();
+
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.DAY_OF_MONTH, 3);
+			
+
+			JSONObject postData = new JSONObject();
+			postData.put("id", ""+uuidChannelId+"");
+			postData.put("type", "web_hook");
+			postData.put("address", "https://deploy.cenesgroup.com/api/event/google/notifyWebhook");
+			postData.put("expiration", calendar.getTimeInMillis());
+
+			JSONObject json = new JSONObject(httpPostWithoutData(apiUrl, accessToken, postData.toString()));
+			System.out.println(json.toString());
+			return json;
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return  null;
 	}
 	
 	
@@ -495,6 +580,20 @@ public class GoogleService {
 		return gc;
 	}
 	
+	
+	//Subscription call
+	/*public static void main(String[] args) {
+		GoogleService gs = new GoogleService();
+		try {
+			JSONObject json = gs.getAccessTokenFromRefreshToken("1/kXkYzmXkrGJwza7UgJ5nTiQultJPE3KeKRPyGxfv6B4Oh2nQIZv7D-QADMq-Zhde");
+			String accessToken = json.getString("access_token");
+			//String accessToken = "ya29.GlsYB8zmcdMOBQ77Hr5k5I5Ucs6XQgj3lfM4EK87lJ4zuQBUbXIiGWqk8qP61VJYNItVyURxo_phfjZtRvWN44bfQsmUTXWkP32lNWDhd2LkjIAsuf1D57Ct8Yzb";
+			JSONObject json2 = gs.subscribeToGoogleEventWatcher(accessToken);
+			System.out.println(json2.toString());
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}*/
 	/*public static void main(String[] args) {
 		//new GoogleService().getCountryHolidayEvents("en.canadian#holiday@group.v.calendar.google.com");
 		

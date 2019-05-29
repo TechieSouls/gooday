@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -776,6 +777,15 @@ public class EventController {
 
 						calendarSyncToken.setRefreshToken(refToken);
 					}
+					
+					JSONObject subscribeResponse = googleService.subscribeToGoogleEventWatcher(syncParams.get("accessToken").toString());
+					if (subscribeResponse != null) {
+						String uuidChannelId = subscribeResponse.getString("id");
+						Long expirationTime = subscribeResponse.getLong("expiration");
+						calendarSyncToken.setSubscriptionId(uuidChannelId);
+						calendarSyncToken.setSubExpiryDate(new Date(expirationTime));
+					}
+					
 					System.out.println("[Google Sync V2] Date : " + new Date() + " Saving Refresh Token : "
 							+ authCodeResponse.toString());
 
@@ -1940,31 +1950,34 @@ public class EventController {
 
 		System.out.println("Google Push Notification");
 		try {
-			BufferedReader reader = request.getReader();
-			StringBuffer sb = new StringBuffer();
-			String line = "";
-			while ((line = reader.readLine()) != null) {
-				sb.append(line);
-			}
-			reader.close();
 			
-			System.out.println("POST BODY" + sb.toString());
-			//return sb.toString();
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
-		
-		
-		try {
-			
-			Enumeration<String> headrs = request.getHeaderNames();
-			while(headrs.hasMoreElements()) {
-				
-				String header = headrs.nextElement();
-				System.out.println("Header Name : " + header+" , Value : "+request.getHeader(header));
+			String channelId = request.getHeader("x-goog-channel-id");
+			System.out.println("Channel Id : "+channelId);
+			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Google, channelId);
 
-			}
+			if (calendarSyncToken != null) {
+				System.out
+						.println("[Google Sync] Date : " + new Date() + " Getting Access Token Response from RefreshToken");
+				GoogleService googleService = new GoogleService();
+				JSONObject refreshTokenResponse = googleService
+						.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+				System.out.println("[Google Sync] Date : " + new Date() + " Response from Refresh Token : "
+						+ refreshTokenResponse.toString());
+				
+				
+				if (refreshTokenResponse != null) {
+
+					String accessToken = refreshTokenResponse.getString("access_token");
+
+					User user = userService.findUserById(calendarSyncToken.getUserId());
+
+					String resourceUrl = request.getHeader("x-goog-resource-uri");
+					System.out.println("Google Resource Url : "+resourceUrl);
+					eventManager.syncGoogleEventsOnNotification(resourceUrl, accessToken, user);
+					System.out.println("Google Push Notification Done");
+				}
 			
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
