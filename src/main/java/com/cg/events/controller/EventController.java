@@ -1934,6 +1934,26 @@ public class EventController {
 		
 		return validationtoken;
 	}
+	
+	@RequestMapping(value = "/api/event/google/notifyWebhook", method = RequestMethod.POST)
+	public String googleWebHookUrl(HttpServletRequest request) {
+
+		try {
+			BufferedReader reader = request.getReader();
+			StringBuffer sb = new StringBuffer();
+			String line = "";
+			while ((line = reader.readLine()) != null) {
+				sb.append(line);
+			}
+			reader.close();
+			
+			System.out.println(sb.toString());
+			return sb.toString();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	// Method to get Outlook events from API.
 	@RequestMapping(value = "/api/user/gatherings", method = RequestMethod.GET)
