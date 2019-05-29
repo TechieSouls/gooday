@@ -1949,7 +1949,7 @@ public class EventController {
 			reader.close();
 			
 			System.out.println("POST BODY" + sb.toString());
-			return sb.toString();
+			//return sb.toString();
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
