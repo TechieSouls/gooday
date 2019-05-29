@@ -1938,6 +1938,7 @@ public class EventController {
 	@RequestMapping(value = "/api/event/google/notifyWebhook", method = RequestMethod.POST)
 	public String googleWebHookUrl(HttpServletRequest request) {
 
+		System.out.println("Google Push Notification");
 		try {
 			BufferedReader reader = request.getReader();
 			StringBuffer sb = new StringBuffer();
@@ -1947,13 +1948,27 @@ public class EventController {
 			}
 			reader.close();
 			
-			System.out.println(sb.toString());
+			System.out.println("POST BODY" + sb.toString());
 			return sb.toString();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+		try {
+			
+			Enumeration<String> headrs = request.getHeaderNames();
+			while(headrs.hasMoreElements()) {
+				System.out.println("Header Name : " + headrs.nextElement());
+
+			}
+			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
+	
 
 	// Method to get Outlook events from API.
 	@RequestMapping(value = "/api/user/gatherings", method = RequestMethod.GET)
