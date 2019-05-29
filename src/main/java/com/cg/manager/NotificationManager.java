@@ -619,6 +619,45 @@ public class NotificationManager {
 		return notificationDao.findTotalNotificationCountsByRecepientId(recepientId);
 	}
 	
+	public void sendRefreshPushNotification(Long userId) {
+		List toIosArray = new ArrayList<>();
+
+		List<UserDevice> userDevices = userService.findUserDeviceInfoByUserId(userId);
+		if (userDevices != null && userDevices.size() > 0) {
+			for (UserDevice userDevice : userDevices) {
+				if ("ios".equals(userDevice.getDeviceType())){
+					toIosArray.add(userDevice);
+				}
+			}
+		}
+		
+		try {
+			System.out.println("IOS Push to send : "+toIosArray.size());
+			if (toIosArray.size() > 0) {
+				
+				List<UserDevice> iosUserDevices = toIosArray;
+				for (UserDevice userDevice : iosUserDevices) {
+					JSONObject notifyObj = new JSONObject();
+					JSONObject payloadObj = new JSONObject();
+					JSONObject alert = new JSONObject();
+					alert.put("title","Refresh Home Screen");
+					alert.put("type","HomeRefresh");
+					payloadObj.put("alert",alert);
+					notifyObj.put("aps", payloadObj);
+					
+					List deviceTokenList = new ArrayList();
+					deviceTokenList.add(userDevice.getDeviceToken());
+					System.out.println("IOS Device token : "+userDevice.getDeviceToken());
+					PushNotificationService.sendIosPushNotification(deviceTokenList,notifyObj);
+				}
+				
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
 	public void sendTestingNotificationToAndroid() {
 		//ePRpH6WjCM0:APA91bF1hiSwM45o3-Zm2zfpCofWpBs3o8t7wKpeDBspNHOeFjwBn816W65phskOk4fsIvBgdRacuEPa9jPS7_SHSUKUBXrxKyxrmn7qt2tqgX8OyjVLfUmFdLxOIhsxp7rTvCIj4hTD
 		JSONArray toArr = new JSONArray();

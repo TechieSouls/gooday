@@ -1881,6 +1881,8 @@ public class EventController {
 							User user = userService.findUserById(calSyncToken.getUserId());
 							eventManager.populateOutlookEventsInCenes(olevents, user);
 						}
+						
+						notificationManager.sendRefreshPushNotification(calSyncToken.getUserId());
 					}
 
 				}
@@ -1932,6 +1934,8 @@ public class EventController {
 							User user = userService.findUserById(calSyncToken.getUserId());
 							eventManager.populateOutlookEventsInCenes(olevents, user);
 						}
+						notificationManager.sendRefreshPushNotification(calSyncToken.getUserId());
+
 					}
 
 				}
@@ -1975,6 +1979,9 @@ public class EventController {
 					System.out.println("Google Resource Url : "+resourceUrl);
 					eventManager.syncGoogleEventsOnNotification(resourceUrl, accessToken, user);
 					System.out.println("Google Push Notification Done");
+					
+					notificationManager.sendRefreshPushNotification(user.getUserId());
+
 				}
 			
 			}
