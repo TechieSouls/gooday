@@ -1959,7 +1959,9 @@ public class EventController {
 			
 			Enumeration<String> headrs = request.getHeaderNames();
 			while(headrs.hasMoreElements()) {
-				System.out.println("Header Name : " + headrs.nextElement()+" , Value : "+request.getHeader(headrs.nextElement()));
+				
+				String header = headrs.nextElement();
+				System.out.println("Header Name : " + header+" , Value : "+request.getHeader(header));
 
 			}
 			
