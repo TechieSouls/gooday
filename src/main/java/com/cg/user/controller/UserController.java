@@ -1555,10 +1555,13 @@ public class UserController {
 		}
 		
 		eventManager.deleteEventsByCreatedById(user.getUserId());
-		userService.deleteContactsByUserId(user.getUserId());
-		userService.updateContactsByFriendIdAndUserId(null, user.getPhone());
 		eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
 		recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+		userService.updateContactsByFriendIdAndUserId(null, user.getPhone().substring(4, user.getPhone().length()));
+		userService.deleteContactsByUserId(user.getUserId());
+		//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+		//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+		userService.deleteCalendarSyncTokensByUserId(user.getUserId());
 		userService.deleteUserDeviceByUserId(user.getUserId());
 		userService.deleteUserByUserId(user.getUserId());
 		return response;
