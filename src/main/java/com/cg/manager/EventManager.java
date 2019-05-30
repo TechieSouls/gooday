@@ -496,7 +496,7 @@ public class EventManager {
 	}
 	
 	public void deleteEventBySourceAndScheduleAndEventId(Event.EventSource source, Event.ScheduleEventAs scheduleAs, String sourceEventId) {
-		this.eventRepository.deleteBySourceAndScheduleAsAndSourceEventId(source, scheduleAs, sourceEventId);
+		this.eventRepository.deleteBySourceAndScheduleAsAndSourceEventId(source.toString(), scheduleAs.toString(), sourceEventId);
 	}
 	
 	
