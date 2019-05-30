@@ -1991,11 +1991,11 @@ public class EventController {
 				GoogleService googleService = new GoogleService();
 				JSONObject refreshTokenResponse = googleService
 						.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
-				System.out.println("[Google Sync] Date : " + new Date() + " Response from Refresh Token : "
-						+ refreshTokenResponse.toString());
 				
 				
 				if (refreshTokenResponse != null) {
+					System.out.println("[Google Sync] Date : " + new Date() + " Response from Refresh Token : "
+							+ refreshTokenResponse.toString());
 
 					String accessToken = refreshTokenResponse.getString("access_token");
 
