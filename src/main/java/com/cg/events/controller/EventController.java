@@ -1981,6 +1981,12 @@ public class EventController {
 		System.out.println("Google Push Notification");
 		try {
 			
+			Enumeration<String> headers = request.getHeaderNames();
+			while(headers.hasMoreElements()) {
+				String element = headers.nextElement();
+				System.out.println(element+ "   -     "+request.getHeader(element));
+			}
+			
 			String channelId = request.getHeader("x-goog-channel-id");
 			System.out.println("Channel Id : "+channelId);
 			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Google, channelId);
