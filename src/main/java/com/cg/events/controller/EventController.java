@@ -1884,7 +1884,7 @@ public class EventController {
 							System.out.println("Source Event Id : "+sourceEventId);
 							eventManager.deleteEventBySourceAndScheduleAndEventId(Event.EventSource.Outlook, Event.ScheduleEventAs.Event, sourceEventId);
 							
-						} else if (changeType.equals("created")) {
+						} else if (changeType.equals("created") || changeType.equals("updated")) {
 							
 								
 								String resourceUrl = "https://graph.microsoft.com/v1.0/"+payload.getString("resource");
