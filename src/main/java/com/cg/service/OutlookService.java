@@ -442,7 +442,7 @@ public class OutlookService {
 				postData.put("@odata.type", "#Microsoft.OutlookServices.PushSubscription");
 				postData.put("Resource", "https://outlook.office.com/api/v2.0/me/events");
 				postData.put("NotificationURL", "https://deploy.cenesgroup.com/api/event/outlook/notifyWebhook");
-				postData.put("ChangeType", "Created");
+				postData.put("ChangeType", "Created,Deleted,Updated");
 				postData.put("SubscriptionExpirationDateTime", ""+oneWeekDate+"");
 			} catch(Exception e) {
 				e.printStackTrace();
@@ -468,7 +468,7 @@ public class OutlookService {
 					postData = new JSONObject();
 					postData.put("resource", "/me/events");
 					postData.put("notificationUrl", "https://deploy.cenesgroup.com/api/event/outlook/iosNotifyWebhook");
-					postData.put("changeType", "created");
+					postData.put("changeType", "created,deleted,updated");
 					postData.put("expirationDateTime", ""+oneWeekDate+"");
 				} catch(Exception e) {
 					e.printStackTrace();
