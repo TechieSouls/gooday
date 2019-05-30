@@ -92,5 +92,5 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	
 	public void deleteByRecurringEventId(String recurringEventId);
 	
-
+	public void deleteBySourceAndScheduleAsAndSourceEventId(Event.EventSource source, Event.ScheduleEventAs scheduleAs, String sourceEventId);
 }

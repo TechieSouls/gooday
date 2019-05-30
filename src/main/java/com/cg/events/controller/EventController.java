@@ -1869,22 +1869,37 @@ public class EventController {
 				if (value.length() > 0) {
 					JSONObject payload = value.getJSONObject(0);
 					
+					
+					
 					String subScriptionId = payload.getString("subscriptionId");
 					CalendarSyncToken calSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Outlook, subScriptionId);
 					if (calSyncToken != null) {
-						
-						String resourceUrl = "https://graph.microsoft.com/v1.0/"+payload.getString("resource");
-						OutlookService oservice = new OutlookService();
-						List<OutlookEvents> olevents = oservice.getEventDetailsByResourceUrl(resourceUrl, calSyncToken);
-						if (olevents != null && olevents.size() > 0) {
+
+						String changeType = payload.getString("changeType");
+						if (changeType.equals("deleted")) {
 							
-							User user = userService.findUserById(calSyncToken.getUserId());
-							eventManager.populateOutlookEventsInCenes(olevents, user);
-						}
-						
+							
+							JSONObject resourceData = payload.getJSONObject("resourceData");
+							String sourceEventId = resourceData.getString("id");
+							System.out.println("Source Event Id : "+sourceEventId);
+							eventManager.deleteEventBySourceAndScheduleAndEventId(Event.EventSource.Outlook, Event.ScheduleEventAs.Event, sourceEventId);
+							
+						} else if (changeType.equals("created")) {
+							
+								
+								String resourceUrl = "https://graph.microsoft.com/v1.0/"+payload.getString("resource");
+								OutlookService oservice = new OutlookService();
+								List<OutlookEvents> olevents = oservice.getEventDetailsByResourceUrl(resourceUrl, calSyncToken);
+								if (olevents != null && olevents.size() > 0) {
+									
+									User user = userService.findUserById(calSyncToken.getUserId());
+									eventManager.populateOutlookEventsInCenes(olevents, user);
+								}
+							}
+					
+					
 						notificationManager.sendRefreshPushNotification(calSyncToken.getUserId());
 					}
-
 				}
 				
 
@@ -1922,22 +1937,33 @@ public class EventController {
 				if (value.length() > 0) {
 					JSONObject payload = value.getJSONObject(0);
 					
-					String subScriptionId = payload.getString("SubscriptionId");
-					CalendarSyncToken calSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Outlook, subScriptionId);
-					if (calSyncToken != null) {
+					String changeType = payload.getString("ChangeType");
+					if (changeType.equals("Deleted")) {
 						
-						String resourceUrl = payload.getString("Resource");
-						OutlookService oservice = new OutlookService();
-						List<OutlookEvents> olevents = oservice.getEventDetailsByResourceUrl(resourceUrl, calSyncToken);
-						if (olevents != null && olevents.size() > 0) {
+						
+						JSONObject resourceData = payload.getJSONObject("ResourceData");
+						String sourceEventId = resourceData.getString("Id");
+						eventManager.deleteEventBySourceAndScheduleAndEventId(Event.EventSource.Outlook, Event.ScheduleEventAs.Event, sourceEventId);
+						
+					} else if (changeType.equals("Created")) {
+						
+					
+						String subScriptionId = payload.getString("SubscriptionId");
+						CalendarSyncToken calSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Outlook, subScriptionId);
+						if (calSyncToken != null) {
 							
-							User user = userService.findUserById(calSyncToken.getUserId());
-							eventManager.populateOutlookEventsInCenes(olevents, user);
+							String resourceUrl = payload.getString("Resource");
+							OutlookService oservice = new OutlookService();
+							List<OutlookEvents> olevents = oservice.getEventDetailsByResourceUrl(resourceUrl, calSyncToken);
+							if (olevents != null && olevents.size() > 0) {
+								
+								User user = userService.findUserById(calSyncToken.getUserId());
+								eventManager.populateOutlookEventsInCenes(olevents, user);
+							}
+							notificationManager.sendRefreshPushNotification(calSyncToken.getUserId());
+	
 						}
-						notificationManager.sendRefreshPushNotification(calSyncToken.getUserId());
-
 					}
-
 				}
 				
 

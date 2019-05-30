@@ -371,6 +371,8 @@ public class GoogleService {
 	
 	public String httpPostQueryString(String apiUrl, String postStr) {
 		try {
+			System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2");
+
 			URL obj = new URL(apiUrl);
 			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 
@@ -641,5 +643,10 @@ public class GoogleService {
 		
 		
 		System.out.println(URLEncoder.encode("en.malaysia#holiday@group.v.calendar.google.com"));
+	}*/
+	
+	/*public static void main(String[] args) {
+		GoogleService gs = new GoogleService();
+		System.out.println(gs.getAccessTokenFromRefreshToken("1/vtmthlD7W_4ufUQk5J48S89EIdLP9KP-xlM7ttcEXuw"));
 	}*/
 }
