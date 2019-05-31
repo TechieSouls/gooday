@@ -70,7 +70,8 @@ public class CenesUtils {
 	    startCalendar.set(Calendar.MILLISECOND, 0);
 	    System.out.println(startCalendar.getTime());
 		Long startTimeLong = startCalendar.getTimeInMillis();
-	    
+		startCalendar = null;
+		
 		Calendar endCalendar = Calendar.getInstance();
 		endCalendar.set(Calendar.MILLISECOND, 0);
 		endCalendar.set(Calendar.SECOND, 0);
@@ -79,6 +80,7 @@ public class CenesUtils {
 	    System.out.println(endCalendar.getTime());
 
 	    Long endTimeLong = endCalendar.getTimeInMillis();
+	    endCalendar = null;
 	    
 	    List<Long> timeSlotValues = new ArrayList<>();
 	    //timeSlotValues.add(startTimeLong);
@@ -94,6 +96,7 @@ public class CenesUtils {
 			timeSlotValues.add(now.getTimeInMillis());
 		    incrementalTime = now.getTimeInMillis();
 		    //System.out.println(now.getTime());
+		    now = null;
 	    }
 	    //System.out.println("Divide time inot slots END");
 	    /*if (timeSlotValues.size() > 0) {
