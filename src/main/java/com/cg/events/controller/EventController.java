@@ -1875,7 +1875,7 @@ public class EventController {
 					CalendarSyncToken calSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Outlook, subScriptionId);
 					if (calSyncToken != null) {
 
-						String changeType = payload.getString("changeType");
+						/*String changeType = payload.getString("changeType");
 						if (changeType.equals("deleted")) {
 							
 							
@@ -1896,7 +1896,7 @@ public class EventController {
 									eventManager.populateOutlookEventsInCenes(olevents, user);
 								}
 							}
-					
+					*/
 					
 						//notificationManager.sendRefreshPushNotification(calSyncToken.getUserId());
 					}
@@ -1935,7 +1935,7 @@ public class EventController {
 				JSONObject notificationData = new JSONObject(sb.toString());
 				JSONArray value = notificationData.getJSONArray("value");
 				if (value.length() > 0) {
-					JSONObject payload = value.getJSONObject(0);
+					/*JSONObject payload = value.getJSONObject(0);
 					
 					String changeType = payload.getString("ChangeType");
 					if (changeType.equals("Deleted")) {
@@ -1961,9 +1961,10 @@ public class EventController {
 								eventManager.populateOutlookEventsInCenes(olevents, user);
 							}
 							//notificationManager.sendRefreshPushNotification(calSyncToken.getUserId());
-	
 						}
 					}
+					*/
+					
 				}
 				
 
@@ -1992,7 +1993,8 @@ public class EventController {
 			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Google, channelId);
 
 			if (calendarSyncToken != null) {
-				System.out
+				
+				/*System.out
 						.println("[Google Sync] Date : " + new Date() + " Getting Access Token Response from RefreshToken");
 				GoogleService googleService = new GoogleService();
 				JSONObject refreshTokenResponse = googleService
@@ -2015,7 +2017,7 @@ public class EventController {
 					//notificationManager.sendRefreshPushNotification(user.getUserId());
 
 				}
-			
+			*/
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
