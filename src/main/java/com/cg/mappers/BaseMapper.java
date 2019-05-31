@@ -152,9 +152,11 @@ public class BaseMapper {
 			eventMember.setSourceEmail(rs.getString("source_email"));
 			eventMember.setSourceId(rs.getString("source_id"));
 			eventMember.setStatus(rs.getString("status"));
-			if (rs.getLong("em_user_id") != 0) {
+			
+			
+			try {
 				eventMember.setUserId(rs.getLong("em_user_id"));
-			} else {
+			} catch(Exception e) {
 				eventMember.setUserId(rs.getLong("user_id"));
 			}
 
