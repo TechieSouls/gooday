@@ -56,7 +56,6 @@ public class EventTimeSlotManager {
 	 * */
 	public List<Event> saveEventsInSlots(List<Event> events) {
 		System.out.println("saveEventsInSlots STARTS");
-
 		try {
 			for (Event event : events) {
 				List<EventTimeSlot> eventTimeSlots = getTimeSlots(event,event.getCreatedById());
@@ -91,7 +90,10 @@ public class EventTimeSlotManager {
 		// of 15 minutes.
 		// We will then use this list to compare with event creator time
 		List<Long> eventStarEndTimeInSlots = CenesUtils.divideTimeIntoMinuteSlots(event.getStartTime(),event.getEndTime(), minutesToAdd);
-
+		if (eventStarEndTimeInSlots.size() == 0) {
+			return eventTimeSlots;
+		}
+		
 		// Now we need to create 15 minutes slots for the whole day
 		// And we will check if any slot is booked and mark it as booked
 		// Otherwise free slot
@@ -178,15 +180,20 @@ public class EventTimeSlotManager {
 	
 	public List<Event> saveEventMemberSlots(List<Event> events) {
 		System.out.println("saveEventMemberSlots STARTS");
-
+		System.out.println("Events List : "+events.size());
 		try {
 			for (Event event : events) {
+				
+				System.out.println("Event Details : Event Members Size "+event.getEventMembers().size());
+				
 				for (EventMember eventMember : event.getEventMembers()) {
 					if (eventMember.getProcessed() == Event.EventProcessedStatus.Processed.ordinal()) {
 						continue;
 					}
 					List<EventTimeSlot> eventTimeSlots = getTimeSlots(event,eventMember.getUserId());
-					eventTimeSlotRepository.save(eventTimeSlots);
+					if (eventTimeSlots != null && eventTimeSlots.size() > 0) {
+						eventTimeSlotRepository.save(eventTimeSlots);
+					}
 					
 					//Releasing space allocated to time slots list
 					eventTimeSlots = null;

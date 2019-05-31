@@ -64,6 +64,11 @@ public class CenesUtils {
 	}
 	
 	public static List<Long> divideTimeIntoMinuteSlots(Date startTime, Date endTime,int slotFrameInMinutes) {
+		
+		
+		if (endTime == null) {
+			return new ArrayList<Long>();
+		}
 		Calendar startCalendar = Calendar.getInstance();
 		startCalendar.setTime(startTime);
 		startCalendar.set(Calendar.SECOND, 0);
