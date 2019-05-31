@@ -1329,6 +1329,9 @@ public class EventManager {
 	public EventMember generateTimeSlotsForEventMember(Event event, EventMember eventMember) {
 		List<EventTimeSlot> eventTimeSlots = eventTimeSlotManager.getTimeSlots(event,eventMember.getUserId());
 		eventTimeSlotRepository.save(eventTimeSlots);
+		
+		//Releasing space occupied by List
+		eventTimeSlots = null;
 		eventMember.setProcessed(Event.EventProcessedStatus.Processed.ordinal());
 		return eventMember;
 	}

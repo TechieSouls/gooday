@@ -61,6 +61,10 @@ public class EventTimeSlotManager {
 			for (Event event : events) {
 				List<EventTimeSlot> eventTimeSlots = getTimeSlots(event,event.getCreatedById());
 				eventTimeSlotRepository.save(eventTimeSlots);
+				
+				//Releasing space allocated to time slots list
+				eventTimeSlots = null;
+
 				event.setProcessed(EventProcessedStatus.Processed.ordinal());
 			}
 		} catch (Exception e) {
@@ -166,6 +170,8 @@ public class EventTimeSlotManager {
 				}
 			}
 		//}
+			//Releasing space occupied by List
+			eventStarEndTimeInSlots = null;
 			return eventTimeSlots;
 	}
 	
@@ -181,6 +187,10 @@ public class EventTimeSlotManager {
 					}
 					List<EventTimeSlot> eventTimeSlots = getTimeSlots(event,eventMember.getUserId());
 					eventTimeSlotRepository.save(eventTimeSlots);
+					
+					//Releasing space allocated to time slots list
+					eventTimeSlots = null;
+					
 					eventMember.setProcessed(Event.EventProcessedStatus.Processed.ordinal());
 					eventMemberRepository.save(eventMember);
 				}
