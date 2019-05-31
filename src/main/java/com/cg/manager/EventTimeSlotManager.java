@@ -74,6 +74,9 @@ public class EventTimeSlotManager {
 	}
 	
 	public List<EventTimeSlot> getTimeSlots(Event event,Long userId) {
+		
+		System.out.println("Start Time : "+event.getStartTime()+", End Time : "+event.getEndTime());
+		
 		List<EventTimeSlot> eventTimeSlots = new ArrayList<>();
 		Long eventDayStartTimeValue = CenesUtils.getStartOfDay(event.getStartTime()).getTime();
 		Long eventDayEndTimeValue = null;

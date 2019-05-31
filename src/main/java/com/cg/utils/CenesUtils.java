@@ -65,7 +65,7 @@ public class CenesUtils {
 	
 	public static List<Long> divideTimeIntoMinuteSlots(Date startTime, Date endTime,int slotFrameInMinutes) {
 		
-		
+		System.out.println("Before Dividing: StartTime : "+startTime+", End Time : "+endTime);
 		if (endTime == null) {
 			return new ArrayList<Long>();
 		}
