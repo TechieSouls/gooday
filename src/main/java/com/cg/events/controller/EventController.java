@@ -288,9 +288,7 @@ public class EventController {
 			
 			Event event = eventService.findEventById(gatehringId);
 
-			Event eventTemp = event;
-			eventTemp.setEventId(null);
-			
+			Event eventTemp = event;			
 			
 			eventService.deleteGathering(gatehringId);
 			notificationManager.sendDeleteNotification(eventTemp);
