@@ -285,20 +285,26 @@ public class EventController {
 		Map<String, Object> deleteResponse = new HashMap<>();
 		try {
 
+			
 			Event event = eventService.findEventById(gatehringId);
 
-			notificationManager.sendDeleteNotification(event);
+			Event eventTemp = event;
+			eventTemp.setEventId(null);
+			
+			
+			eventService.deleteGathering(gatehringId);
+			notificationManager.sendDeleteNotification(eventTemp);
 
-			for (EventMember eventMember : event.getEventMembers()) {
+			for (EventMember eventMember : eventTemp.getEventMembers()) {
 				eventMember.setUser(null);
 			}
 			try {
-				eventService.deleteEventTimeSlotsByEventId(event.getEventId());
+				eventService.deleteEventTimeSlotsByEventId(gatehringId);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			if (event.getRecurringEventId() != null) {
-				eventService.deleteEventsByRecurringId(event.getRecurringEventId());
+			if (eventTemp.getRecurringEventId() != null) {
+				eventService.deleteEventsByRecurringId(eventTemp.getRecurringEventId());
 			} else {
 				eventService.deleteGathering(gatehringId);
 			}
