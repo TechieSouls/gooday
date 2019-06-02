@@ -249,7 +249,7 @@ public class EventController {
 			}
 			event = eventManager.createEvent(event);
 
-			if (event.getPlaceId() != null && event.getEventPicture() != null
+			/*if (event.getPlaceId() != null && event.getEventPicture() != null
 					&& event.getEventPicture().indexOf("google") != -1) {
 				GatheringPreviousLocation gatheringPreviousLocation = null;
 				gatheringPreviousLocation = eventManager
@@ -265,11 +265,12 @@ public class EventController {
 					gatheringPreviousLocation.setPlaceId(event.getPlaceId());
 					eventManager.saveUpdateGatheringPreviousLocation(gatheringPreviousLocation);
 				}
-			}
+			}*/
 
 			response.put("data", event);
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println("Error : "+e.getMessage());
 			response.put("success", false);
 			response.put("data", new Event());
 			response.put("errorCode", ErrorCodes.InternalServerError.toString());
