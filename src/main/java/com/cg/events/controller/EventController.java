@@ -290,7 +290,12 @@ public class EventController {
 
 			Event eventTemp = event;			
 			
-			eventService.deleteGathering(gatehringId);
+			if (eventTemp.getRecurringEventId() != null) {
+				eventService.deleteEventsByRecurringId(eventTemp.getRecurringEventId());
+			} else {
+				eventService.deleteGathering(gatehringId);
+			}			
+			
 			notificationManager.sendDeleteNotification(eventTemp);
 
 			for (EventMember eventMember : eventTemp.getEventMembers()) {
@@ -301,11 +306,7 @@ public class EventController {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-			if (eventTemp.getRecurringEventId() != null) {
-				eventService.deleteEventsByRecurringId(eventTemp.getRecurringEventId());
-			} else {
-				eventService.deleteGathering(gatehringId);
-			}
+			
 			/// notificationManager.deleteNotificationByNotificationTypeId(event.getEventId());
 			deleteResponse.put("success", true);
 			deleteResponse.put("message", "Gathering deleted Successfully");
