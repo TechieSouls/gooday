@@ -315,6 +315,22 @@ public class UserController {
 		
 		//If User signup via Email
 		if (user.getAuthType().equals(AuthenticateType.email)) {
+			
+			//Lets check if same phone number exists for the user.
+			if (user.getPhone() == null) {
+				response.put("success", false);
+				response.put("message", "Please visit Phone Verification Steps");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			User userByPhone = userRepository.findByPhone(user.getPhone());
+			if (userByPhone != null) {
+				response.put("success", false);
+				response.put("message", "Phone Already Exists.");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			
+			
+			
 			User emailUser = userRepository.findUserByEmail(user.getEmail());
 			if (emailUser != null) {
 				response.put("success", false);
@@ -1352,6 +1368,9 @@ public class UserController {
 			//Now lets create new password and update it.
 			String newPass = new Md5PasswordEncoder().encodePassword(newPassword, salt);
 			userService.updatePasswordByUserId(newPass, userId);
+		} else if (updateUserDetails.containsKey("profilePic")) {
+			String profilePic =  updateUserDetails.get("profilePic").toString();
+			userService.updateProfilePicByUserId(profilePic, userId);
 		}
 		
 		response.put("success", true);

@@ -54,5 +54,11 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
 	@Transactional
 	@Modifying
+	@Query("update User u set u.photo = :photo where u.userId = :userId")
+	public void updateProfilePicByUserId(@Param("photo") String photo, @Param("userId") Long userId);
+
+	
+	@Transactional
+	@Modifying
 	public void deleteByUserId(Long userId);
 }

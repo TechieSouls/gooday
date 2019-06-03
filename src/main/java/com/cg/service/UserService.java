@@ -152,6 +152,10 @@ public class UserService {
 		userRepository.updatePasswordByUserId(password, userId);
 	}
 	
+	public void updateProfilePicByUserId(String profilePicUrl, Long userId) {
+		userRepository.updateProfilePicByUserId(profilePicUrl, userId);
+	}
+	
 	/**
 	 * Method to Sync the user phone contacts.
 	 * */
