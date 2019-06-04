@@ -1067,7 +1067,7 @@ public class EventManager {
 					}
 
 					event.setSourceEventId(eventItem.getId());
-					event.setSource(EventSource.Google.toString());
+					event.setSource(EventSource.GoogleHoliday.toString());
 					event.setTitle(eventItem.getSummary());
 					event.setCreatedById(user.getUserId());
 					event.setIsFullDay(true);

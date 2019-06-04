@@ -209,20 +209,24 @@ public class EventServiceDao {
 				if (result.get("account_type").toString().equals("Google") ||  result.get("account_type").toString().equals("Outlook") || result.get("account_type").toString().equals("Apple")) {
 					sources.append("'"+result.get("account_type").toString()+"'").append(",");
 				}
+			}			
+			
+			if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
+				scheduleAs.append("'Event'").append(",");
 			}
-			sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
 		}
 		//Check if user has Holidays Synced.?
 		if (results != null && results.size() > 0) {
 			for (Map<String, Object> result: results) {
 				if (result.get("account_type").toString().equals("Holiday")) {
 					scheduleAs.append("'Holiday'").append(",");
+					sources.append("'GoogleHoliday'").append(",");
 				}
 			}
 		}
-		if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
-			scheduleAs.append("'Event'").append(",");
-		}
+		
+		sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
+
 		sourcesQuery += " and e.schedule_as in ("+scheduleAs.substring(0, scheduleAs.length()-1)+") ";
 
 		/*String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
