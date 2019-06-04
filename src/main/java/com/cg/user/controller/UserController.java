@@ -309,6 +309,9 @@ public class UserController {
 	@RequestMapping(value = "/api/users/signupstep1", method = RequestMethod.POST)
 	public ResponseEntity<Map<String, Object>> signupUserStep1(@RequestBody User user, HttpServletResponse httpServletResponse) {
 
+		
+		boolean isNewUser = false;
+		
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
@@ -342,6 +345,8 @@ public class UserController {
 			user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
 			user.setToken(establishUserAndLogin(httpServletResponse, user));
 			user = userService.saveUser(user);
+			
+			isNewUser = true;
 		}
 		
 		User emailUser = null;
@@ -414,6 +419,9 @@ public class UserController {
 			user.setIsNew(false);
 
 		} else {
+			
+			isNewUser = true;
+			
 			user.setIsNew(true);
 			user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
 			user.setToken(establishUserAndLogin(httpServletResponse, user));
@@ -443,6 +451,11 @@ public class UserController {
 			user.setErrorDetail(ErrorCodes.InternalServerError.toString());
 			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 		}
+		
+		if (isNewUser) {
+			recurringManager.saveDefaultMeTime(user.getUserId());
+		}
+		
 		
 		response.put("data", user);
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
