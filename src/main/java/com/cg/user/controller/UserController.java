@@ -355,6 +355,12 @@ public class UserController {
 			
 			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
 			if (facebookIdUser != null) {
+				
+				if (facebookIdUser.getPhone() == null && user.getPhone() != null) {
+					facebookIdUser.setPhone(user.getPhone());
+					facebookIdUser = userService.saveUser(facebookIdUser);
+				}
+				
 				facebookIdUser.setIsNew(false);
 				response.put("success", true);
 				response.put("data", facebookIdUser);
@@ -374,6 +380,12 @@ public class UserController {
 			
 			User googleIdUser = userRepository.findUserByGoogleId(user.getGoogleId());
 			if (googleIdUser != null) {
+				
+				if (googleIdUser.getPhone() == null && user.getPhone() != null) {
+					googleIdUser.setPhone(user.getPhone());
+					googleIdUser = userService.saveUser(googleIdUser);
+				}
+				
 				googleIdUser.setIsNew(false);
 				response.put("success", true);
 				response.put("data", googleIdUser);
@@ -384,6 +396,9 @@ public class UserController {
 		//We will get email user if user did not logged in via Facebook/Google
 		if (emailUser != null) {
 			 
+			if (emailUser.getPhone() == null && user.getPhone() != null) {
+				emailUser.setPhone(user.getPhone());
+			}
 			emailUser.setPhoto(user.getPhoto());
 			emailUser.setName(user.getName());
 			emailUser.setGender(user.getGender());
