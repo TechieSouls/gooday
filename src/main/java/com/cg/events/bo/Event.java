@@ -30,7 +30,7 @@ public class Event extends CgGeneral {
 	
 	public enum ScheduleEventAs{Event,MeTime,Holiday,Gathering}
 	public enum EventType{Sport,Cafe,Entertainment,Travel,Birthday,Food,Seasonal};
-	public enum EventSource{Cenes,Facebook,Google,Outlook,Apple}
+	public enum EventSource{Cenes,Facebook,Google,Outlook,Apple, GoogleHoliday}
 	public enum EventProcessedStatus{UnProcessed,Waiting,Processed}
 	public enum EventUpdateFor{Image,Title,Time,GuestList,Location, Description, MultipleChanges, Nothing}
 	
