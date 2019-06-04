@@ -1614,12 +1614,15 @@ public class UserController {
 			return response;
 		}
 		
-		System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
-		if (!userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
-			response.put("success", false);
-			response.put("message", "Incorrect Password");
-			return response;
+		if (user.getPassword() != null) {
+			System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+			if (!userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+				response.put("success", false);
+				response.put("message", "Incorrect Password");
+				return response;
+			}
 		}
+		
 		
 		//eventManager.deleteEventsByCreatedById(user.getUserId());
 		userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
