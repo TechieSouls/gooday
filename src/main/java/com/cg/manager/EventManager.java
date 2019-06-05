@@ -1113,7 +1113,7 @@ public class EventManager {
 					eventMember.setName(user.getName());
 					eventMember.setPicture(user.getPhoto());
 					eventMember.setStatus("Going");
-					eventMember.setSource("Google");
+					eventMember.setSource(EventSource.GoogleHoliday.toString());
 					members.add(eventMember);
 					try {
 						if (event.getEventMembers() != null) {
