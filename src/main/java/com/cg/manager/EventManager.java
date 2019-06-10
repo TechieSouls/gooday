@@ -179,7 +179,6 @@ public class EventManager {
 	        }
 		}
 		
-		
 		System.out.println("Before Saving : "+event.toString());
 		event = eventService.saveEvent(event);
 		

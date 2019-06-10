@@ -239,7 +239,7 @@ public class EventServiceDao {
 		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
 						+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 						+ "e.start_time >= '"+eventDate+"' and  em.user_id = "+createdById+" and em.status = 'Going' "
-						+ " "+sourcesQuery+" limit "+pageNumber+","+offSet+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
+						+ " "+sourcesQuery+" order by e.start_time asc limit "+pageNumber+","+offSet+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 						+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 		System.out.println("Home Events Query : "+query);
 		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
