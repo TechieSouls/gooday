@@ -774,6 +774,9 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 			if (eventMap.get("private_key") != null) {
 				event.setKey(eventMap.get("private_key").toString());
 			}
+			if (eventMap.get("expired") != null) {
+				event.setExpired(Boolean.valueOf(eventMap.get("expired").toString()));
+			}
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
