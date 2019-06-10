@@ -167,21 +167,26 @@ public class EventServiceDao {
 				if (result.get("account_type").toString().equals("Google") ||  result.get("account_type").toString().equals("Outlook") || result.get("account_type").toString().equals("Apple")) {
 					sources.append("'"+result.get("account_type").toString()+"'").append(",");
 				}
+			}			
+			
+			if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
+				scheduleAs.append("'Event'").append(",");
 			}
-			sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
 		}
 		//Check if user has Holidays Synced.?
 		if (results != null && results.size() > 0) {
 			for (Map<String, Object> result: results) {
 				if (result.get("account_type").toString().equals("Holiday")) {
 					scheduleAs.append("'Holiday'").append(",");
+					sources.append("'GoogleHoliday'").append(",");
 				}
 			}
 		}
-		if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
-			scheduleAs.append("'Event'").append(",");
-		}
+		
+		sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
+
 		sourcesQuery += " and e.schedule_as in ("+scheduleAs.substring(0, scheduleAs.length()-1)+") ";
+
 		String query = "select count(*) from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "e.start_time >= '"+startDate+"' and  em.user_id = "+userId+" and em.status = 'Going' "
 				+ " "+sourcesQuery+"";
@@ -672,22 +677,24 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 				if (result.get("account_type").toString().equals("Google") ||  result.get("account_type").toString().equals("Outlook") || result.get("account_type").toString().equals("Apple")) {
 					sources.append("'"+result.get("account_type").toString()+"'").append(",");
 				}
+			}			
+			
+			if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
+				scheduleAs.append("'Event'").append(",");
 			}
-		
 		}
-		sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
-		
 		//Check if user has Holidays Synced.?
 		if (results != null && results.size() > 0) {
 			for (Map<String, Object> result: results) {
 				if (result.get("account_type").toString().equals("Holiday")) {
 					scheduleAs.append("'Holiday'").append(",");
+					sources.append("'GoogleHoliday'").append(",");
 				}
 			}
 		}
-		if (sources.indexOf("Google") != -1 || sources.indexOf("Outlook") != -1 || sources.indexOf("Apple") != -1) {
-			scheduleAs.append("'Event'").append(",");
-		}
+		
+		sourcesQuery += " and e.source in ("+sources.substring(0, sources.length()-1)+") ";
+
 		sourcesQuery += " and e.schedule_as in ("+scheduleAs.substring(0, scheduleAs.length()-1)+") ";
 
 		
