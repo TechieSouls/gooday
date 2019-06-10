@@ -142,7 +142,7 @@ public class Event extends CgGeneral {
 	private Integer processed = EventProcessedStatus.UnProcessed.ordinal();
 	
 	@Column(name="expired")
-	private boolean expired;
+	private boolean expired = false;
 	
 	public Long getEventId() {
 		return eventId;
