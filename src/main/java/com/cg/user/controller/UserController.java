@@ -1620,7 +1620,6 @@ public class UserController {
 		response.put("success", true);
 		response.put("message", "User Deleted SuccessFully");
 		
-		
 		System.out.println("User : "+user.toString());
 		
 		try {
@@ -1651,6 +1650,11 @@ public class UserController {
 			userService.deleteUserByUserId(userByPhone.getUserId());
 		} catch(Exception e) {
 			e.printStackTrace();
+			
+			response.put("success", false);
+			response.put("message", e.getMessage());
+
+			
 		}
 		
 		return response;
