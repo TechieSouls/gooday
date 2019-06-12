@@ -517,6 +517,47 @@ public class EventController {
 	}
 
 	//This API is to show events at home screen
+	@RequestMapping(value = "/api/getPastEvents/v2", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> getPastEventsByUserIdAndStartDateAndEndDate(Long userId, Long startTime, Long endTime) {
+		Map<String, Object> response = new HashMap<>();
+		try {
+
+			System.out.println("[USER EVENTS V2 -  User Id : " + userId + "]");
+
+			String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startTime);
+			String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endTime);
+
+			
+			List<HomeScreenDto> responseDataToSend = eventManager.getPastHomeScreenData(userId, startDateStr, endDateStr);
+			System.out.println("[USER PAST EVENTS V2 -  Events list : " + responseDataToSend.size() + "]");
+
+			int counts = 0;
+			try {
+
+				counts = eventServiceDao.findCountByGatheringsByUserIdAndDate(userId, startDateStr);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			response.put("totalCounts", counts);
+
+			response.put("success", true);
+			response.put("data", responseDataToSend);
+			response.put("errorCode", 0);
+			response.put("errorDetail", null);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			response.put("success", false);
+			response.put("data", new ArrayList<>());
+			response.put("errorCode", ErrorCodes.InternalServerError.ordinal());
+			response.put("errorDetail", ErrorCodes.InternalServerError.toString());
+
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+	}
+	
+	//This API is to show events at home screen
 	@RequestMapping(value = "/api/getEvents/v2", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getUserEventsByDate(Long userId, Long timestamp, int pageNumber,
 			int offSet) {

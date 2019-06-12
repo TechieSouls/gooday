@@ -242,6 +242,54 @@ public class EventManager {
 	}
 	
 	
+	public List<HomeScreenDto> getPastHomeScreenData(Long userId,String startDate, String endDate) {
+		List<HomeScreenDto> responseDataToSend = new ArrayList<>();
+		
+		Map<String,List<HomeScreenDto>> homeScreenDataMap = new HashMap<>();
+		//List<Event> events = eventRepository.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
+		List<Event> events = eventServiceDao.getPastEventsByCreatedByIdAndStartDateAndEndDate(userId, startDate, endDate);
+		if (events != null && events.size() > 0) {
+			homeScreenDataMap = parseEventsForHomeScreen(events, homeScreenDataMap);
+		}
+		
+		/*List<Reminder> reminders = reminderRepository.findAllRemindersByAcceptedReminderMemberStatusAsc(userId, endDate);
+		if (reminders != null && reminders.size() > 0) {
+			homeScreenDataMap = parseRemindersForHomeScreen(reminders, homeScreenDataMap);
+		}*/
+		
+		Map<String,List<HomeScreenDto>> sortedMap = new LinkedHashMap<>();
+		if (homeScreenDataMap.size() > 0) {
+			List<String> keysList = new ArrayList<>();
+			for (String key : homeScreenDataMap.keySet()) {
+				keysList.add(key);
+			}
+			
+			Comparator<String> cmp = new Comparator<String>() {
+		        public int compare(String o1, String o2) {
+		        	if (o1 == null) {
+		        		return -1;
+		        	} else if (o2 == null) {
+		        		return 1;
+		        	} else {
+		        		return o1.compareTo(o2);
+		        	}
+		            
+		        }
+		    };
+		    Collections.sort(keysList, cmp);
+			
+			for (String key : keysList)  {
+				sortedMap.put(key, homeScreenDataMap.get(key));
+			}
+		}
+		
+		for (Entry<String,List<HomeScreenDto>> entryMap : sortedMap.entrySet()) {
+			responseDataToSend.addAll(entryMap.getValue());
+		}
+	
+	return responseDataToSend;
+	}
+	
 	public List<HomeScreenDto> getPageableHomeScreenData(Long userId,String startDate,int pageNumber, int offSet) {
 		List<HomeScreenDto> responseDataToSend = new ArrayList<>();
 		
