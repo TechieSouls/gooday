@@ -1620,31 +1620,39 @@ public class UserController {
 		response.put("success", true);
 		response.put("message", "User Deleted SuccessFully");
 		
-		User userByPhone = userRepository.findByPhone(user.getPhone());
-		if (userByPhone == null) {
-			response.put("success", false);
-			response.put("message", "User not found");
-			return response;
-		}
 		
-		if (user.getPassword() != null) {
-			System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
-			if (!userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+		System.out.println("User : "+user.toString());
+		
+		try {
+			User userByPhone = userRepository.findByPhone(user.getPhone());
+			if (userByPhone == null) {
 				response.put("success", false);
-				response.put("message", "Incorrect Password");
+				response.put("message", "User not found");
 				return response;
 			}
+			
+			if (user.getPassword() != null) {
+				System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+				if (!userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+					response.put("success", false);
+					response.put("message", "Incorrect Password");
+					return response;
+				}
+			}
+			
+			
+			//eventManager.deleteEventsByCreatedById(user.getUserId());
+			userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
+			userService.deleteContactsByUserId(userByPhone.getUserId());
+			//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+			//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+			userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
+			userService.deleteUserDeviceByUserId(userByPhone.getUserId());
+			userService.deleteUserByUserId(userByPhone.getUserId());
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 		
-		
-		//eventManager.deleteEventsByCreatedById(user.getUserId());
-		userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
-		userService.deleteContactsByUserId(userByPhone.getUserId());
-		//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
-		//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
-		userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
-		userService.deleteUserDeviceByUserId(userByPhone.getUserId());
-		userService.deleteUserByUserId(userByPhone.getUserId());
 		return response;
 	}
 	

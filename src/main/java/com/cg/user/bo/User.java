@@ -250,4 +250,15 @@ public class User extends CgGeneral{
 	public void setGoogleAuthToken(String googleAuthToken) {
 		this.googleAuthToken = googleAuthToken;
 	}
+
+	@Override
+	public String toString() {
+		return "User [userId=" + userId + ", username=" + username + ", email=" + email + ", password=" + password
+				+ ", facebookId=" + facebookId + ", googleId=" + googleId + ", authType=" + authType
+				+ ", facebookAuthToken=" + facebookAuthToken + ", googleAuthToken=" + googleAuthToken + ", name=" + name
+				+ ", photo=" + photo + ", gender=" + gender + ", phone=" + phone + ", resetToken=" + resetToken
+				+ ", resetTokenCreatedAt=" + resetTokenCreatedAt + ", country=" + country + ", birthDate=" + birthDate
+				+ ", birthDayStr=" + birthDayStr + ", isNew=" + isNew + ", token=" + token + "]";
+	}
+	
 }
