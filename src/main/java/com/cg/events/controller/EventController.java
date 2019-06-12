@@ -516,6 +516,7 @@ public class EventController {
 		}
 	}
 
+	//This API is to show events at home screen
 	@RequestMapping(value = "/api/getEvents/v2", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getUserEventsByDate(Long userId, Long timestamp, int pageNumber,
 			int offSet) {
@@ -556,6 +557,7 @@ public class EventController {
 		}
 	}
 
+	//This API is to show dots in Calendar.
 	@RequestMapping(value = "/api/homeCalendarEvents/v2", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getUserEventsByDate(Long userId, Long startTime, Long endTime) {
 		Map<String, Object> response = new HashMap<>();
