@@ -830,12 +830,18 @@ public class EventController {
 						calendarSyncToken.setRefreshToken(refToken);
 					}
 					
-					JSONObject subscribeResponse = googleService.subscribeToGoogleEventWatcher(syncParams.get("accessToken").toString());
-					if (subscribeResponse != null) {
-						String uuidChannelId = subscribeResponse.getString("id");
-						Long expirationTime = subscribeResponse.getLong("expiration");
-						calendarSyncToken.setSubscriptionId(uuidChannelId);
-						calendarSyncToken.setSubExpiryDate(new Date(expirationTime));
+					
+					//We will save subscription id, expiration date and resource id 
+					//If user has not subscribed yet
+					if (calendarSyncToken.getResourceId() == null) {
+						JSONObject subscribeResponse = googleService.subscribeToGoogleEventWatcher(syncParams.get("accessToken").toString());
+						if (subscribeResponse != null) {
+							String uuidChannelId = subscribeResponse.getString("id");
+							Long expirationTime = subscribeResponse.getLong("expiration");
+							calendarSyncToken.setSubscriptionId(uuidChannelId);
+							calendarSyncToken.setResourceId(subscribeResponse.getString("resourceId"));
+							calendarSyncToken.setSubExpiryDate(new Date(expirationTime));
+						}
 					}
 					
 					System.out.println("[Google Sync V2] Date : " + new Date() + " Saving Refresh Token : "
@@ -1695,6 +1701,8 @@ public class EventController {
 	}
 
 	// Method to get Outlook events from API.
+	//This will be called when user sync during signup 
+	//or Sync from Profile screen.
 	@RequestMapping(value = "/api/outlook/events/v2", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<Map<String, Object>> syncOutlookEventsV2(@RequestBody Map<String, Object> postData) {
@@ -2046,7 +2054,7 @@ public class EventController {
 
 			if (calendarSyncToken != null) {
 				
-				/*System.out
+				System.out
 						.println("[Google Sync] Date : " + new Date() + " Getting Access Token Response from RefreshToken");
 				GoogleService googleService = new GoogleService();
 				JSONObject refreshTokenResponse = googleService
@@ -2069,7 +2077,7 @@ public class EventController {
 					//notificationManager.sendRefreshPushNotification(user.getUserId());
 
 				}
-			*/
+			
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
