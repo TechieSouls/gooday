@@ -2,6 +2,7 @@ package com.cg.manager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -664,13 +665,14 @@ public class EventManager {
 		return members;
 	}
 
+	//This method is called when user sync the google clanedar manually.
 	public List<Event> syncGoogleEvents(boolean isNextSyncRequest, String accessToken,User user) {
 		List<Event> events = new ArrayList<>();
 		
 		try {
 			GoogleService gs = new GoogleService();
 			List<GoogleEvents> googleEventsCalendarList = gs.getCalenderEvents(isNextSyncRequest,accessToken);
-			events = processGoogleEventsCalendarList(googleEventsCalendarList, user, events);
+			events = processGoogleEventsCalendarList(googleEventsCalendarList, user, events, Event.EventProcessRequest.Manual);
 			/*CenesProperty cenesProperty = eventService.findCenesPropertyByNameAndOwner("google_calendar", PropertyOwningEntity.User);
 			if (cenesProperty != null) {
 				CenesPropertyValue cenesPropertyValue = new CenesPropertyValue();
@@ -688,13 +690,14 @@ public class EventManager {
 		return null;
 	}
 	
+	//This method will be called, whenever from the google webhook.
 	public List<Event> syncGoogleEventsOnNotification(String resourceUrl, String accessToken,User user) {
 		List<Event> events = new ArrayList<>();
 		
 		try {
 			GoogleService gs = new GoogleService();
 			List<GoogleEvents> googleEventsCalendarList = gs.getGoogleEventsOnNotification(resourceUrl, accessToken);
-			events = processGoogleEventsCalendarList(googleEventsCalendarList, user, events);
+			events = processGoogleEventsCalendarList(googleEventsCalendarList, user, events, Event.EventProcessRequest.Webhook);
 			
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -702,7 +705,27 @@ public class EventManager {
 		return events;
 	}
 	
-	public List<Event> processGoogleEventsCalendarList(List<GoogleEvents> googleEventsCalendarList, User user, List<Event> events) {
+	public List<Event> processGoogleEventsCalendarList(List<GoogleEvents> googleEventsCalendarList, User user, List<Event> events, Event.EventProcessRequest eventProcessRequestFrom) {
+		
+		Map<Long, Event> googleEventIdsToDelete = new HashMap();
+		
+		if (eventProcessRequestFrom == Event.EventProcessRequest.Webhook) {
+			System.out.println("Webhook Request");
+			//Lets find all the future events.
+			
+			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH - 1));
+			cal.set(Calendar.HOUR_OF_DAY, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+			cal.set(Calendar.MILLISECOND, 0);
+
+			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			for (Event exEvent: existingGoogleEvents) {
+				googleEventIdsToDelete.put(exEvent.getEventId(), exEvent);
+			}
+		}
+		
 		
 		if (googleEventsCalendarList != null
 				&& googleEventsCalendarList.size() > 0) {
@@ -727,7 +750,6 @@ public class EventManager {
 							//If event member not blocked
 							//then we not save this event
 							continue;
-							
 						}
 						
 						//Lets check first if the creator Exists in our DB or Not.
@@ -756,6 +778,11 @@ public class EventManager {
 						List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
 						if (dbevents != null && dbevents.size() != 0) {
 							//event = new Event();
+							Event dbEvent = dbevents.get(0);
+							if (googleEventIdsToDelete.containsKey(dbEvent.getEventId())) {
+								googleEventIdsToDelete.remove(dbEvent.getEventId());
+								System.out.println(googleEventIdsToDelete);
+							}
 							continue;
 						//} //else {
 							//event = dbevents.get(0);
@@ -871,6 +898,20 @@ public class EventManager {
 					System.out.println("[ Syncing Google Events - User Id : "
 									+ user.getUserId() + ", Total Events to Sync : "
 									+ events.size() + "]");
+					
+					
+					if (googleEventIdsToDelete.size() > 0) {
+						
+						for (Entry<Long, Event> entryMap: googleEventIdsToDelete.entrySet()) {
+							
+							Event eventToUpdate = entryMap.getValue();
+							eventToUpdate.setIsActive(Event.EventStatus.InActive);
+							this.eventRepository.save(eventToUpdate);
+						}
+						
+						//Releasing Memory
+						googleEventIdsToDelete = null;
+					}
 					
 				} else {
 					/*if (googleEvents.getErrorDetail() != null) {

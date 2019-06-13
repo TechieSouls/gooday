@@ -107,9 +107,10 @@ public class EventServiceDao {
 				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";*/
 		
 		
-		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, "
+				+ "u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "e.start_time >= '"+eventDate+"' and  em.user_id = "+createdById+" and em.status = 'Going' "
-				+ "and e.schedule_as in ('Event','Holiday','Gathering')) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
+				+ "and e.schedule_as in ('Event','Holiday','Gathering') and e.is_active = "+Event.EventStatus.Active.ordinal()+" ) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc limit 100";
 	
 		System.out.println("Home Events Query : "+query);
@@ -212,7 +213,8 @@ public class EventServiceDao {
 	
 		String query =  "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
 					+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
-					+ "e.start_time >= '"+startDate+"' and e.start_time < '"+endDate+"' and em.user_id = "+createdById+" and em.status = 'Going' "
+					+ "e.start_time >= '"+startDate+"' and e.start_time < '"+endDate+"' and em.user_id = "+createdById+" and "
+					+ "e.is_active = "+Event.EventStatus.Active.ordinal()+" and em.status = 'Going' "
 					+ " "+sourcesQuery+" order by e.start_time asc) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 					+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 		
@@ -265,7 +267,7 @@ public class EventServiceDao {
 	
 		String query =  "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
 					+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
-					+ "e.start_time >= '"+eventDate+"' and  em.user_id = "+createdById+" and em.status = 'Going' "
+					+ "e.start_time >= '"+eventDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" and em.user_id = "+createdById+" and em.status = 'Going' "
 					+ " "+sourcesQuery+" order by e.start_time asc limit "+pageNumber+","+offSet+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 					+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 			System.out.println("Home Events Query : "+query);
@@ -327,7 +329,7 @@ public class EventServiceDao {
 		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, "
 				+ "u.name as origname, uc.name as phonebookName from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "e.start_time >= '"+eventDate+"' and  em.user_id = "+userId+" and em.status = 'Going' "
-				+ "and e.schedule_as in ('Event','Holiday','Gathering')) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
+				+ "and e.schedule_as in ('Event','Holiday','Gathering') and e.is_active = "+Event.EventStatus.Active.ordinal()+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 				+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.user_id = "+userId+" "
 				+ "order by event_temp.start_time asc limit "+offset+", 50";
 	
@@ -518,7 +520,7 @@ public class EventServiceDao {
 	public List<Event> findGatheringsByUserIdAndStatus(Long userId, String status) {
 		
 		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
-				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"') as event_temp "
+				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+") as event_temp "
 				+ "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 		
 		System.out.println(query);
