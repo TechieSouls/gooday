@@ -33,7 +33,9 @@ public class Event extends CgGeneral {
 	public enum EventSource{Cenes,Facebook,Google,Outlook,Apple, GoogleHoliday}
 	public enum EventProcessedStatus{UnProcessed,Waiting,Processed}
 	public enum EventUpdateFor{Image,Title,Time,GuestList,Location, Description, MultipleChanges, Nothing}
-	
+	public enum EventProcessRequest{Webhook, Manual}
+	public enum EventStatus {InActive, Active}
+
 	@Id
 	@GeneratedValue (strategy=GenerationType.AUTO)
 	@Column(name="event_id")
@@ -143,6 +145,10 @@ public class Event extends CgGeneral {
 	
 	@Column(name="expired")
 	private boolean expired = false;
+	
+	@Enumerated(EnumType.ORDINAL)
+	@Column(name="is_active")
+	private EventStatus isActive = EventStatus.Active;
 	
 	public Long getEventId() {
 		return eventId;
@@ -326,6 +332,13 @@ public class Event extends CgGeneral {
 	}
 	public void setUpdatedFor(EventUpdateFor updatedFor) {
 		this.updatedFor = updatedFor;
+	}
+	
+	public EventStatus getIsActive() {
+		return isActive;
+	}
+	public void setIsActive(EventStatus isActive) {
+		this.isActive = isActive;
 	}
 	
 	
