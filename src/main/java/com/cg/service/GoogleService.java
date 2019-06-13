@@ -18,6 +18,7 @@ import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 import org.primefaces.json.JSONObject;
 
+import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.GoogleCountries;
 import com.cg.events.bo.GoogleEventAttendees;
 import com.cg.events.bo.GoogleEventItem;
@@ -583,7 +584,29 @@ public class GoogleService {
 		return gc;
 	}
 	
-	
+	public void unsubscribeGoogleNotification(CalendarSyncToken calendarSyncToken) {
+		
+		
+		JSONObject resp = getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+		
+		String url = "https://www.googleapis.com/calendar/v3/channels/stop";
+
+		
+		
+		JSONObject jsonObj = new JSONObject();
+		try {
+			
+			jsonObj.put("id", calendarSyncToken.getSubscriptionId());
+			jsonObj.put("resourceId", calendarSyncToken.getResourceId());
+
+			HttpService httpService = new HttpService();
+			httpService.httpPostWithDataAccessToken(url, resp.getString("access_token"), jsonObj.toString());
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
 	//Subscription call
 	/*public static void main(String[] args) {
 		GoogleService gs = new GoogleService();

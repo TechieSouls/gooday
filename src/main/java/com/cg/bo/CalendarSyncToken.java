@@ -57,6 +57,9 @@ public class CalendarSyncToken {
 	@Column(name="subscription_id")
 	private String subscriptionId;
 	
+	@Column(name="resource_id")
+	private String resourceId;
+	
 	@Column(name="sub_expiry_date")
 	private Date subExpiryDate;
 	
@@ -128,4 +131,13 @@ public class CalendarSyncToken {
 	public void setSubExpiryDate(Date subExpiryDate) {
 		this.subExpiryDate = subExpiryDate;
 	}
+
+	public String getResourceId() {
+		return resourceId;
+	}
+
+	public void setResourceId(String resourceId) {
+		this.resourceId = resourceId;
+	}
+	
 }
