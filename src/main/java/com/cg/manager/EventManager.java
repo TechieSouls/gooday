@@ -740,7 +740,7 @@ public class EventManager {
 						
 						Event event = new Event();
 						System.out.println("Event Title : "+eventItem.getSummary());
-						System.out.println("[Event : "+eventItem.toString()+" ]");
+						//System.out.println("[Event : "+eventItem.toString()+" ]");
 						/*if (isUserInvitee) {
 							List<Event> eventsTemp = this.eventRepository.findBySourceEventId(eventItem.getId());
 							if (eventsTemp != null && eventsTemp.size() > 0) {
