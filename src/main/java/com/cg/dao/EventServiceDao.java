@@ -197,7 +197,7 @@ public class EventServiceDao {
 		String sourcesQuery = findSourcesQueryString(userId);
 
 		String query = "select count(*) from events e JOIN event_members em on e.event_id = em.event_id where "
-				+ "e.start_time >= '"+startDate+"' and  em.user_id = "+userId+" and em.status = 'Going' "
+				+ "e.start_time >= '"+startDate+"' and  em.user_id = "+userId+" and em.status = 'Going' and e.is_active = "+Event.EventStatus.Active.ordinal()+" "
 				+ " "+sourcesQuery+"";
 		System.out.println("Home Events Query : "+query);
 
