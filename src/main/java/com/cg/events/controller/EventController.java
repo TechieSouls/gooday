@@ -2074,7 +2074,7 @@ public class EventController {
 					eventManager.syncGoogleEventsOnNotification(resourceUrl, accessToken, user);
 					System.out.println("Google Push Notification Done");
 					
-					//notificationManager.sendRefreshPushNotification(user.getUserId());
+					notificationManager.sendRefreshPushNotification(user.getUserId());
 
 				}
 			

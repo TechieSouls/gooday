@@ -640,9 +640,9 @@ public class NotificationManager {
 					JSONObject notifyObj = new JSONObject();
 					JSONObject payloadObj = new JSONObject();
 					JSONObject alert = new JSONObject();
-					alert.put("title","Refresh Home Screen");
-					alert.put("type","HomeRefresh");
-					payloadObj.put("alert",alert);
+					//alert.put("title","Refresh Home Screen");
+					payloadObj.put("content-available",1);
+					payloadObj.put("type","HomeRefresh");
 					notifyObj.put("aps", payloadObj);
 					
 					List deviceTokenList = new ArrayList();
