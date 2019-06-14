@@ -757,6 +757,7 @@ public class EventManager {
 							user = creatorExistsInDb;
 						}*/
 						
+						String eventChangeFor = null;
 						Event event = new Event();
 						System.out.println("Event Title : "+eventItem.getSummary());
 						//System.out.println("[Event : "+eventItem.toString()+" ]");
@@ -837,8 +838,21 @@ public class EventManager {
 									System.out.println("Event to update : "+dbEvent.getEventId()+", "+dbEvent.getTitle());
 									event = dbEvent;
 									
-									//Lets delete the time slots for that events and generate new time slots.
-									eventTimeSlotManager.deleteEventTimeSlotsByEventId(event.getEventId());
+									
+									//Here we will check if event title is change
+									//Of time is changed. If time is changed we will delete old records.
+									if (!dbEvent.getTitle().equals(eventItem.getSummary())) {
+										eventChangeFor = "Title";
+									}
+									
+									if (dbEvent.getStartTime().getTime() != startDt.getTime() || dbEvent.getEndTime().getTime() !=  endDt.getTime()) {
+										eventChangeFor = "Time";
+									}
+									
+									if (eventChangeFor != null && eventChangeFor.equals("Time")) {
+										//Lets delete the time slots for that events and generate new time slots.
+										eventTimeSlotManager.deleteEventTimeSlotsByEventId(event.getEventId());
+									}
 								}
 							}
 						//} //else {
@@ -922,35 +936,45 @@ public class EventManager {
 						
 						
 						//if (!isUserInvitee) {
-						List<EventMember> eventMembersTemp  = new ArrayList<>();
-						EventMember eventMember = new EventMember();
-						eventMember.setName(user.getName());
-						eventMember.setStatus(MemberStatus.Going.toString());
-						eventMember.setSource(EventSource.Google.toString());
-						if (user.getEmail() != null) {
-							eventMember.setSourceEmail(user.getEmail());
+						//We will add event members only if its a new event.
+						if (event.getEventId() == null) {
+							List<EventMember> eventMembersTemp  = new ArrayList<>();
+							EventMember eventMember = new EventMember();
+							eventMember.setName(user.getName());
+							eventMember.setStatus(MemberStatus.Going.toString());
+							eventMember.setSource(EventSource.Google.toString());
+							if (user.getEmail() != null) {
+								eventMember.setSourceEmail(user.getEmail());
+							}
+							
+							eventMember.setUserId(user.getUserId());
+							eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+							eventMembersTemp.add(eventMember);
+							//}
+							
+							//}
+							
+							//Clearing old users and adding new one.
+							//if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
+								//event.getEventMembers().clear();
+								//event.getEventMembers().addAll(eventMembersTemp);
+							//} //else {
+							
+							event.setEventMembers(eventMembersTemp);
+							//}
 						}
 						
-						eventMember.setUserId(user.getUserId());
-						eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
-						eventMembersTemp.add(eventMember);
-						//}
 						
-						//}
-						
-						//Clearing old users and adding new one.
-						//if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
-							//event.getEventMembers().clear();
-							//event.getEventMembers().addAll(eventMembersTemp);
-						//} //else {
-						
-						event.setEventMembers(eventMembersTemp);
-						//}
 						
 						if (eventItem.getRecurringEventId() != null) {
 							event.setRecurringEventId(eventItem.getRecurringEventId());
 						}
-						event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
+						
+						
+						System.out.println("Event Changed For : "+eventChangeFor);
+						if (eventChangeFor.equals("Time")) {
+							event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
+						}
 						events.add(event);
 					}
 					this.eventRepository.save(events);
