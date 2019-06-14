@@ -592,15 +592,15 @@ public class GoogleService {
 		String url = "https://www.googleapis.com/calendar/v3/channels/stop";
 
 		
-		
 		JSONObject jsonObj = new JSONObject();
 		try {
-			
+			String accessToken = resp.getString("access_token");
+
 			jsonObj.put("id", calendarSyncToken.getSubscriptionId());
 			jsonObj.put("resourceId", calendarSyncToken.getResourceId());
 
 			HttpService httpService = new HttpService();
-			httpService.httpPostWithDataAccessToken(url, resp.getString("access_token"), jsonObj.toString());
+			httpService.httpPostWithDataAccessToken(url, accessToken, jsonObj.toString());
 
 		} catch(Exception e) {
 			e.printStackTrace();

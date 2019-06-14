@@ -75,6 +75,7 @@ import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
 import com.cg.service.FacebookService;
+import com.cg.service.GoogleService;
 import com.cg.service.OutlookService;
 import com.cg.service.TwilioService;
 import com.cg.service.UserService;
@@ -1696,7 +1697,10 @@ public class UserController {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
-		userService.deleteCalendarSyncTokenByCalendarSyncTokenId(calendarSyncTokenId);
+		CalendarSyncToken calendarSyncToken = eventManager.findByCalendarSyncTokenId(calendarSyncTokenId);
+		GoogleService gs = new GoogleService();
+		gs.unsubscribeGoogleNotification(calendarSyncToken);
+		//userService.deleteCalendarSyncTokenByCalendarSyncTokenId(calendarSyncTokenId);
 		return response;
 		
 	}

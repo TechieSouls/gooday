@@ -170,6 +170,7 @@ public class HttpService {
 
 			// Send post request
 			System.out.println("Post Data : "+postData);
+			System.out.println("Access Token : "+accessToken);
 			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 			wr.writeBytes(postData);
 			wr.flush();
@@ -190,7 +191,7 @@ public class HttpService {
 			in.close();
 			
 			//print result
-			System.out.println(response.toString());
+			System.out.println("Response" +response.toString());
 			return response.toString();
 		} catch(Exception e) {	
 			e.printStackTrace();
