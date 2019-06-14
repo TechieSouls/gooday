@@ -18,9 +18,6 @@ import org.springframework.stereotype.Service;
 
 import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CalendarSyncToken.AccountType;
-import com.cg.bo.CenesProperty;
-import com.cg.bo.CenesProperty.PropertyOwningEntity;
-import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
@@ -62,7 +59,6 @@ import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
 
 import okhttp3.internal.framed.ErrorCode;
-import sun.font.LayoutPathImpl.EndType;
 
 @Service
 public class EventManager {
@@ -828,7 +824,6 @@ public class EventManager {
 								googleEventIdsToDelete.remove(dbEvent.getEventId());
 								//System.out.println(googleEventIdsToDelete);
 
-								System.out.println("Checking if its an update Request for google");
 								//Checking if there is any update in the timings for google event.
 								
 								System.out.println("DbEvent vs EvemtItem -> title : "+dbEvent.getTitle()+" v/s "+eventItem.getSummary()+" , "
