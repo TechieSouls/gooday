@@ -829,6 +829,9 @@ public class EventManager {
 
 								System.out.println("Checking if its an update Request for google");
 								//Checking if there is any update in the timings for google event.
+								
+								System.out.println("DbEvent vs EvemtItem -> title : "+dbEvent.getTitle()+" v/s "+eventItem.getSummary()+" , StartTime : "+dbEvent.getStartTime()+" v/s "+startDt+" EndTime : "+dbEvent.getEndTime()+ " v/s " +eventItem.getEnd());
+								
 								if (dbEvent.getTitle().equals(eventItem.getSummary())  && dbEvent.getStartTime().equals(startDt) && dbEvent.getEndTime().equals(endDt)) {
 									
 									continue;
