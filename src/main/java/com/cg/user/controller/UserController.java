@@ -55,6 +55,7 @@ import com.cg.bo.HolidayCalendar;
 import com.cg.bo.UserFriend;
 import com.cg.bo.UserFriend.UserStatus;
 import com.cg.bo.UserStat;
+import com.cg.bo.CalendarSyncToken.AccountType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.ChangePasswordDto;
 import com.cg.enums.CgEnums.AuthenticateType;
@@ -1698,9 +1699,25 @@ public class UserController {
 		response.put("success", true);
 		
 		CalendarSyncToken calendarSyncToken = eventManager.findByCalendarSyncTokenId(calendarSyncTokenId);
-		GoogleService gs = new GoogleService();
-		gs.unsubscribeGoogleNotification(calendarSyncToken);
+		if (calendarSyncToken.getAccountType() == AccountType.Google) {
+			GoogleService gs = new GoogleService();
+			try {
+				gs.unsubscribeGoogleNotification(calendarSyncToken);
+
+			} catch(Exception e) {
+				System.out.println("Exception Google : "+e.getMessage());
+			}
+		} else if (calendarSyncToken.getAccountType() == AccountType.Outlook) {
+			try {
+				OutlookService os = new OutlookService();
+				os.unsubscribeFromOutlookService(calendarSyncToken);
+			} catch(Exception e) {
+				System.out.println("Exception Outlook : "+e.getMessage());
+			}
+		}
+		
 		//userService.deleteCalendarSyncTokenByCalendarSyncTokenId(calendarSyncTokenId);
+		calendarSyncToken.setIsActive(CalendarSyncToken.ActiveStatus.InActive);
 		return response;
 		
 	}

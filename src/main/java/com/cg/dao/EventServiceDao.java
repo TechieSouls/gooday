@@ -158,7 +158,7 @@ public class EventServiceDao {
 		StringBuffer scheduleAs = new StringBuffer();
 		scheduleAs.append("'Gathering',");
 		
-		String calendarsQuery = "select account_type from calendar_sync_tokens where user_id = "+userId+" ";
+		String calendarsQuery = "select account_type from calendar_sync_tokens where user_id = "+userId+" and is_active = 1";
 		List<Map<String, Object>> results = jdbcTemplate.queryForList(calendarsQuery);
 		if (results != null && results.size() > 0) {
 			for (Map<String, Object> result: results) {
@@ -696,7 +696,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		StringBuffer scheduleAs = new StringBuffer();
 		scheduleAs.append("'Gathering',");
 		
-		String calendarsQuery = "select account_type from calendar_sync_tokens where user_id = "+userId+" ";
+		String calendarsQuery = "select account_type from calendar_sync_tokens where user_id = "+userId+"  and is_active = 1";
 		List<Map<String, Object>> results = jdbcTemplate.queryForList(calendarsQuery);
 		if (results != null && results.size() > 0) {
 			for (Map<String, Object> result: results) {

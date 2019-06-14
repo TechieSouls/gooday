@@ -20,7 +20,8 @@ import com.cg.user.bo.User;
 public class CalendarSyncToken {
 
 	public enum AccountType {Google,Outlook, Apple, Holiday}
-	
+	public enum ActiveStatus {InActive, Active}
+
 	public CalendarSyncToken() {
 		
 	}
@@ -62,6 +63,11 @@ public class CalendarSyncToken {
 	
 	@Column(name="sub_expiry_date")
 	private Date subExpiryDate;
+		
+	
+	@Enumerated(EnumType.ORDINAL)
+	@Column(name="is_active")
+	private ActiveStatus isActive = ActiveStatus.Active;
 	
 	@ManyToOne
 	@JoinColumn(name="user_id",updatable=false,insertable=false)
@@ -139,5 +145,12 @@ public class CalendarSyncToken {
 	public void setResourceId(String resourceId) {
 		this.resourceId = resourceId;
 	}
-	
+
+	public ActiveStatus getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(ActiveStatus isActive) {
+		this.isActive = isActive;
+	}
 }

@@ -45,6 +45,7 @@ import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.CalendarSyncToken.AccountType;
+import com.cg.bo.CalendarSyncToken.ActiveStatus;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dao.EventServiceDao;
@@ -828,17 +829,26 @@ public class EventController {
 						System.out.println("[Google Sync V2] Date : " + new Date() + " Updating Existing Entry");
 
 						calendarSyncToken.setRefreshToken(refToken);
+						calendarSyncToken.setIsActive(ActiveStatus.Active);
 					}
 					
 					
 					//We will save subscription id, expiration date and resource id 
 					//If user has not subscribed yet
 					if (calendarSyncToken.getResourceId() == null) {
-						JSONObject subscribeResponse = googleService.subscribeToGoogleEventWatcher(syncParams.get("accessToken").toString());
+						
+						//We will subscribe with new UUID only if user does not have uuid in database.
+						String uuidChannelId = UUID.randomUUID().toString();
+						
+						if (calendarSyncToken.getSubscriptionId() != null) {
+							uuidChannelId = calendarSyncToken.getSubscriptionId();
+						}
+						
+						JSONObject subscribeResponse = googleService.subscribeToGoogleEventWatcher(syncParams.get("accessToken").toString(), uuidChannelId);
 						if (subscribeResponse != null) {
-							String uuidChannelId = subscribeResponse.getString("id");
+							String respUuidChannelId = subscribeResponse.getString("id");
 							Long expirationTime = subscribeResponse.getLong("expiration");
-							calendarSyncToken.setSubscriptionId(uuidChannelId);
+							calendarSyncToken.setSubscriptionId(respUuidChannelId);
 							calendarSyncToken.setResourceId(subscribeResponse.getString("resourceId"));
 							calendarSyncToken.setSubExpiryDate(new Date(expirationTime));
 						}

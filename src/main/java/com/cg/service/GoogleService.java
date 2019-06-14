@@ -503,19 +503,17 @@ public class GoogleService {
 		return null;
 	}
 	
-	public JSONObject subscribeToGoogleEventWatcher(String accessToken) {
+	public JSONObject subscribeToGoogleEventWatcher(String accessToken, String channelId) {
 		
 		System.out.println("Subscribing.. Access Token : "+accessToken);
 		String apiUrl = "https://www.googleapis.com/calendar/v3/calendars/primary/events/watch";
 		try {
-			String uuidChannelId = UUID.randomUUID().toString();
-
 			Calendar calendar = Calendar.getInstance();
 			calendar.add(Calendar.DAY_OF_MONTH, 3);
 			
 
 			JSONObject postData = new JSONObject();
-			postData.put("id", ""+uuidChannelId+"");
+			postData.put("id", ""+channelId+"");
 			postData.put("type", "web_hook");
 			postData.put("address", "https://deploy.cenesgroup.com/api/event/google/notifyWebhook");
 			postData.put("expiration", calendar.getTimeInMillis());
