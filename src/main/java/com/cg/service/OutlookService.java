@@ -547,7 +547,11 @@ public class OutlookService {
 	
 	public void unsubscribeFromOutlookService(CalendarSyncToken calendarSyncToken) {
 		
+		//Android
 		//String url = "https://outlook.office.com/api/v2.0/me/subscriptions('"+calendarSyncToken.getSubscriptionId()+"')";
+		
+		
+		//Outlook URl
 		String url = "https://graph.microsoft.com/v1.0/subscriptions/"+calendarSyncToken.getSubscriptionId()+"";
 		JSONObject refreshTokenResponse = getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
 		if (refreshTokenResponse != null) {
@@ -559,6 +563,19 @@ public class OutlookService {
 
 			} catch(Exception e) {
 				e.printStackTrace();
+				
+				
+				//Android
+				String androidUrl = "https://outlook.office.com/api/v2.0/me/subscriptions('"+calendarSyncToken.getSubscriptionId()+"')";
+				try {
+					String accessToken = refreshTokenResponse.getString("access_token");
+					
+					HttpService httpService = new HttpService();
+					httpService.deleteRequest(androidUrl, accessToken);
+
+				} catch(Exception ex) {
+					ex.printStackTrace();
+				}
 			}
 		}
 	}
