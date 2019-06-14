@@ -430,7 +430,7 @@ public class UserService {
 			
 			List<EventMember> goingMembers = new ArrayList<>();
 			for (EventMember eventMember: eventMembers) {
-				if (eventMember.getStatus().equals(EventMember.MemberStatus.Going.toString())) {
+				if (eventMember.getStatus() != null && eventMember.getStatus().equals(EventMember.MemberStatus.Going.toString())) {
 					goingMembers.add(eventMember);
 				}
 			}
