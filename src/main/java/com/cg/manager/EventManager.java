@@ -825,7 +825,7 @@ public class EventManager {
 								
 								System.out.println("If its same then remove it from the event to do any thing");
 								googleEventIdsToDelete.remove(dbEvent.getEventId());
-								System.out.println(googleEventIdsToDelete);
+								//System.out.println(googleEventIdsToDelete);
 
 								System.out.println("Checking if its an update Request for google");
 								//Checking if there is any update in the timings for google event.
