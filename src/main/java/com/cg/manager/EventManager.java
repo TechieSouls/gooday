@@ -1542,6 +1542,10 @@ public class EventManager {
 		return refreshTokenRepository.findByUserIdAndAccountType(userId, accountType);
 	}
 	
+	public CalendarSyncToken findByCalendarSyncTokenId(Long calendarSyncTokenId) {
+		return refreshTokenRepository.findOne(calendarSyncTokenId);
+	}
+	
 	public void saveCalendarSyncToken(CalendarSyncToken calendarSyncToken) {
 		refreshTokenRepository.save(calendarSyncToken);
 	}
