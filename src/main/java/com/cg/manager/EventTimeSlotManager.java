@@ -234,4 +234,8 @@ public class EventTimeSlotManager {
 	public void deleteEventTimeSlotsByRecurringEventId(Long recurringEventId) {
 		eventTimeSlotRepository.deleteByRecurringEventId(recurringEventId);
 	}
+	
+	public void deleteEventTimeSlotsByEventId(Long eventId) {
+		eventTimeSlotRepository.deleteByEventId(eventId);
+	}
 }

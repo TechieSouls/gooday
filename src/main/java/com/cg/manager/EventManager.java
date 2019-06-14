@@ -780,10 +780,65 @@ public class EventManager {
 							//event = new Event();
 							Event dbEvent = dbevents.get(0);
 							if (googleEventIdsToDelete.containsKey(dbEvent.getEventId())) {
+								
+								Date startDt = new Date();
+								Date endDt = new Date();
+
+								try {
+									if (eventItem.getStart() != null) {
+										Date startDate = null;
+										if (eventItem.getStart().containsKey("dateTime")) {
+											startDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getStart().get("dateTime"));
+										} else if (eventItem.getStart().containsKey("date")) {
+											//Events with no hours and minutes
+											//We will mark them full day events.
+											startDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getStart().get("date"));
+											event.setIsFullDay(true);
+										}
+										if (startDate != null) {
+											String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
+											startDt = CenesUtils.yyyyMMddTHHmmss.parse(startDateStr);
+										}
+									}
+								} catch(Exception e) {
+									e.printStackTrace();
+								}
+								
+								try {
+									if (eventItem.getEnd() != null) {
+										Date endDate = null;
+										if (eventItem.getEnd().containsKey("dateTime")) {
+											endDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getEnd().get("dateTime"));
+										} else if (eventItem.getEnd().containsKey("date")) {
+											endDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getEnd().get("date"));
+										}
+										if (endDate != null) {
+											String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
+											endDt = CenesUtils.yyyyMMddTHHmmss.parse(endDateStr);
+										}
+									}
+								} catch(Exception e) {
+									e.printStackTrace();
+								}
+								
+								System.out.println("If its same then remove it from the event to do any thing");
 								googleEventIdsToDelete.remove(dbEvent.getEventId());
 								System.out.println(googleEventIdsToDelete);
+
+								System.out.println("Checking if its an update Request for google");
+								//Checking if there is any update in the timings for google event.
+								if (dbEvent.getTitle().equals(eventItem.getSummary())  && dbEvent.getStartTime().equals(startDt) && dbEvent.getEndTime().equals(endDt)) {
+									
+									continue;
+								} else {
+									//We will then update the event.
+									System.out.println("Event to update : "+dbEvent.getEventId()+", "+dbEvent.getTitle());
+									event = dbEvent;
+									
+									//Lets delete the time slots for that events and generate new time slots.
+									eventTimeSlotManager.deleteEventTimeSlotsByEventId(event.getEventId());
+								}
 							}
-							continue;
 						//} //else {
 							//event = dbevents.get(0);
 						}
