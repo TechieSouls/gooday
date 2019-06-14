@@ -781,6 +781,8 @@ public class EventManager {
 							Event dbEvent = dbevents.get(0);
 							if (googleEventIdsToDelete.containsKey(dbEvent.getEventId())) {
 								
+								System.out.println("Event Id : "+dbEvent.getEventId()+ "Event title : "+dbEvent.getTitle());
+								
 								Date startDt = new Date();
 								Date endDt = new Date();
 
@@ -842,6 +844,8 @@ public class EventManager {
 						//} //else {
 							//event = dbevents.get(0);
 						}
+						
+						System.out.println("Adding new Event: "+eventItem.getSummary());
 						
 						event.setSourceEventId(eventItem.getId());
 						event.setSource(EventSource.Google.toString());
@@ -956,6 +960,8 @@ public class EventManager {
 					
 					
 					if (googleEventIdsToDelete.size() > 0) {
+						
+						System.out.println("Events to be deleted : "+googleEventIdsToDelete.size());
 						
 						for (Entry<Long, Event> entryMap: googleEventIdsToDelete.entrySet()) {
 							
@@ -1531,6 +1537,11 @@ public class EventManager {
 	public CalendarSyncToken findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType accountType, String subscriptionId) {
 		return calendarSyncTokenRepository.findByAccountTypeAndSubscriptionId(accountType, subscriptionId);
 	}
+	
+	public List<CalendarSyncToken> findCalendarSyncTokensWithTodayDate() {
+		return calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
+	}
+	
 	
 	/*public static void main(String[] args) {
 		String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(new Date());
