@@ -1539,7 +1539,7 @@ public class EventManager {
 	}
 	
 	public List<CalendarSyncToken> findCalendarSyncTokensWithTodayDate() {
-		return calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
+		return null;//calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
 	}
 	
 	
