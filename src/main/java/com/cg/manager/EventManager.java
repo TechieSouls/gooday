@@ -972,7 +972,7 @@ public class EventManager {
 						
 						
 						System.out.println("Event Changed For : "+eventChangeFor);
-						if (eventChangeFor.equals("Time")) {
+						if (eventChangeFor != null && eventChangeFor.equals("Time")) {
 							event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
 						}
 						events.add(event);
