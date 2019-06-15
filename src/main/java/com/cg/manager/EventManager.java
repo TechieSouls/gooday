@@ -177,8 +177,18 @@ public class EventManager {
 	        }
 		}
 		
+		System.out.println("Event Members status Befor Saving");
+		for (EventMember ev: event.getEventMembers()) {
+			System.out.println(ev.getUserId()+"  -  "+ev.getStatus());
+		}
+		
 		System.out.println("Before Saving : "+event.toString());
 		event = eventService.saveEvent(event);
+		
+		System.out.println("Event Members status After Saving");
+		for (EventMember ev: event.getEventMembers()) {
+			System.out.println(ev.getEventId()+ " - "+ ev.getUserId()+"  -  "+ev.getStatus());
+		}
 		
 		System.out.println("After Saving : "+event.toString());
 		if (!Event.EventUpdateFor.Nothing.equals(event.getUpdatedFor())) {
