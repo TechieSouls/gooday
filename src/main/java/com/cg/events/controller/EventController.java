@@ -1570,6 +1570,7 @@ public class EventController {
 	@RequestMapping(value = "/api/event/upload", method = RequestMethod.POST)
 	public ResponseEntity<String> uploadImages(MultipartFile uploadfile, Long eventId) {
 
+		System.out.println("Uploading image STARTS : "+eventId);
 		Event event = eventManager.findEventByEventId(eventId);
 
 		InputStream inputStream = null;
@@ -1605,6 +1606,7 @@ public class EventController {
 			}
 
 			String eventImageUrl = domain + "/assets/uploads/events/large/" + fileName;
+			System.out.println("Image Uplod Url : "+eventImageUrl);
 			event.setEventPicture(eventImageUrl);
 
 			try {
@@ -1633,6 +1635,12 @@ public class EventController {
 
 			event = eventManager.saveUpdateEvent(event);
 
+			
+			System.out.println("After Saving : "+event.toString());
+			if (!Event.EventUpdateFor.Nothing.equals(event.getUpdatedFor())) {
+				notificationManager.sendGatheringNotification(event);
+			}
+			
 			JSONObject jobj = new JSONObject();
 			jobj.put("success", true);
 			jobj.put("eventPicture", eventImageUrl);
