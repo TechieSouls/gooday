@@ -39,13 +39,23 @@ public interface EventTimeSlotRepository extends  JpaRepository<EventTimeSlot, L
 	@Query("delete from EventTimeSlot ets where ets.userId =:userId and ets.source = :source and ets.scheduleAs = :scheduleAs")
 	public void deleteByUserIdAndSourceAndScheduleAs(@Param("userId") Long userId,@Param("source") String source,@Param("scheduleAs") String scheduleAs);
 	
+	@Modifying(clearAutomatically = true)
+	@Transactional
 	public void deleteByStartTimeGreaterThanAndUserIdAndSourceAndScheduleAs(Long startTime, Long userId, String source, String scheduleAs);
 	
+	@Modifying(clearAutomatically = true)
+	@Transactional
 	public void deleteByEventId(Long eventId);
 	
+	@Modifying(clearAutomatically = true)
+	@Transactional
 	public void deleteByUserId(Long userId);
 	
+	@Modifying(clearAutomatically = true)
+	@Transactional
 	public void deleteByRecurringEventId(Long recurringEventId);
 	
+	@Modifying(clearAutomatically = true)
+	@Transactional
 	public void deleteByEventIdAndUserId(Long eventId, Long userId);
 }
