@@ -2057,7 +2057,7 @@ public class EventController {
 	@RequestMapping(value = "/api/event/google/notifyWebhook", method = RequestMethod.POST)
 	public String googleWebHookUrl(HttpServletRequest request) {
 
-		System.out.println("Google Push Notification");
+		/*System.out.println("Google Push Notification");
 		try {
 			
 			Enumeration<String> headers = request.getHeaderNames();
@@ -2099,7 +2099,7 @@ public class EventController {
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
-		}
+		}*/
 		return null;
 	}
 	
