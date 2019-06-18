@@ -271,6 +271,10 @@ public class EventController {
 				}
 			}*/
 
+			
+			//Sending push to owner to refresh Home screen for time effect.
+			notificationManager.sendRefreshPushNotification(event.getCreatedById());	
+			
 			response.put("data", event);
 		} catch (Exception e) {
 			e.printStackTrace();
