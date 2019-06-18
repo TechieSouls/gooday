@@ -885,7 +885,7 @@ public class UserController {
 			}
 			recurringEvent.setCreatedById(null);
 			recurringManager.saveRecurringEvent(recurringEvent);
-			//deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
+			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
 		}
 		
 		Long starTimeMillis = new Date().getTime();
@@ -1005,7 +1005,7 @@ public class UserController {
 		RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(recurringEventId);
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
-		/*try {
+		try {
 			eventManager.deleteEventsByRecurringEventId(recurringEventId);
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -1030,7 +1030,7 @@ public class UserController {
 			e.printStackTrace();
 		}
 		
-		try{
+		/*try{
 			if (recurringEvent.getPhoto() != null) {
 				String fileName = recurringEvent.getPhoto().substring(recurringEvent.getPhoto().lastIndexOf("/")+1, recurringEvent.getPhoto().length());
 	    		File file = new File(recurringEventUploadPath+fileName);
