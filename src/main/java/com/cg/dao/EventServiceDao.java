@@ -265,11 +265,13 @@ public class EventServiceDao {
 				+ "and e.schedule_as in ('Event','Holiday','Gathering')) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc limit "+pageNumber+","+offSet+"";*/
 	
-		String query =  "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
+		String query =  "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname, uc.name as phonebookName from "
 					+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 					+ "e.start_time >= '"+eventDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" and em.user_id = "+createdById+" and em.status = 'Going' "
 					+ " "+sourcesQuery+" order by e.start_time asc limit "+pageNumber+","+offSet+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
-					+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
+					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.user_id = "+createdById+" "
+					+ "order by event_temp.start_time asc";
+		
 			System.out.println("Home Events Query : "+query);
 				
 		
