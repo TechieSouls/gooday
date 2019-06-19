@@ -269,7 +269,7 @@ public class EventServiceDao {
 					+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 					+ "e.start_time >= '"+eventDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" and em.user_id = "+createdById+" and em.status = 'Going' "
 					+ " "+sourcesQuery+" order by e.start_time asc limit "+pageNumber+","+offSet+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
-					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.user_id = "+createdById+" "
+					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id "
 					+ "order by event_temp.start_time asc";
 		
 			System.out.println("Home Events Query : "+query);
@@ -319,7 +319,7 @@ public class EventServiceDao {
 		String eventIdsStr = eventIds.toString().substring(0, eventIds.toString().length() - 1);
 		String query = "select *, us.name as nameuser, uc.name as phonebookName from events ev INNER JOIN event_members em on ev.event_id = em.event_id and ev.event_id in ("+eventIdsStr.toString()+")"
 				+ " LEFT JOIN users us on em.user_id = us.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.user_id = "+recepientId+"";
-		System.out.println(query);
+		System.out.println("Notification : "+query);
 		
 		List<Event> events = jdbcTemplate.query(query, new EventDataMapper());
 		return events;
@@ -335,7 +335,7 @@ public class EventServiceDao {
 				+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.user_id = "+userId+" "
 				+ "order by event_temp.start_time asc limit "+offset+", 50";
 	
-		System.out.println("Home Events Query : "+query);
+		System.out.println("Gatherings Events Query : "+query);
 		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
 		
 		
