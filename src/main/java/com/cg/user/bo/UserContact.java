@@ -27,7 +27,7 @@ public class UserContact extends CgGeneral {
 	@Column(name="phone")
 	private String phone;
 	
-	@Column(name="user_id")
+	@Column(name="uc_user_id")
 	private Long userId;
 	
 	@Column(name="name")
