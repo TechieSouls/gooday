@@ -600,7 +600,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 			}
 					
 			query += "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
-			+ "LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.user_id = "+userId+" "
+			+ "LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = "+userId+" "
 			+ "order by event_temp.start_time asc limit "+pageNumber+","+offSet+" ";
 		
 		System.out.println(query);
