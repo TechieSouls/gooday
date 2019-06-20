@@ -1576,8 +1576,8 @@ public class EventManager {
 		return calendarSyncTokenRepository.findByAccountTypeAndSubscriptionId(accountType, subscriptionId);
 	}
 	
-	public List<CalendarSyncToken> findCalendarSyncTokensWithTodayDate() {
-		return null;//calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
+	public List<CalendarSyncToken> findCalendarSyncTokensWithLastExpiryDate() {
+		return calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
 	}
 	
 	

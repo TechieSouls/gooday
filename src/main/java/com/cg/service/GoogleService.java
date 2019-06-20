@@ -503,6 +503,8 @@ public class GoogleService {
 		return null;
 	}
 	
+	
+	//To subscribe, Channel Id is necessary and should be same which is used very first time
 	public JSONObject subscribeToGoogleEventWatcher(String accessToken, String channelId) {
 		
 		System.out.println("Subscribing.. Access Token : "+accessToken);
