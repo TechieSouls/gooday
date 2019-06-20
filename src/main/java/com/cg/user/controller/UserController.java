@@ -880,11 +880,14 @@ public class UserController {
 		if (meTime != null && meTime.getRecurringEventId() != null) {
 			
 			RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(meTime.getRecurringEventId());
-			if (recurringEvent != null && recurringEvent.getPhoto() != null) {
-				imageUrl = recurringEvent.getPhoto();
+			if (recurringEvent != null) {
+				 if (recurringEvent.getPhoto() != null) {
+						imageUrl = recurringEvent.getPhoto();
+
+				 }
+					recurringEvent.setCreatedById(null);
+					recurringManager.saveRecurringEvent(recurringEvent);
 			}
-			recurringEvent.setCreatedById(null);
-			recurringManager.saveRecurringEvent(recurringEvent);
 			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
 		}
 		
