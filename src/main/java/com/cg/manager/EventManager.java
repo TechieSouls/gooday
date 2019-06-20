@@ -769,7 +769,7 @@ public class EventManager {
 						
 						String eventChangeFor = null;
 						Event event = new Event();
-						System.out.println("Event Title : "+eventItem.getSummary() +"Event Dates : "+eventItem.getStart()+ "  -  "+eventItem.getEnd());
+						System.out.println("Event Id : "+eventItem.getId()+" Event Title : "+eventItem.getSummary() +"Event Dates : "+eventItem.getStart()+ "  -  "+eventItem.getEnd());
 						//System.out.println("[Event : "+eventItem.toString()+" ]");
 						/*if (isUserInvitee) {
 							List<Event> eventsTemp = this.eventRepository.findBySourceEventId(eventItem.getId());
