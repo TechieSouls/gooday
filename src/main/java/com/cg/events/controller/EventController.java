@@ -2072,7 +2072,7 @@ public class EventController {
 			
 			String channelId = request.getHeader("x-goog-channel-id");
 			System.out.println("Channel Id : "+channelId);
-			/*CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Google, channelId);
+			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Google, channelId);
 
 			if (calendarSyncToken != null) {
 				
@@ -2100,7 +2100,7 @@ public class EventController {
 
 				}
 			
-			}*/
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
