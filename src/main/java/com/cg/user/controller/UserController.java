@@ -1048,8 +1048,8 @@ public class UserController {
     		e.printStackTrace();
     		
     	}*/
-		recurringEvent.setCreatedById(null);
-		recurringManager.saveRecurringEvent(recurringEvent);
+		//recurringEvent.setCreatedById(null);
+		//recurringManager.saveRecurringEvent(recurringEvent);
 		return new ResponseEntity(response, HttpStatus.OK);
 	}
 	
