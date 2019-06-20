@@ -784,6 +784,7 @@ public class EventManager {
 						//If creator has not synced the event then we will create new event. 
 						//If creator is different then he will see the event without syncing the google calendar.
 						List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+						System.out.println("Events existing count : "+dbevents.size());
 						if (dbevents != null && dbevents.size() != 0) {
 							//event = new Event();
 							Event dbEvent = dbevents.get(0);
