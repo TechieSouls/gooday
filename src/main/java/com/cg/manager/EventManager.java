@@ -1000,9 +1000,14 @@ public class EventManager {
 						
 						for (Entry<Long, Event> entryMap: googleEventIdsToDelete.entrySet()) {
 							
+
 							Event eventToUpdate = entryMap.getValue();
-							eventToUpdate.setIsActive(Event.EventStatus.InActive);
-							this.eventRepository.save(eventToUpdate);
+							//eventToUpdate.setIsActive(Event.EventStatus.InActive);
+							//this.eventRepository.save(eventToUpdate);
+							eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
+							this.eventRepository.delete(eventToUpdate.getEventId());
+							
+							
 						}
 						
 						//Releasing Memory
