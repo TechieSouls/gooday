@@ -153,6 +153,57 @@ public class HttpService {
 		System.out.println("["+new Date()+" Delete Request Complete");
 	}
 	
+	public void patchRequest(String apiUrl, String accessToken, String postData) {
+		
+		System.out.println("["+new Date()+" Making PATCH Request,url : "+apiUrl);
+		JSONObject jObject = null;
+		try {
+			URL obj = new URL(apiUrl);
+			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+			con.setRequestMethod("PATCH");
+			con.setRequestProperty("Authorization", "Bearer "+accessToken+"");
+			con.setRequestProperty("Content-Type", "application/json");
+
+			// Send post request
+			con.setDoOutput(true);
+
+			// Send post request
+			System.out.println("PATCH Data : "+postData);
+			System.out.println("Access Token : "+accessToken);
+			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes(postData);
+			wr.flush();
+			wr.close();
+
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'PATCH' request to URL : " + apiUrl);
+			System.out.println("Response Code : " + responseCode);
+
+			BufferedReader in = new BufferedReader(
+			        new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			
+			//print result
+			System.out.println("Response" +response.toString());
+		} catch(Exception e) {
+			e.printStackTrace();
+			jObject = new JSONObject();
+			try {
+				jObject.put("ErrorCode",102);
+				jObject.put("ErrorDetail",e.getMessage());
+			} catch(Exception e1){
+				e1.printStackTrace();
+			}
+		}
+		System.out.println("["+new Date()+" PATCH Request Complete");
+	}
+	
 	public String httpPostWithDataAccessToken (String apiUrl, String accessToken, String postData) {
 		try {
 			URL obj = new URL(apiUrl);

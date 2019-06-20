@@ -549,8 +549,7 @@ public class OutlookService {
 		
 		//Android
 		//String url = "https://outlook.office.com/api/v2.0/me/subscriptions('"+calendarSyncToken.getSubscriptionId()+"')";
-		
-		
+
 		//Outlook URl
 		String url = "https://graph.microsoft.com/v1.0/subscriptions/"+calendarSyncToken.getSubscriptionId()+"";
 		JSONObject refreshTokenResponse = getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
@@ -578,6 +577,68 @@ public class OutlookService {
 				}
 			}
 		}
+	}
+	
+	public Map<String, Object> renewOutlookService(CalendarSyncToken calendarSyncToken) {
+		
+		Map<String, Object> response = new HashMap<>();
+		//Android
+		//String url = "https://graph.microsoft.com/v1.0/subscriptions/{id}";
+
+		//Outlook URl
+		String apiUrl = "https://outlook.office.com/api/v2.0/me/subscriptions/"+calendarSyncToken.getSubscriptionId()+"";
+		JSONObject refreshTokenResponse = getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+		if (refreshTokenResponse != null) {
+			try {
+				
+				Calendar cal = Calendar.getInstance();
+				cal.add(Calendar.DAY_OF_MONTH, 2);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.sssZ");
+				String future3rdDay = sdf.format(cal.getTime());
+				response.put("renew_date", cal.getTime());
+				
+				String accessToken = refreshTokenResponse.getString("access_token");
+				
+				
+				JSONObject postData = new JSONObject();
+				postData.put("@odata.type", "#Microsoft.OutlookServices.PushSubscription");
+				postData.put("SubscriptionExpirationDateTime", ""+future3rdDay+"");
+
+				
+				HttpService httpService = new HttpService();
+				httpService.patchRequest(apiUrl, accessToken, postData.toString());
+
+				return response;
+			} catch(Exception e) {
+				e.printStackTrace();
+				
+				Calendar cal = Calendar.getInstance();
+				cal.add(Calendar.DAY_OF_MONTH, 2);
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.sssZ");
+				String future3rdDay = sdf.format(cal.getTime());
+				response.put("renew_date", cal.getTime());
+
+				//Android
+				String androidUrl = "https://graph.microsoft.com/v1.0/subscriptions/{"+calendarSyncToken.getSubscriptionId()+"}";
+				try {
+					String accessToken = refreshTokenResponse.getString("access_token");
+					
+					JSONObject postData = new JSONObject();
+					postData.put("expirationDateTime", ""+future3rdDay+"");
+
+					
+					HttpService httpService = new HttpService();
+					httpService.patchRequest(apiUrl, accessToken, postData.toString());
+					
+					return response;
+
+				} catch(Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+			
+		}
+		return null;
 	}
 	
 	/*public static void main(String[] args) {

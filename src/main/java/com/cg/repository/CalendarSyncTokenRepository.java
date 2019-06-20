@@ -18,7 +18,7 @@ public interface CalendarSyncTokenRepository extends JpaRepository<CalendarSyncT
 	public List<CalendarSyncToken> findByAccountType(AccountType accountType);
 	
 	
-	@Query("select cst from CalendarSyncToken cst where cst.accountType = 'Google' and cst.accountType = 'Outlook' and cst.DATEDIFF(now(), cst.subExpiryDate) > 2")
+	@Query("select cst from CalendarSyncToken cst where cst.isActive = 1 and DATEDIFF(now(), cst.subExpiryDate) > 2")
 	public List<CalendarSyncToken> findBySubExpiryDateGreaterThanThreeDays();
 	
 	

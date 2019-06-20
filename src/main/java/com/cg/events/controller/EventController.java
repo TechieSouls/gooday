@@ -2061,7 +2061,7 @@ public class EventController {
 	@RequestMapping(value = "/api/event/google/notifyWebhook", method = RequestMethod.POST)
 	public String googleWebHookUrl(HttpServletRequest request) {
 
-		/*System.out.println("Google Push Notification");
+		System.out.println("Google Push Notification");
 		try {
 			
 			Enumeration<String> headers = request.getHeaderNames();
@@ -2072,7 +2072,7 @@ public class EventController {
 			
 			String channelId = request.getHeader("x-goog-channel-id");
 			System.out.println("Channel Id : "+channelId);
-			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Google, channelId);
+			/*CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType.Google, channelId);
 
 			if (calendarSyncToken != null) {
 				
@@ -2100,10 +2100,10 @@ public class EventController {
 
 				}
 			
-			}
+			}*/
 		} catch(Exception e) {
 			e.printStackTrace();
-		}*/
+		}
 		return null;
 	}
 	
