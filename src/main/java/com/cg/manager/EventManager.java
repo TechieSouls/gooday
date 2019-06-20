@@ -727,7 +727,7 @@ public class EventManager {
 			cal.set(Calendar.SECOND, 0);
 			cal.set(Calendar.MILLISECOND, 0);
 
-			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndSourceAndScheduleAs(user.getUserId(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 			for (Event exEvent: existingGoogleEvents) {
 				googleEventIdsToDelete.put(exEvent.getEventId(), exEvent);
 			}
