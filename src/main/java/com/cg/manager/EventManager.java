@@ -699,11 +699,19 @@ public class EventManager {
 	
 	//This method will be called, whenever from the google webhook.
 	public List<Event> syncGoogleEventsOnNotification(String resourceUrl, String accessToken,User user) {
+		
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+
 		List<Event> events = new ArrayList<>();
 		
 		try {
 			GoogleService gs = new GoogleService();
-			List<GoogleEvents> googleEventsCalendarList = gs.getGoogleEventsOnNotification(resourceUrl, accessToken);
+			List<GoogleEvents> googleEventsCalendarList = gs.getGoogleEventsOnNotification(resourceUrl, accessToken, cal.getTime());
 			events = processGoogleEventsCalendarList(googleEventsCalendarList, user, events, Event.EventProcessRequest.Webhook);
 			
 		} catch(Exception e) {
@@ -727,7 +735,7 @@ public class EventManager {
 			cal.set(Calendar.SECOND, 0);
 			cal.set(Calendar.MILLISECOND, 0);
 
-			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndSourceAndScheduleAs(user.getUserId(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 			for (Event exEvent: existingGoogleEvents) {
 				googleEventIdsToDelete.put(exEvent.getEventId(), exEvent);
 			}
