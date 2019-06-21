@@ -22,13 +22,10 @@ public class CalendarSyncJob {
 	EventManager eventManager;
 	
 	//				s m h d m y
-	@Scheduled(cron="0/1 0 23 * * *") //At every 23rd hour
+	@Scheduled(cron="0/1 0/1 23 * * *") //At every 23rd hour
 	//@Scheduled(cron="0/1 32 18 * * *") //At every 23rd hour
 	public void syncGoogleCalendar() {
-		System.out.println("[Google Calendar Sync Job STARTS]");
-		
-		GoogleService googleService = new GoogleService();
-		OutlookService outlookService = new OutlookService();
+		System.out.println("[Date : "+new Date()+" Google Calendar Sync Job STARTS]");
 		
 		List<CalendarSyncToken> refreshTokens = eventManager.findCalendarSyncTokensWithLastExpiryDate();
 		if (refreshTokens != null && refreshTokens.size() > 0) {
@@ -38,8 +35,6 @@ public class CalendarSyncJob {
 			for (int number=0 ; number < numberOfThreadsToGenerate; number++) {
 				List<CalendarSyncToken> refTokens = refreshTokens.subList(number, (number+1)*10);
 				RenewSubScriptionThread refreshTokenThread = new RenewSubScriptionThread();
-				refreshTokenThread.setOutlookService(outlookService);
-				refreshTokenThread.setGoogleService(googleService);
 				refreshTokenThread.setRefreshTokens(refTokens);
 				refreshTokenThread.setEventManager(eventManager);
 				refreshTokenThread.run();
@@ -50,7 +45,7 @@ public class CalendarSyncJob {
 			renewSubScriptionThread.setRefreshTokens(refTokens);
 			renewSubScriptionThread.run();
 		}
-		System.out.println("[Google Calendar Sync Job ENDS]");
+		System.out.println("[Date : "+new Date()+" Google Calendar Sync Job ENDS]");
 
 	}
 	
@@ -111,8 +106,6 @@ public class CalendarSyncJob {
 	class RenewSubScriptionThread implements Runnable {
 
 		private List<CalendarSyncToken> refreshTokens;
-		private GoogleService googleService;
-		private OutlookService outlookService;
 		private EventManager eventManager;
 		
 		public List<CalendarSyncToken> getRefreshTokens() {
@@ -122,14 +115,6 @@ public class CalendarSyncJob {
 			this.refreshTokens = refreshTokens;
 		}
 
-		public GoogleService getGoogleService() {
-			return googleService;
-		}
-
-		public void setGoogleService(GoogleService googleService) {
-			this.googleService = googleService;
-		}
-
 		public EventManager getEventManager() {
 			return eventManager;
 		}
@@ -137,17 +122,13 @@ public class CalendarSyncJob {
 		public void setEventManager(EventManager eventManager) {
 			this.eventManager = eventManager;
 		}
-
-		public OutlookService getOutlookService() {
-			return outlookService;
-		}
-		public void setOutlookService(OutlookService outlookService) {
-			this.outlookService = outlookService;
-		}
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
 			
+			GoogleService googleService = new GoogleService();
+			OutlookService outlookService = new OutlookService();
+
 			for (CalendarSyncToken calSyncTkn: refreshTokens) {
 				if (calSyncTkn.getAccountType().equals(AccountType.Google) && calSyncTkn.getSubscriptionId() != null) {
 					
@@ -172,7 +153,7 @@ public class CalendarSyncJob {
 						}
 					} catch(Exception e) {
 						System.out.println("Exceptoion in Google Renew Subscription : ");
-						System.out.println(e.getMessage());
+						e.printStackTrace();
 					}
 					
 				} else if (calSyncTkn.getAccountType().equals(AccountType.Outlook) && calSyncTkn.getSubscriptionId() != null) {
@@ -185,12 +166,14 @@ public class CalendarSyncJob {
 									eventManager.saveCalendarSyncToken(calSyncTkn);
 							}
 					} catch(Exception e) {
-						System.out.println("Exceptoion in Google Renew Subscription : ");
-						System.out.println(e.getMessage());
+						System.out.println("Exceptoion in Outlook Renew Subscription : ");
+						e.printStackTrace();
 					}
 				}
 			} 
 		
+			googleService = null;
+			outlookService = null;
 		}
 	}
 }
