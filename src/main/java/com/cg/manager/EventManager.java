@@ -1012,6 +1012,7 @@ public class EventManager {
 					}
 					System.out.println("Events to be deleted : "+googleEventIdsToDelete.size());
 					
+					List<Event> eventsToDelete = new ArrayList<>();
 					for (Entry<Long, Event> entryMap: googleEventIdsToDelete.entrySet()) {
 						
 
@@ -1021,14 +1022,19 @@ public class EventManager {
 						eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
 						System.out.println("[Google Event to Delete : "+eventToUpdate.getEventId()+" ]");
 						try {
-							this.eventRepository.delete(eventToUpdate);
+							//this.eventRepository.delete(eventToUpdate);
+							eventsToDelete.add(eventToUpdate);
 						} catch(Exception e) {
 							e.printStackTrace();
 						}
-						
-						
 					}
-					
+					try {
+						System.out.println("Deleing event counts : "+eventsToDelete.size());
+						
+						this.eventRepository.delete(eventsToDelete);
+					} catch(Exception e) {
+						e.printStackTrace();
+					}
 					//Releasing Memory
 					googleEventIdsToDelete = null;
 				}
