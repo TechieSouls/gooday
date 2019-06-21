@@ -1020,7 +1020,11 @@ public class EventManager {
 						//this.eventRepository.save(eventToUpdate);
 						eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
 						System.out.println("[Google Event to Delete : "+eventToUpdate.getEventId()+" ]");
-						this.eventRepository.delete(eventToUpdate.getEventId());
+						try {
+							this.eventRepository.delete(eventToUpdate);
+						} catch(Exception e) {
+							e.printStackTrace();
+						}
 						
 						
 					}
