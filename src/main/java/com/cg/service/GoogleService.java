@@ -207,15 +207,15 @@ public class GoogleService {
 		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));*/
 
 		
-		String recurringEventsAPI = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=10&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
+		String recurringEventsAPI = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=50&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
 		System.out.println("Url recurringEventsAPI : "+recurringEventsAPI);
 		JSONObject calResponse = httpService.getRequestWithAuthorization(recurringEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(recurringEventsAPI,"GET");
 		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
 		
 		httpService = new HttpService();
 		//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
-		String normalEventsAPI = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=10&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
-		System.out.println("Url normalEventsAPI : "+recurringEventsAPI);
+		String normalEventsAPI = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=50&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
+		System.out.println("Url normalEventsAPI : "+normalEventsAPI);
 		calResponse = httpService.getRequestWithAuthorization(normalEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(normalEventsAPI,"GET");
 		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
 		
