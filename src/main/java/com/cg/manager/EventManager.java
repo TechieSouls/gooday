@@ -1029,7 +1029,7 @@ public class EventManager {
 						//eventToUpdate.setIsActive(Event.EventStatus.InActive);
 						//this.eventRepository.save(eventToUpdate);
 						eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
-						System.out.println("[Google Event to Delete : "+eventToUpdate.getEventId()+" ]");
+						System.out.println("[Google Event to Delete : "+eventToUpdate.getEventId()+" , "+eventToUpdate.getTitle()+" "+eventToUpdate.getStartTime()+" ]");
 						try {
 							//this.eventRepository.delete(eventToUpdate);
 							eventsToDelete.add(eventToUpdate);
