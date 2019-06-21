@@ -714,7 +714,7 @@ public class EventManager {
 	
 	public List<Event> processGoogleEventsCalendarList(List<GoogleEvents> googleEventsCalendarList, User user, List<Event> events, Event.EventProcessRequest eventProcessRequestFrom) {
 		
-		Map<Long, Event> googleEventIdsToDelete = new HashMap();
+		Map<Long, Event> googleEventIdsToDelete = new HashMap<>();
 		
 		if (eventProcessRequestFrom == Event.EventProcessRequest.Webhook) {
 			System.out.println("Webhook Request");
@@ -992,28 +992,7 @@ public class EventManager {
 					System.out.println("[ Syncing Google Events - User Id : "
 									+ user.getUserId() + ", Total Events to Sync : "
 									+ events.size() + "]");
-					
-					
-					if (googleEventIdsToDelete.size() > 0) {
-						
-						System.out.println("Events to be deleted : "+googleEventIdsToDelete.size());
-						
-						for (Entry<Long, Event> entryMap: googleEventIdsToDelete.entrySet()) {
 							
-
-							Event eventToUpdate = entryMap.getValue();
-							//eventToUpdate.setIsActive(Event.EventStatus.InActive);
-							//this.eventRepository.save(eventToUpdate);
-							eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
-							this.eventRepository.delete(eventToUpdate.getEventId());
-							
-							
-						}
-						
-						//Releasing Memory
-						googleEventIdsToDelete = null;
-					}
-					
 				} else {
 					/*if (googleEvents.getErrorDetail() != null) {
 						Event event = new Event();
@@ -1021,6 +1000,32 @@ public class EventManager {
 						event.setErrorDetail(googleEvents.getErrorDetail());
 						events.add(event);
 					}*/
+				}
+				
+				if (googleEventIdsToDelete.size() > 0) {
+					
+					//If there are not events to add/update
+					//Then we will add empty event object so that we can send notification
+					//checking the size if there are any updates from google.
+					if (events.size() == 0) {
+						events.add(new Event());
+					}
+					System.out.println("Events to be deleted : "+googleEventIdsToDelete.size());
+					
+					for (Entry<Long, Event> entryMap: googleEventIdsToDelete.entrySet()) {
+						
+
+						Event eventToUpdate = entryMap.getValue();
+						//eventToUpdate.setIsActive(Event.EventStatus.InActive);
+						//this.eventRepository.save(eventToUpdate);
+						eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
+						this.eventRepository.delete(eventToUpdate.getEventId());
+						
+						
+					}
+					
+					//Releasing Memory
+					googleEventIdsToDelete = null;
 				}
 			}
 		}

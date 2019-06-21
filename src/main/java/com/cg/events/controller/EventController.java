@@ -2093,10 +2093,14 @@ public class EventController {
 
 					String resourceUrl = request.getHeader("x-goog-resource-uri");
 					System.out.println("Google Resource Url : "+resourceUrl);
-					eventManager.syncGoogleEventsOnNotification(resourceUrl, accessToken, user);
-					System.out.println("Google Push Notification Done");
 					
-					notificationManager.sendRefreshPushNotification(user.getUserId());
+					
+					List<Event> events = eventManager.syncGoogleEventsOnNotification(resourceUrl, accessToken, user);
+					//If there are any updates from google, then we will send push and refresh home screen.
+					if (events != null && events.size() > 0) {
+						System.out.println("Google Push Notification Done");
+						notificationManager.sendRefreshPushNotification(user.getUserId());
+					}
 
 				}
 			
