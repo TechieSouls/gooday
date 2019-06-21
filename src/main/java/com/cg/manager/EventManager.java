@@ -1026,7 +1026,8 @@ public class EventManager {
 						Event eventToUpdate = entryMap.getValue();
 						//eventToUpdate.setIsActive(Event.EventStatus.InActive);
 						//this.eventRepository.save(eventToUpdate);
-						eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
+						eventServiceDao.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
+						//eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
 						System.out.println("[Google Event to Delete : "+eventToUpdate.getEventId()+" , "+eventToUpdate.getTitle()+" "+eventToUpdate.getStartTime()+" ]");
 						try {
 							//this.eventRepository.delete(eventToUpdate);

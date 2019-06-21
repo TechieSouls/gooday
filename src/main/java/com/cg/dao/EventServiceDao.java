@@ -409,6 +409,14 @@ public class EventServiceDao {
 
 	}
 	
+	
+	public void deleteEventTimeSlotsByEventId(Long eventId) {
+		
+		String deleteEvents = "delete from event_time_slots where event_id = "+eventId+"";
+		 jdbcTemplate.execute(deleteEvents);
+
+	}
+	
 	public Event findGatheringByEventId(Long eventId) {
 		
 		String gatheringQuery = "select *,e.source as event_source,  em.source as member_source, "
