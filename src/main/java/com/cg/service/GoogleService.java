@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -196,13 +197,13 @@ public class GoogleService {
 	}
 	
 	
-	public List<GoogleEvents> getGoogleEventsOnNotification(String resourceUrl, String accessToken) {
+	public List<GoogleEvents> getGoogleEventsOnNotification(String resourceUrl, String accessToken, Date minTime) {
 		
 		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
 
-		//String resourceUrl = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=250&alt=json";
+		String resourceUrlTemp = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
 		HttpService httpService = new HttpService();
-		JSONObject calResponse = httpService.getRequestWithAuthorization(resourceUrl, "GET", accessToken);
+		JSONObject calResponse = httpService.getRequestWithAuthorization(resourceUrlTemp, "GET", accessToken);
 		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
 
 		
