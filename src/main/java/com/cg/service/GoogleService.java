@@ -200,12 +200,22 @@ public class GoogleService {
 	public List<GoogleEvents> getGoogleEventsOnNotification(String resourceUrl, String accessToken, Date minTime) {
 		
 		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
-
-		String resourceUrlTemp = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
 		HttpService httpService = new HttpService();
-		JSONObject calResponse = httpService.getRequestWithAuthorization(resourceUrlTemp, "GET", accessToken);
-		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
 
+		/*String resourceUrlTemp = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
+		JSONObject calResponse = httpService.getRequestWithAuthorization(resourceUrlTemp, "GET", accessToken);
+		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));*/
+
+		
+		String recurringEventsAPI = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
+		JSONObject calResponse = httpService.getRequestWithAuthorization(recurringEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(recurringEventsAPI,"GET");
+		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
+		
+		httpService = new HttpService();
+		//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+		String normalEventsAPI = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=100&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
+		calResponse = httpService.getRequestWithAuthorization(normalEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(normalEventsAPI,"GET");
+		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
 		
 		return googleCalendarEvents;
 	}
