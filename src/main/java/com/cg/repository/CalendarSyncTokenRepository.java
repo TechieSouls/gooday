@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CalendarSyncToken.AccountType;
+import com.cg.bo.CalendarSyncToken.ActiveStatus;
 
 @Repository
 public interface CalendarSyncTokenRepository extends JpaRepository<CalendarSyncToken, Long>{
@@ -32,6 +33,8 @@ public interface CalendarSyncTokenRepository extends JpaRepository<CalendarSyncT
 	public void deleteByUserIdAndAccountType(Long userId, AccountType accountType);
 	
 	public CalendarSyncToken findByAccountTypeAndSubscriptionId(AccountType accountType, String subscriptionId);
+	public CalendarSyncToken findByAccountTypeAndSubscriptionIdAndIsActive(AccountType accountType, String subscriptionId, ActiveStatus isActive);
+
 	public List<CalendarSyncToken> findByUserId(Long userId);
 	public CalendarSyncToken findByUserIdAndEmailId(Long userId,String email);
 	public CalendarSyncToken findByUserIdAndAccountType(Long userId,AccountType accountType);
