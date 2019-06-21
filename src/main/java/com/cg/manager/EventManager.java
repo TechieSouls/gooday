@@ -702,7 +702,6 @@ public class EventManager {
 	public List<Event> syncGoogleEventsOnNotification(String resourceUrl, String accessToken,User user) {
 		
 		Calendar cal = Calendar.getInstance();
-		cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
@@ -730,7 +729,6 @@ public class EventManager {
 			//Lets find all the future events.
 			
 			Calendar cal = Calendar.getInstance();
-			cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH - 1));
 			cal.set(Calendar.HOUR_OF_DAY, 0);
 			cal.set(Calendar.MINUTE, 0);
 			cal.set(Calendar.SECOND, 0);
@@ -778,7 +776,7 @@ public class EventManager {
 						
 						String eventChangeFor = null;
 						Event event = new Event();
-						System.out.println("Event Id : "+eventItem.getId()+" Event Title : "+eventItem.getSummary() +"Event Dates : "+eventItem.getStart()+ "  -  "+eventItem.getEnd());
+						//System.out.println("Event Id : "+eventItem.getId()+" Event Title : "+eventItem.getSummary() +"Event Dates : "+eventItem.getStart()+ "  -  "+eventItem.getEnd());
 						//System.out.println("[Event : "+eventItem.toString()+" ]");
 						/*if (isUserInvitee) {
 							List<Event> eventsTemp = this.eventRepository.findBySourceEventId(eventItem.getId());
@@ -793,13 +791,13 @@ public class EventManager {
 						//If creator has not synced the event then we will create new event. 
 						//If creator is different then he will see the event without syncing the google calendar.
 						List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-						System.out.println("Events existing count : "+dbevents.size());
+						//System.out.println("Events existing count : "+dbevents.size());
 						if (dbevents != null && dbevents.size() != 0) {
 							//event = new Event();
 							Event dbEvent = dbevents.get(0);
 							if (googleEventIdsToDelete.containsKey(dbEvent.getEventId())) {
 								
-								System.out.println("Event Id : "+dbEvent.getEventId()+ "Event title : "+dbEvent.getTitle());
+								//System.out.println("Event Id : "+dbEvent.getEventId()+ "Event title : "+dbEvent.getTitle());
 								
 								Date startDt = new Date();
 								Date endDt = new Date();
@@ -847,8 +845,8 @@ public class EventManager {
 
 								//Checking if there is any update in the timings for google event.
 								
-								System.out.println("DbEvent vs EvemtItem -> title : "+dbEvent.getTitle()+" v/s "+eventItem.getSummary()+" , "
-										+ "StartTime : "+dbEvent.getStartTime().getTime()+" v/s "+startDt.getTime()+" EndTime : "+dbEvent.getEndTime().getTime()+ " v/s " +endDt.getTime());
+								//System.out.println("DbEvent vs EvemtItem -> title : "+dbEvent.getTitle()+" v/s "+eventItem.getSummary()+" , "
+										//+ "StartTime : "+dbEvent.getStartTime().getTime()+" v/s "+startDt.getTime()+" EndTime : "+dbEvent.getEndTime().getTime()+ " v/s " +endDt.getTime());
 								
 								if (dbEvent.getTitle().equals(eventItem.getSummary())  && dbEvent.getStartTime().getTime() == startDt.getTime() && dbEvent.getEndTime().getTime() ==  endDt.getTime()) {
 									
