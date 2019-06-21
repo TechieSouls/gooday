@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CalendarSyncToken.AccountType;
+import com.cg.bo.CalendarSyncToken.ActiveStatus;
 import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
@@ -1603,7 +1604,7 @@ public class EventManager {
 	}
 	
 	public CalendarSyncToken findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType accountType, String subscriptionId) {
-		return calendarSyncTokenRepository.findByAccountTypeAndSubscriptionId(accountType, subscriptionId);
+		return calendarSyncTokenRepository.findByAccountTypeAndSubscriptionIdAndIsActive(accountType, subscriptionId, ActiveStatus.Active);
 	}
 	
 	public List<CalendarSyncToken> findCalendarSyncTokensWithLastExpiryDate() {
