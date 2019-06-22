@@ -153,14 +153,15 @@ public class HttpService {
 		System.out.println("["+new Date()+" Delete Request Complete");
 	}
 	
-	public void patchRequest(String apiUrl, String accessToken, String postData) {
+	public JSONObject patchRequest(String apiUrl, String accessToken, String postData) {
 		
 		System.out.println("["+new Date()+" Making PATCH Request,url : "+apiUrl);
 		JSONObject jObject = null;
 		try {
 			URL obj = new URL(apiUrl);
 			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-			con.setRequestMethod("PATCH");
+			con.setRequestMethod("POST");
+	        con.setRequestProperty("X-HTTP-Method-Override", "PATCH");
 			con.setRequestProperty("Authorization", "Bearer "+accessToken+"");
 			con.setRequestProperty("Content-Type", "application/json");
 
@@ -202,6 +203,8 @@ public class HttpService {
 			}
 		}
 		System.out.println("["+new Date()+" PATCH Request Complete");
+		return jObject;
+
 	}
 	
 	public String httpPostWithDataAccessToken (String apiUrl, String accessToken, String postData) {
