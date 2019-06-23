@@ -590,7 +590,6 @@ public class OutlookService {
 		JSONObject refreshTokenResponse = getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
 		if (refreshTokenResponse != null) {
 			try {
-				
 				Calendar cal = Calendar.getInstance();
 				cal.add(Calendar.DAY_OF_MONTH, 2);
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.sssZ");
