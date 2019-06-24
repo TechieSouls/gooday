@@ -911,6 +911,8 @@ public class UserController {
 				Calendar startCal = Calendar.getInstance();
 				startCal.setTimeInMillis(meEvent.getStartTime());
 				
+				System.out.println("MeTime Start Time : "+meEvent.getStartTime());
+				
 				if (!recurringEventMap.containsKey(meEvent.getTitle())) {
 					RecurringEvent recurringEvent = new RecurringEvent();
 					recurringEvent.setTitle(meEvent.getTitle());
