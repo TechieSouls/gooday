@@ -439,16 +439,21 @@ public class EventController {
 
 			if ("Going".equals(status)) {
 				eventMember.setStatus(MemberStatus.Going.toString());
+				eventService.saveEventMember(eventMember);
+				
 				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
 				eventMember = eventManager.generateTimeSlotsForEventMember(event, eventMember);
 			} else if ("NotGoing".equals(status)) {
 				// if (eventMember.getStatus() != null) {
 				// eventManager.updateEventMemberTimeSlot(event, eventMember);
-				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
 				// }
 				eventMember.setStatus(MemberStatus.NotGoing.toString());
+				eventService.saveEventMember(eventMember);
+				
+				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
+
+
 			}
-			eventService.saveEventMember(eventMember);
 			// eventService.updateEventMemberStatus(memberStatus, eventMemberId);
 
 			notificationManager.sendEventAcceptDeclinedPush(eventMember);
