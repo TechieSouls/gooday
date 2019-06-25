@@ -1282,7 +1282,7 @@ public class UserController {
 			response.put("message", "Email Confirmed Successfully");
 
 			String userAgent = request.getHeader("User-Agent");
-			
+			System.out.println("User Agent : "+userAgent);
 			if (userAgent.indexOf("iphone") != -1 || userAgent.indexOf("ipad") != -1  || userAgent.indexOf("android") != -1 || 
 					userAgent.indexOf("blackberry") != -1 || userAgent.indexOf("nokia") != -1 || userAgent.indexOf("opera mini") != -1 || 
 					userAgent.indexOf("windows mobile") != -1 || userAgent.indexOf("windows phone") != -1 || userAgent.indexOf("iemobile") != -1 ) {
