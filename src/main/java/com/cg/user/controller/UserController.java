@@ -1283,9 +1283,9 @@ public class UserController {
 
 			String userAgent = request.getHeader("User-Agent");
 			System.out.println("User Agent : "+userAgent);
-			if (userAgent.indexOf("iphone") != -1 || userAgent.indexOf("ipad") != -1  || userAgent.indexOf("android") != -1 || 
-					userAgent.indexOf("blackberry") != -1 || userAgent.indexOf("nokia") != -1 || userAgent.indexOf("opera mini") != -1 || 
-					userAgent.indexOf("windows mobile") != -1 || userAgent.indexOf("windows phone") != -1 || userAgent.indexOf("iemobile") != -1 ) {
+			if (userAgent.toLowerCase().indexOf("iphone") != -1 || userAgent.toLowerCase().indexOf("ipad") != -1  || userAgent.toLowerCase().indexOf("android") != -1 || 
+					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
+					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
 				
 				return "cenes://";
 				
