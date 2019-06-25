@@ -1292,9 +1292,8 @@ public class UserController {
 				
 			    httpServletResponse.setHeader("Location", "cenes://");
 			    httpServletResponse.setStatus(302);
-
-				//return "redirect:cenes://";
-				
+			    return new ResponseEntity<>(response, HttpStatus.OK);	
+			    
 			} else {
 			    return new ResponseEntity<>(response, HttpStatus.OK);
 			}
