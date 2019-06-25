@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,6 +34,7 @@ import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -1260,7 +1262,7 @@ public class UserController {
 	
 	
 	@RequestMapping(value = "/auth/forgetPasswordConfirmation", method = RequestMethod.GET)
-	public String forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request) {
+	public ResponseEntity<Object> forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request) {
 		
 		User user = null;
 		Map<String, Object> response = new HashMap<>();
@@ -1271,8 +1273,8 @@ public class UserController {
 			if (user == null) {
 				response.put("success", false);
 				response.put("message", "Invalid Reset Token");
-				//return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-				return response.toString();
+				return new ResponseEntity<>(response, HttpStatus.OK);
+				//return response.toString();
 				
 			}
 
@@ -1287,10 +1289,16 @@ public class UserController {
 					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
 					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
 				
-				return "redirect:cenes://";
+				
+			    URI yahoo = new URI("cenes://");
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+
+				//return "redirect:cenes://";
 				
 			} else {
-				return response.toString();
+			    return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			
 			
@@ -1302,7 +1310,7 @@ public class UserController {
 			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
 
 		}
-		return null;
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
 	/**
