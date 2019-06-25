@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -1259,7 +1260,7 @@ public class UserController {
 	
 	
 	@RequestMapping(value = "/auth/forgetPasswordConfirmation", method = RequestMethod.GET)
-	public ResponseEntity<Map<String, Object>> forgetPasswordConfirmationLinRequest(String resetToken) {
+	public String forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request) {
 		
 		User user = null;
 		Map<String, Object> response = new HashMap<>();
@@ -1270,7 +1271,9 @@ public class UserController {
 			if (user == null) {
 				response.put("success", false);
 				response.put("message", "Invalid Reset Token");
-				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+				//return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+				return response.toString();
+				
 			}
 
 			user.setResetToken(null);
@@ -1278,6 +1281,18 @@ public class UserController {
 			response.put("success", true);
 			response.put("message", "Email Confirmed Successfully");
 
+			String userAgent = request.getHeader("User-Agent");
+			
+			if (userAgent.indexOf("iphone") != -1 || userAgent.indexOf("ipad") != -1  || userAgent.indexOf("android") != -1 || 
+					userAgent.indexOf("blackberry") != -1 || userAgent.indexOf("nokia") != -1 || userAgent.indexOf("opera mini") != -1 || 
+					userAgent.indexOf("windows mobile") != -1 || userAgent.indexOf("windows phone") != -1 || userAgent.indexOf("iemobile") != -1 ) {
+				
+				return "cenes://";
+				
+			} else {
+				return response.toString();
+			}
+			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1287,7 +1302,7 @@ public class UserController {
 			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
 
 		}
-		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		return null;
 	}
 	
 	/**
