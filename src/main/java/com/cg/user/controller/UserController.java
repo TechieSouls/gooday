@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.cg.bo.CalendarSyncToken;
@@ -1263,7 +1264,7 @@ public class UserController {
 	
 	
 	@RequestMapping(value = "/auth/forgetPasswordConfirmation", method = RequestMethod.GET)
-	public RedirectView forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request, HttpServletResponse httpServletResponse) {
+	public ModelAndView forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request, HttpServletResponse httpServletResponse) {
 		
 		User user = null;
 		Map<String, Object> response = new HashMap<>();
@@ -1291,10 +1292,11 @@ public class UserController {
 					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
 				
 				
-			    RedirectView redirectView = new RedirectView();
-			    redirectView.setUrl("cenes://");
-			    return redirectView;
-			    
+			    //RedirectView redirectView = new RedirectView();
+			    //redirectView.setUrl("cenes://");
+			    //return redirectView;
+			    return new ModelAndView("redirect:cenes://");
+
 			} else {
 			    //return new ResponseEntity<>(response, HttpStatus.OK);
 			}
