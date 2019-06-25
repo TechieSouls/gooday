@@ -34,7 +34,7 @@ function getRequestParameter(paramn) {
 var server = window.location.protocol+"//"+window.location.hostname;
 
 var resetToken = getRequestParameter("success");
-if (resetToken == true) {
+if (resetToken == "true") {
 	$("#success_text").html("Please go to app to set new password.");
 	
 	$(function(){

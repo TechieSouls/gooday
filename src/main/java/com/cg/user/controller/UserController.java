@@ -1294,7 +1294,7 @@ public class UserController {
 					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
 					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
 				
-				String url = request.getScheme()+"://thankyou.html?success=true";
+				String url = domain+"://thankyou.html?success=true";
 				
 			    URI yahoo = new URI(url);
 			    HttpHeaders httpHeaders = new HttpHeaders();
