@@ -1,0 +1,50 @@
+<html>
+<head>
+<title>Forgot Password</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+<div class="container" style="width: 80%;padding:10px;">
+  <h2 style="text-align: center;">Reset Password</h2>
+  <div id="token-expired-message" style="text-align: center;">
+  		<p id="success_text">Your Reset Password Link gets expired. Please resend it again from Cenes App</p>
+  </div>
+</div>
+
+<script>
+var userObj = {};
+function getRequestParameter(paramn) {
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i=0;i<vars.length;i++) {
+	   var pair = vars[i].split("=");
+	   if (pair[0] == paramn) {
+	     return pair[1];
+	   }
+	} 
+	return null;
+}
+
+var server = window.location.protocol+"//"+window.location.hostname;
+
+var resetToken = getRequestParameter("success");
+if (resetToken == true) {
+	$("#success_text").html("Please go to app to set new password.");
+	
+	$(function(){
+	    setTimeout(function(){
+	        window.location = 'cenes://';
+	    }, 1000);
+	});
+	
+} else {
+	$("#success_text").html("Link Expired. Please send request again.");
+}
+</script>
+</html>

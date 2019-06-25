@@ -49,8 +49,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
@@ -1264,7 +1262,7 @@ public class UserController {
 	
 	
 	@RequestMapping(value = "/auth/forgetPasswordConfirmation", method = RequestMethod.GET)
-	public ModelAndView forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request, HttpServletResponse httpServletResponse) {
+	public ResponseEntity<Object> forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request) {
 		
 		User user = null;
 		Map<String, Object> response = new HashMap<>();
@@ -1275,7 +1273,12 @@ public class UserController {
 			if (user == null) {
 				response.put("success", false);
 				response.put("message", "Invalid Reset Token");
-				//return new ResponseEntity<>(response, HttpStatus.OK);
+				String url = request.getScheme()+"://thankyou.html?success=false";
+				
+			    URI yahoo = new URI(url);
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
 				//return response.toString();
 				
 			}
@@ -1291,14 +1294,15 @@ public class UserController {
 					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
 					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
 				
+				String url = request.getScheme()+"://thankyou.html?success=true";
 				
-			    //RedirectView redirectView = new RedirectView();
-			    //redirectView.setUrl("cenes://");
-			    //return redirectView;
-			    return new ModelAndView("redirect:cenes://");
-
+			    URI yahoo = new URI(url);
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+				
 			} else {
-			    //return new ResponseEntity<>(response, HttpStatus.OK);
+			    return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			
 			
@@ -1310,8 +1314,7 @@ public class UserController {
 			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
 
 		}
-		//return new ResponseEntity<>(response, HttpStatus.OK);
-		return null;
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
 	/**
