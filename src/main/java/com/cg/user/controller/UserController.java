@@ -1263,7 +1263,7 @@ public class UserController {
 	
 	
 	@RequestMapping(value = "/auth/forgetPasswordConfirmation", method = RequestMethod.GET)
-	public Object forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request, HttpServletResponse httpServletResponse) {
+	public RedirectView forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request, HttpServletResponse httpServletResponse) {
 		
 		User user = null;
 		Map<String, Object> response = new HashMap<>();
@@ -1274,7 +1274,7 @@ public class UserController {
 			if (user == null) {
 				response.put("success", false);
 				response.put("message", "Invalid Reset Token");
-				return new ResponseEntity<>(response, HttpStatus.OK);
+				//return new ResponseEntity<>(response, HttpStatus.OK);
 				//return response.toString();
 				
 			}
@@ -1296,7 +1296,7 @@ public class UserController {
 			    return redirectView;
 			    
 			} else {
-			    return new ResponseEntity<>(response, HttpStatus.OK);
+			    //return new ResponseEntity<>(response, HttpStatus.OK);
 			}
 			
 			
@@ -1308,7 +1308,8 @@ public class UserController {
 			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
 
 		}
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		//return new ResponseEntity<>(response, HttpStatus.OK);
+		return null;
 	}
 	
 	/**
