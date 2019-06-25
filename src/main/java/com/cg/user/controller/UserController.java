@@ -1287,7 +1287,7 @@ public class UserController {
 					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
 					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
 				
-				return "cenes://";
+				return "redirect:cenes://";
 				
 			} else {
 				return response.toString();
