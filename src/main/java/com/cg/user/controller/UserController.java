@@ -1262,7 +1262,7 @@ public class UserController {
 	
 	
 	@RequestMapping(value = "/auth/forgetPasswordConfirmation", method = RequestMethod.GET)
-	public ResponseEntity<Object> forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request) {
+	public ResponseEntity<Object> forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request, HttpServletResponse httpServletResponse) {
 		
 		User user = null;
 		Map<String, Object> response = new HashMap<>();
@@ -1290,10 +1290,8 @@ public class UserController {
 					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
 				
 				
-			    URI yahoo = new URI("cenes://");
-			    HttpHeaders httpHeaders = new HttpHeaders();
-			    httpHeaders.setLocation(yahoo);
-			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+			    httpServletResponse.setHeader("Location", "cenes://");
+			    httpServletResponse.setStatus(302);
 
 				//return "redirect:cenes://";
 				
