@@ -1796,7 +1796,9 @@ public class EventController {
 					
 				}
 			} else {
-				//Else we will reneew the subscription of user.
+				//Else we will renew the subscription of user.
+				//And we will also adctive the calendar
+				calendarSyncToken.setIsActive(ActiveStatus.Active.Active);
 				Map<String, Object> renewResponse = oservice.renewOutlookService(calendarSyncToken);
 				if (renewResponse.containsKey("renew_date")) {
 					calendarSyncToken.setSubExpiryDate((Date)renewResponse.get("renew_date"));
