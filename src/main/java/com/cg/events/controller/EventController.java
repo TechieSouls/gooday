@@ -1746,6 +1746,9 @@ public class EventController {
 
 			CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId,
 					CalendarSyncToken.AccountType.Outlook);
+			
+			
+			//IF the outlook syn ci snot synced in the past, then we will add its entry in databse
 			if (calendarSyncToken == null) {
 				System.out.println("[ Syncing Outlook Events - User Id : " + userId + ", New Token]");
 
@@ -1760,32 +1763,44 @@ public class EventController {
 			
 			
 			OutlookService oservice = new OutlookService();
-			JSONObject subScribeJson = oservice.subscribeToCalendarNotifications(postData.get("accessToken").toString());
-			if (subScribeJson != null) {
-				
-				//This is for IOS
-				if (subScribeJson.has("id")) {
-					calendarSyncToken.setSubscriptionId(subScribeJson.getString("id"));
-				} else if (subScribeJson.has("Id")) {
-					//This is for Android
-					calendarSyncToken.setSubscriptionId(subScribeJson.getString("Id"));
-				}
-				
-				
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
-				
-				//This is for IOS
-				if (subScribeJson.has("expirationDateTime")) {
-					Date oneWeekDate = sdf.parse(subScribeJson.getString("expirationDateTime"));
 
-					calendarSyncToken.setSubExpiryDate(oneWeekDate);
-				} else if (subScribeJson.has("SubscriptionExpirationDateTime")) {
-					//This is for Android
+			
+			//We will subscribe the user to push notificationss,
+			//If he syced it for first time
+			if (calendarSyncToken.getRefreshTokenId() == null) {
+				JSONObject subScribeJson = oservice.subscribeToCalendarNotifications(postData.get("accessToken").toString());
+				if (subScribeJson != null) {
 					
-					Date oneWeekDate = sdf.parse(subScribeJson.getString("SubscriptionExpirationDateTime"));
-					calendarSyncToken.setSubExpiryDate(oneWeekDate);
+					//This is for IOS
+					if (subScribeJson.has("id")) {
+						calendarSyncToken.setSubscriptionId(subScribeJson.getString("id"));
+					} else if (subScribeJson.has("Id")) {
+						//This is for Android
+						calendarSyncToken.setSubscriptionId(subScribeJson.getString("Id"));
+					}
+					
+					
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
+					
+					//This is for IOS
+					if (subScribeJson.has("expirationDateTime")) {
+						Date oneWeekDate = sdf.parse(subScribeJson.getString("expirationDateTime"));
+
+						calendarSyncToken.setSubExpiryDate(oneWeekDate);
+					} else if (subScribeJson.has("SubscriptionExpirationDateTime")) {
+						//This is for Android
+						
+						Date oneWeekDate = sdf.parse(subScribeJson.getString("SubscriptionExpirationDateTime"));
+						calendarSyncToken.setSubExpiryDate(oneWeekDate);
+					}
+					
 				}
-				
+			} else {
+				//Else we will reneew the subscription of user.
+				Map<String, Object> renewResponse = oservice.renewOutlookService(calendarSyncToken);
+				if (renewResponse.containsKey("renew_date")) {
+					calendarSyncToken.setSubExpiryDate((Date)renewResponse.get("renew_date"));
+				}
 			}
 			eventManager.saveCalendarSyncToken(calendarSyncToken);
 
