@@ -1606,6 +1606,10 @@ public class EventManager {
 		return calendarSyncTokenRepository.findByAccountTypeAndSubscriptionIdAndIsActive(accountType, subscriptionId, ActiveStatus.Active);
 	}
 	
+	public CalendarSyncToken findByUserIdAndAccountTypeAndIsActive(Long userId, AccountType accountType, ActiveStatus activeStatus) {
+		return calendarSyncTokenRepository.findByUserIdAndAccountTypeAndIsActive(userId, accountType, activeStatus);
+	}
+	
 	public List<CalendarSyncToken> findCalendarSyncTokensWithLastExpiryDate() {
 		return calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
 	}

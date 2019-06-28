@@ -903,18 +903,19 @@ public class EventController {
 
 	@RequestMapping(value = "/api/google/refreshEvents", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<List<Event>> getGoogleEvents(Long userId) {
+	public ResponseEntity<Map<String, Object>> getGoogleEvents(Long userId) {
 
 		System.out.println("[Google Refresh : User ID : " + userId + "]");
-		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId,
-				CalendarSyncToken.AccountType.Google);
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		CalendarSyncToken calendarSyncToken = eventManager.findByUserIdAndAccountTypeAndIsActive(userId,
+				CalendarSyncToken.AccountType.Google, ActiveStatus.Active);
 
 		if (calendarSyncToken != null) {
-			System.out
-					.println("[Google Sync] Date : " + new Date() + " Getting Access Token Response from RefreshToken");
+			System.out.println("[Google Sync] Date : " + new Date() + " Getting Access Token Response from RefreshToken");
 			GoogleService googleService = new GoogleService();
-			JSONObject refreshTokenResponse = googleService
-					.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+			JSONObject refreshTokenResponse = googleService.getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
 			System.out.println("[Google Sync] Date : " + new Date() + " Response from Refresh Token : "
 					+ refreshTokenResponse.toString());
 			try {
@@ -940,19 +941,21 @@ public class EventController {
 						errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
 						events = new ArrayList<>();
 						events.add(errorEvent);
+						response.put("data", events);
 					}
 					System.out.println("[ Refreshing Google Events - User Id : " + userId + ", Access Token : "
 							+ accessToken + "]");
-					return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
+					return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-				return new ResponseEntity<List<Event>>(new ArrayList<>(), HttpStatus.OK);
+				response.put("data", new ArrayList<>());
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 			}
 		}
 
 		System.out.println("[ Syncing Google Events ENDS]");
-		return new ResponseEntity<List<Event>>(new ArrayList<>(), HttpStatus.OK);
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
 
 	// Method to get Google events from API.
@@ -1838,11 +1841,13 @@ public class EventController {
 	// Method to get Outlook events from API.
 	@RequestMapping(value = "/api/outlook/refreshevents", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<List<Event>> refreshOutlookEvents(Long userId) {
+	public ResponseEntity<Map<String, Object>> refreshOutlookEvents(Long userId) {
 		System.out.println("[ Refreshing Outlook Events - User Id : " + userId + "]");
 
-		CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(userId,
-				CalendarSyncToken.AccountType.Outlook);
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		CalendarSyncToken calendarSyncToken = eventManager.findByUserIdAndAccountTypeAndIsActive(userId, CalendarSyncToken.AccountType.Outlook, ActiveStatus.Active);
 
 		if (calendarSyncToken != null) {
 			System.out.println(
@@ -1888,9 +1893,14 @@ public class EventController {
 						errorEvent.setErrorDetail(ErrorCode.INTERNAL_ERROR.toString());
 						List<Event> errorEvents = new ArrayList<>();
 						errorEvents.add(errorEvent);
-						return new ResponseEntity<List<Event>>(errorEvents, HttpStatus.INTERNAL_SERVER_ERROR);
+						
+						response.put("data", errorEvents);
+
+						return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
-					return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
+					
+					response.put("data", events);
+					return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
