@@ -181,14 +181,17 @@ public class GoogleService {
 				HttpService httpService = null;
 				
 				//String recurringEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
-				String recurringEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&"+tokenParam+"&singleEvents=true";
+				//String recurringEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&"+tokenParam+"&singleEvents=true";
+				String recurringEventsAPI = events_list_api_str+"?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&alt=json";
 				httpService = new HttpService();
 				JSONObject calResponse = httpService.getRequestWithAuthorization(recurringEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(recurringEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
 				
 				httpService = new HttpService();
 				//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
-				String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&"+tokenParam;
+				//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&"+tokenParam;
+				String normalEventsAPI = events_list_api_str+"?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&alt=json";
+
 				calResponse = httpService.getRequestWithAuthorization(normalEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(normalEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
 		/*	}
