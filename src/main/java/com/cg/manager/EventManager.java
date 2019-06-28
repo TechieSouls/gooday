@@ -774,7 +774,7 @@ public class EventManager {
 							user = creatorExistsInDb;
 						}*/
 						
-						String eventChangeFor = null;
+						//String eventChangeFor = null;
 						Event event = new Event();
 						//System.out.println("Event Id : "+eventItem.getId()+" Event Title : "+eventItem.getSummary() +"Event Dates : "+eventItem.getStart()+ "  -  "+eventItem.getEnd());
 						//System.out.println("[Event : "+eventItem.toString()+" ]");
@@ -794,7 +794,8 @@ public class EventManager {
 						//System.out.println("Events existing count : "+dbevents.size());
 						if (dbevents != null && dbevents.size() != 0) {
 							//event = new Event();
-							Event dbEvent = dbevents.get(0);
+							event = dbevents.get(0);
+							/*Event dbEvent = dbevents.get(0);
 							if (googleEventIdsToDelete.containsKey(dbEvent.getEventId())) {
 								
 								//System.out.println("Event Id : "+dbEvent.getEventId()+ "Event title : "+dbEvent.getTitle());
@@ -872,7 +873,7 @@ public class EventManager {
 										eventTimeSlotManager.deleteEventTimeSlotsByEventId(event.getEventId());
 									}
 								}
-							}
+							}*/
 						//} //else {
 							//event = dbevents.get(0);
 						}
@@ -989,10 +990,10 @@ public class EventManager {
 						}
 						
 						
-						System.out.println("Event Changed For : "+eventChangeFor);
+						/*System.out.println("Event Changed For : "+eventChangeFor);
 						if (eventChangeFor == null || eventChangeFor.equals("Time")) {
 							event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
-						}
+						}*/
 						events.add(event);
 					}
 					this.eventRepository.save(events);
