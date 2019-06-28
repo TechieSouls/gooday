@@ -2281,52 +2281,47 @@ public class EventController {
 				// Event event = ((ArrayList<Event>)eventMap.get("data")).get(0);
 				User user = userService.findUserById(Long.valueOf(eventMap.get("userId").toString()));
 
-				eventManager.deleteEventsByCreatedByIdSource(user.getUserId(), Event.EventSource.Apple.toString());
-				eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(user.getUserId(),
-						Event.EventSource.Apple.toString());
+				CalendarSyncToken calendarSyncToken = eventManager.findByUserIdAndAccountTypeAndIsActive(user.getUserId(), CalendarSyncToken.AccountType.Apple, ActiveStatus.Active);				
+				
+				if (calendarSyncToken != null) {
+					eventManager.deleteEventsByCreatedByIdSource(user.getUserId(), Event.EventSource.Apple.toString());
+					eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(user.getUserId(),
+							Event.EventSource.Apple.toString());
 
-				List<Event> deviceEvents = new ObjectMapper().convertValue(eventMap.get("data"),
-						new TypeReference<List<Event>>() {
-						});
-				for (Event deviceEvent : deviceEvents) {
-					List<EventMember> members = new ArrayList<>();
+					List<Event> deviceEvents = new ObjectMapper().convertValue(eventMap.get("data"),
+							new TypeReference<List<Event>>() {
+							});
+					for (Event deviceEvent : deviceEvents) {
+						List<EventMember> members = new ArrayList<>();
 
-					EventMember eventMember = new EventMember();
-					eventMember.setName(user.getName());
-					eventMember.setPicture(user.getPhoto());
-					eventMember.setStatus(MemberStatus.Going.toString());
-					eventMember.setSource(EventSource.Apple.toString());
-					if (user.getEmail() != null) {
-						eventMember.setSourceEmail(user.getEmail());
+						EventMember eventMember = new EventMember();
+						eventMember.setName(user.getName());
+						eventMember.setPicture(user.getPhoto());
+						eventMember.setStatus(MemberStatus.Going.toString());
+						eventMember.setSource(EventSource.Apple.toString());
+						if (user.getEmail() != null) {
+							eventMember.setSourceEmail(user.getEmail());
+						}
+						eventMember.setUserId(user.getUserId());
+						members.add(eventMember);
+						deviceEvent.setEventMembers(members);
 					}
-					eventMember.setUserId(user.getUserId());
-					members.add(eventMember);
-					deviceEvent.setEventMembers(members);
-				}
-				eventService.saveEventsBatch(deviceEvents);
+					eventService.saveEventsBatch(deviceEvents);
 
-				/*
-				 * CenesProperty cenesProperty =
-				 * eventService.findCenesPropertyByNameAndOwner("device_calendar",
-				 * PropertyOwningEntity.User); if (cenesProperty != null) { CenesPropertyValue
-				 * cenesPropertyValue = new CenesPropertyValue();
-				 * cenesPropertyValue.setCenesProperty(cenesProperty);
-				 * cenesPropertyValue.setDateValue(new Date());
-				 * cenesPropertyValue.setEntityId(event.getCreatedById());
-				 * cenesPropertyValue.setOwningEntity(PropertyOwningEntity.User);
-				 * cenesPropertyValue.setValue("true");
-				 * eventService.saveCenesPropertyValue(cenesPropertyValue); }
-				 */
-				CalendarSyncToken calendarSyncToken = eventManager.findCalendarSyncTokenByUserIdAndAccountType(
-						user.getUserId(), CalendarSyncToken.AccountType.Apple);
-				if (calendarSyncToken == null) {
-					calendarSyncToken = new CalendarSyncToken(user.getUserId(), CalendarSyncToken.AccountType.Apple,
-							"");
+					/*
+					 * CenesProperty cenesProperty =
+					 * eventService.findCenesPropertyByNameAndOwner("device_calendar",
+					 * PropertyOwningEntity.User); if (cenesProperty != null) { CenesPropertyValue
+					 * cenesPropertyValue = new CenesPropertyValue();
+					 * cenesPropertyValue.setCenesProperty(cenesProperty);
+					 * cenesPropertyValue.setDateValue(new Date());
+					 * cenesPropertyValue.setEntityId(event.getCreatedById());
+					 * cenesPropertyValue.setOwningEntity(PropertyOwningEntity.User);
+					 * cenesPropertyValue.setValue("true");
+					 * eventService.saveCenesPropertyValue(cenesPropertyValue); }
+					 */
+					response.put("data", calendarSyncToken);
 				}
-				calendarSyncToken.setEmailId(eventMap.get("name").toString());
-				eventManager.saveCalendarSyncToken(calendarSyncToken);
-				response.put("data", calendarSyncToken);
-
 			}
 			response.put("success", true);
 		} catch (Exception e) {
