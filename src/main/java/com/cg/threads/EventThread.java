@@ -1,6 +1,7 @@
 package com.cg.threads;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,8 @@ public class EventThread {
 	}
 	
 	public void runDeleteEventThread(List<Event> events) {
+		System.out.println("[ Date : "+new Date()+" Delete Thread Run STARTS]");
+		
 		List<Event> eventsToAllocateToThread = new ArrayList<>();
 		int trackElementsTraversed = 0;
 		for (Event event : events) {
@@ -72,6 +75,7 @@ public class EventThread {
 				}
 			}
 		}
+		System.out.println("[ Date : "+new Date()+" Delete Thread Run ENDS]");
 	}
 	
 
