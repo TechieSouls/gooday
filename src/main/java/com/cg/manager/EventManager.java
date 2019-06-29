@@ -56,6 +56,7 @@ import com.cg.service.GoogleService;
 import com.cg.service.OutlookService;
 import com.cg.service.UserService;
 import com.cg.threads.EventThread;
+import com.cg.threads.TimeSlotThread;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
 
@@ -555,7 +556,9 @@ public class EventManager {
 		this.eventRepository.deleteBySourceAndScheduleAsAndSourceEventId(source.toString(), scheduleAs.toString(), sourceEventId);
 	}
 	
-	
+	public void deleteEventBatch(List<Event> events) {
+		eventRepository.delete(events);
+	}
 	public List<Event> syncFacebookEvents(String facebookId,String accessToken,User user) {
 		List<Event> events = new ArrayList<>();
 		
@@ -913,17 +916,17 @@ public class EventManager {
 							
 				}
 				
-				if (googleEventIdsToDelete.size() > 0) {
+				if (eventsToDeleteList.size() > 0) {
 					
 					//If there are not events to add/update
 					//Then we will add empty event object so that we can send notification
 					//checking the size if there are any updates from google.
-					if (events.size() == 0) {
-						events.add(new Event());
-					}
-					System.out.println("Events to be deleted : "+googleEventIdsToDelete.size());
-					
-					List<Event> eventsToDelete = new ArrayList<>();
+					//if (events.size() == 0) {
+					//	events.add(new Event());
+					//}
+					System.out.println("Events to be deleted : "+eventsToDeleteList.size());
+					eventThread.runDeleteEventThread(eventsToDeleteList);
+					/*List<Event> eventsToDelete = new ArrayList<>();
 					for (Entry<Long, Event> entryMap: googleEventIdsToDelete.entrySet()) {
 						
 
@@ -948,7 +951,10 @@ public class EventManager {
 						e.printStackTrace();
 					}
 					//Releasing Memory
-					googleEventIdsToDelete = null;
+					googleEventIdsToDelete = null;*/
+					
+					
+					
 				}
 			}
 		}
@@ -1329,10 +1335,10 @@ public class EventManager {
 					String accessToken = refreshTokenResponse.getString("access_token");
 
 					User user = userService.findUserById(userId);
-					deleteEventsByCreatedByIdSourceScheduleAs(userId,
-							Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
-					eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId,
-							Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+					//deleteEventsByCreatedByIdSourceScheduleAs(userId,
+						//	Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+					//eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId,
+							//Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 
 					System.out.println("[ Syncing Google Refreshing Events - User Id : " + userId
 							+ ", Access Token : " + accessToken + "]");

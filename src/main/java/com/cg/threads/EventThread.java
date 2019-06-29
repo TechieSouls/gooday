@@ -1,13 +1,16 @@
 package com.cg.threads;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cg.dao.EventServiceDao;
 import com.cg.events.bo.Event;
 import com.cg.manager.EventManager;
+import com.cg.manager.EventTimeSlotManager;
 import com.cg.service.UserService;
 
 @Service
@@ -18,6 +21,12 @@ public class EventThread {
 
 	@Autowired
 	private UserService userService;
+	
+	@Autowired
+	private EventServiceDao eventServiceDao;
+	
+	@Autowired
+	private EventTimeSlotManager eventTimeSlotManager;
 	
 	public void runEventThread(Long userId,Map<String, List<Event>> eventMap, Map<String, Object> phoneContacts) {
 		
@@ -34,6 +43,35 @@ public class EventThread {
 		
 		Thread contactTh = new Thread(new ContactSyncThread(phoneContacts));
 		contactTh.start();
+	}
+	
+	public void runDeleteEventThread(List<Event> events) {
+		List<Event> eventsToAllocateToThread = new ArrayList<>();
+		int trackElementsTraversed = 0;
+		for (Event event : events) {
+			eventsToAllocateToThread.add(event);
+			trackElementsTraversed += 1;
+			if (events.size() == trackElementsTraversed) {
+
+				EventDeleteThread eventDeleteThread = new EventDeleteThread();
+				eventDeleteThread.setEventsToDelete(eventsToAllocateToThread);
+				eventDeleteThread.run();
+				//Releasing Space allocated to List
+				eventsToAllocateToThread = null;
+
+				eventsToAllocateToThread = new ArrayList<>();
+			} else {
+				if (eventsToAllocateToThread.size() == 5) {
+					EventDeleteThread eventDeleteThread = new EventDeleteThread();
+					eventDeleteThread.setEventsToDelete(eventsToAllocateToThread);
+					eventDeleteThread.run();
+					//Releasing Space allocated to List
+					eventsToAllocateToThread = null;
+					
+					eventsToAllocateToThread = new ArrayList<>();
+				}
+			}
+		}
 	}
 	
 
@@ -130,6 +168,29 @@ public class EventThread {
 			System.out.println("[Event Thread : ContactSyncThread  STARTS]");
 			userService.syncPhoneContacts(phoneContacts);
 			System.out.println("[Event Thread : ContactSyncThread  STOPS]");
+		}
+	}
+	
+	class EventDeleteThread implements Runnable {
+		
+		private List<Event> eventsToDelete;
+		
+		public List<Event> getEventsToDelete() {
+			return eventsToDelete;
+		}
+
+		public void setEventsToDelete(List<Event> eventsToDelete) {
+			this.eventsToDelete = eventsToDelete;
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			for (Event event: eventsToDelete) {
+				eventServiceDao.deleteEventTimeSlotsByEventId(event.getEventId());
+			}
+			
+			eventManager.deleteEventBatch(eventsToDelete);
 		}
 	}
 }
