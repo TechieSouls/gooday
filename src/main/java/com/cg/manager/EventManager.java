@@ -759,9 +759,11 @@ public class EventManager {
 				googleEventIdsToDelete.put(exEvent.getEventId(), exEvent);
 				eventsToDeleteList.add(exEvent);
 			}
+			System.out.println("Totdal Events from databse : "+eventsToDeleteList.size());
 		}
 		
 		
+		List<Event> newEventsToSave = new ArrayList<>();
 		if (googleEventsCalendarList != null
 				&& googleEventsCalendarList.size() > 0) {
 			for (GoogleEvents googleEvents : googleEventsCalendarList) {
@@ -907,12 +909,18 @@ public class EventManager {
 						if (eventChangeFor == null || eventChangeFor.equals("Time")) {
 							event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
 						}*/
-						events.add(event);
+						newEventsToSave.add(event);
 					}
-					this.eventRepository.save(events);
-					System.out.println("[ Syncing Google Events - User Id : "
-									+ user.getUserId() + ", Total Events to Sync : "
-									+ events.size() + "]");
+					
+					if (newEventsToSave.size() > 0) {
+						this.eventRepository.save(newEventsToSave);
+						System.out.println("[ Syncing Google Events - User Id : "
+										+ user.getUserId() + ", Total Events to Sync : "
+										+ newEventsToSave.size() + "]");
+						
+						newEventsToSave = null;
+					}
+					
 							
 				}
 				
