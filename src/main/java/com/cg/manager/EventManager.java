@@ -774,7 +774,7 @@ public class EventManager {
 						if ("cancelled".equals(eventItem.getStatus())) {
 							continue;
 						}
-						boolean eventMemberIsBlocked = false;
+						/*boolean eventMemberIsBlocked = false;
 						if (eventItem.isSelf()) {
 							eventMemberIsBlocked = true;
 						}
@@ -787,15 +787,15 @@ public class EventManager {
 							//If event member not blocked
 							//then we not save this event
 							continue;
-						}
+						}*/
 						
 						//Lets check first if the creator Exists in our DB or Not.
 						//If it exists in db then we will set the created by id as its user id
 						//Otherewise we can make the syncing user as creator.
 						
 						//String eventChangeFor = null;
-						Event event = new Event();
-						
+						Event event = null;
+						System.out.println("Event Summarry : "+eventItem.getSummary());
 						//Now check if creator has already synced the calendar, then there will be an event already existing.
 						//We will fetch that event by created by id and google event id.
 						//If creator has not synced the event then we will create new event. 
@@ -811,7 +811,7 @@ public class EventManager {
 						}
 						
 						System.out.println("Adding new Event: "+eventItem.getSummary());
-						
+						event  = new Event();
 						event.setSourceEventId(eventItem.getId());
 						event.setSource(EventSource.Google.toString());
 						event.setTitle(eventItem.getSummary());
