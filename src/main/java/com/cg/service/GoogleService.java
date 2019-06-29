@@ -190,7 +190,7 @@ public class GoogleService {
 				httpService = new HttpService();
 				//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
 				//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&"+tokenParam;
-				String normalEventsAPI = events_list_api_str+"?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&alt=json";
+				String normalEventsAPI = events_list_api_str+"?maxResults=100&singleEvents=false&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&alt=json";
 
 				calResponse = httpService.getRequestWithAuthorization(normalEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(normalEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
