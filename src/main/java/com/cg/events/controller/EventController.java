@@ -925,12 +925,12 @@ public class EventController {
 
 					User user = userService.findUserById(userId);
 
-					Calendar cal = Calendar.getInstance();
-					cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
-					eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(),
-							userId, Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
-					eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId,
-							Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+					//Calendar cal = Calendar.getInstance();
+					//cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
+					//eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(),
+					//		userId, Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+					//eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId,
+					//		Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 
 					System.out.println("[ Syncing Google Refreshing Events - User Id : " + userId + ", Access Token : "
 							+ accessToken + "]");
@@ -1959,7 +1959,7 @@ public class EventController {
 		return new ResponseEntity<List<Event>>(events, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/api/event/outlook/iosNotifyWebhook", method = RequestMethod.POST)
+	//@RequestMapping(value = "/api/event/outlook/iosNotifyWebhook", method = RequestMethod.POST)
 	public String iosOutlookWebHookUrl(String validationToken, HttpServletRequest request) {
 		
 		if (validationToken == null) {
@@ -2025,7 +2025,7 @@ public class EventController {
 		return validationToken;
 	}
 	
-	@RequestMapping(value = "/api/event/outlook/notifyWebhook", method = RequestMethod.POST)
+	//@RequestMapping(value = "/api/event/outlook/notifyWebhook", method = RequestMethod.POST)
 	public String outlookWebHookUrl(HttpServletRequest request) {
 
 		String validationtoken = "";
@@ -2090,7 +2090,7 @@ public class EventController {
 		return validationtoken;
 	}
 	
-	@RequestMapping(value = "/api/event/google/notifyWebhook", method = RequestMethod.POST)
+	//@RequestMapping(value = "/api/event/google/notifyWebhook", method = RequestMethod.POST)
 	public String googleWebHookUrl(HttpServletRequest request) {
 
 		System.out.println("Google Push Notification");

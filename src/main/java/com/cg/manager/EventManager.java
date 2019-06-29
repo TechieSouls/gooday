@@ -723,6 +723,8 @@ public class EventManager {
 	public List<Event> processGoogleEventsCalendarList(List<GoogleEvents> googleEventsCalendarList, User user, List<Event> events, Event.EventProcessRequest eventProcessRequestFrom) {
 		
 		Map<Long, Event> googleEventIdsToDelete = new HashMap<>();
+		List<Event> eventsToDeleteList = new ArrayList<Event>();
+		
 		
 		if (eventProcessRequestFrom == Event.EventProcessRequest.Webhook) {
 			System.out.println("Webhook Request");
@@ -737,6 +739,22 @@ public class EventManager {
 			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 			for (Event exEvent: existingGoogleEvents) {
 				googleEventIdsToDelete.put(exEvent.getEventId(), exEvent);
+			}
+		} else {
+			
+			
+			//Lets fetch all events from current date and check which one to delete or not.
+			
+			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.HOUR_OF_DAY, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+			cal.set(Calendar.MILLISECOND, 0);
+			
+			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			for (Event exEvent: existingGoogleEvents) {
+				googleEventIdsToDelete.put(exEvent.getEventId(), exEvent);
+				eventsToDeleteList.add(exEvent);
 			}
 		}
 		
@@ -769,113 +787,22 @@ public class EventManager {
 						//Lets check first if the creator Exists in our DB or Not.
 						//If it exists in db then we will set the created by id as its user id
 						//Otherewise we can make the syncing user as creator.
-						/*User creatorExistsInDb = userService.findUserByEmail(eventItem.getCreatorEmail());
-						if (creatorExistsInDb != null) {
-							user = creatorExistsInDb;
-						}*/
 						
 						//String eventChangeFor = null;
 						Event event = new Event();
-						//System.out.println("Event Id : "+eventItem.getId()+" Event Title : "+eventItem.getSummary() +"Event Dates : "+eventItem.getStart()+ "  -  "+eventItem.getEnd());
-						//System.out.println("[Event : "+eventItem.toString()+" ]");
-						/*if (isUserInvitee) {
-							List<Event> eventsTemp = this.eventRepository.findBySourceEventId(eventItem.getId());
-							if (eventsTemp != null && eventsTemp.size() > 0) {
-								userId = eventsTemp.get(0).getCreatedById();
-							}
-						}*/
-						//if (event == null) {
 						
 						//Now check if creator has already synced the calendar, then there will be an event already existing.
 						//We will fetch that event by created by id and google event id.
 						//If creator has not synced the event then we will create new event. 
 						//If creator is different then he will see the event without syncing the google calendar.
 						List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-						//System.out.println("Events existing count : "+dbevents.size());
 						if (dbevents != null && dbevents.size() != 0) {
-							//event = new Event();
-							event = dbevents.get(0);
-							/*Event dbEvent = dbevents.get(0);
-							if (googleEventIdsToDelete.containsKey(dbEvent.getEventId())) {
-								
-								//System.out.println("Event Id : "+dbEvent.getEventId()+ "Event title : "+dbEvent.getTitle());
-								
-								Date startDt = new Date();
-								Date endDt = new Date();
-
-								try {
-									if (eventItem.getStart() != null) {
-										Date startDate = null;
-										if (eventItem.getStart().containsKey("dateTime")) {
-											startDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getStart().get("dateTime"));
-										} else if (eventItem.getStart().containsKey("date")) {
-											//Events with no hours and minutes
-											//We will mark them full day events.
-											startDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getStart().get("date"));
-											event.setIsFullDay(true);
-										}
-										if (startDate != null) {
-											String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
-											startDt = CenesUtils.yyyyMMddTHHmmss.parse(startDateStr);
-										}
-									}
-								} catch(Exception e) {
-									e.printStackTrace();
-								}
-								
-								try {
-									if (eventItem.getEnd() != null) {
-										Date endDate = null;
-										if (eventItem.getEnd().containsKey("dateTime")) {
-											endDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getEnd().get("dateTime"));
-										} else if (eventItem.getEnd().containsKey("date")) {
-											endDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getEnd().get("date"));
-										}
-										if (endDate != null) {
-											String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
-											endDt = CenesUtils.yyyyMMddTHHmmss.parse(endDateStr);
-										}
-									}
-								} catch(Exception e) {
-									e.printStackTrace();
-								}
-								
-								System.out.println("If its same then remove it from the event to do any thing");
-								googleEventIdsToDelete.remove(dbEvent.getEventId());
-								//System.out.println(googleEventIdsToDelete);
-
-								//Checking if there is any update in the timings for google event.
-								
-								//System.out.println("DbEvent vs EvemtItem -> title : "+dbEvent.getTitle()+" v/s "+eventItem.getSummary()+" , "
-										//+ "StartTime : "+dbEvent.getStartTime().getTime()+" v/s "+startDt.getTime()+" EndTime : "+dbEvent.getEndTime().getTime()+ " v/s " +endDt.getTime());
-								
-								if (dbEvent.getTitle().equals(eventItem.getSummary())  && dbEvent.getStartTime().getTime() == startDt.getTime() && dbEvent.getEndTime().getTime() ==  endDt.getTime()) {
-									
-									continue;
-								} else {
-									//We will then update the event.
-									System.out.println("Event to update : "+dbEvent.getEventId()+", "+dbEvent.getTitle());
-									event = dbEvent;
-									
-									
-									//Here we will check if event title is change
-									//Of time is changed. If time is changed we will delete old records.
-									if (!dbEvent.getTitle().equals(eventItem.getSummary())) {
-										eventChangeFor = "Title";
-									}
-									
-									if (dbEvent.getStartTime().getTime() != startDt.getTime() || dbEvent.getEndTime().getTime() !=  endDt.getTime()) {
-										eventChangeFor = "Time";
-									}
-									
-									if (eventChangeFor != null && eventChangeFor.equals("Time")) {
-										//Lets delete the time slots for that events and generate new time slots.
-										eventTimeSlotManager.deleteEventTimeSlotsByEventId(event.getEventId());
-									}
-								}
-							}*/
-						//} //else {
-							//event = dbevents.get(0);
+							Event eve = dbevents.get(0);
+							if (googleEventIdsToDelete.containsKey(eve.getEventId())) {
+								googleEventIdsToDelete.remove(eve.getEventId());
+								eventsToDeleteList.remove(eve);
+							}
+							continue;
 						}
 						
 						System.out.println("Adding new Event: "+eventItem.getSummary());
@@ -935,24 +862,7 @@ public class EventManager {
 						} catch(Exception e) {
 							e.printStackTrace();
 						}
-						//Lets populate the Invitees.
-						/*List<EventMember> eventMembersTemp  = new ArrayList<>();
-						if (eventItem.getAttendees() != null && eventItem.getAttendees().size() > 0) {
-							eventMembersTemp = parseGoogleEventMembers(eventItem.getAttendees());
-						}*/
-						
-						//Now we need to check if creator has invited himself in the event.
-						//if not then we will add him in the invitee list
-						/*boolean isUserInvitee = false;
-						if (eventMembersTemp != null && eventMembersTemp.size() > 0) {
-							for (EventMember attendeeMember : eventMembersTemp) {
-								if (attendeeMember.getUserId() != null && attendeeMember.getUserId().equals(user.getUserId())) {
-									isUserInvitee = true;
-									break;
-								}
-							}
-						}*/
-						
+
 						
 						//if (!isUserInvitee) {
 						//We will add event members only if its a new event.
@@ -1001,13 +911,6 @@ public class EventManager {
 									+ user.getUserId() + ", Total Events to Sync : "
 									+ events.size() + "]");
 							
-				} else {
-					/*if (googleEvents.getErrorDetail() != null) {
-						Event event = new Event();
-						event.setErrorCode(googleEvents.getErrorCode());
-						event.setErrorDetail(googleEvents.getErrorDetail());
-						events.add(event);
-					}*/
 				}
 				
 				if (googleEventIdsToDelete.size() > 0) {
