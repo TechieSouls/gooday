@@ -795,7 +795,7 @@ public class EventManager {
 						
 						//String eventChangeFor = null;
 						Event event = null;
-						System.out.println("Event Summarry : "+eventItem.getSummary());
+						//System.out.println("Event Summarry : "+eventItem.getSummary());
 						//Now check if creator has already synced the calendar, then there will be an event already existing.
 						//We will fetch that event by created by id and google event id.
 						//If creator has not synced the event then we will create new event. 
