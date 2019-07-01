@@ -341,7 +341,7 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 		String query =  "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname, "
 					+ "uc.name as phonebookName from "
 					+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
-					+ "e.start_time >= '"+eventDate+"' and e.end_time >= '"+endDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" "
+					+ "e.start_time >= '"+eventDate+"' and e.start_time >= '"+endDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" "
 					+ "and em.user_id = "+createdById+" and em.status = 'Going' "
 					+ " "+sourcesQuery+" order by e.start_time asc) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_contact_id = uc.user_contact_id "
