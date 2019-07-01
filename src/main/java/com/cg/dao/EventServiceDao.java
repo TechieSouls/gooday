@@ -207,6 +207,24 @@ public class EventServiceDao {
 	}
 	
 	
+	public int findCountByGatheringsByUserIdAndStartDateAndEndDate(Long userId, String startDate, String endDate) {
+
+		//String countQuery = "select count(*) from events e JOIN event_members em on e.event_id = em.event_id where e.start_time >= '"+startDate+"' and  "
+			//	+ "em.user_id = "+userId+" and em.status = 'Going' and e.schedule_as in ('Event','Holiday','Gathering')";
+		
+		String sourcesQuery = findSourcesQueryString(userId);
+
+		String query = "select count(*) from events e JOIN event_members em on e.event_id = em.event_id where "
+				+ "e.start_time >= '"+startDate+"' and and e.start_time >= '"+endDate+"' and  em.user_id = "+userId+" and em.status = 'Going' and e.is_active = "+Event.EventStatus.Active.ordinal()+" "
+				+ " "+sourcesQuery+"";
+		System.out.println("Home Events Query : "+query);
+
+		
+		int numberOfTotalCounts = jdbcTemplate.queryForInt(query);
+		return numberOfTotalCounts;
+	}
+	
+	
 	public List<Event> getPastEventsByCreatedByIdAndStartDateAndEndDate(Long createdById, String startDate, String endDate) {
 		
 		String sourcesQuery = findSourcesQueryString(createdById);
@@ -270,6 +288,62 @@ public class EventServiceDao {
 					+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 					+ "e.start_time >= '"+eventDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" and em.user_id = "+createdById+" and em.status = 'Going' "
 					+ " "+sourcesQuery+" order by e.start_time asc limit "+pageNumber+","+offSet+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
+					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_contact_id = uc.user_contact_id "
+					+ "order by event_temp.start_time asc";
+		
+			System.out.println("Home Events Query : "+query);
+				
+		
+		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
+		
+		
+		Map<Long, Event> eventIdMap = new HashMap<Long, Event>();
+		for (Map<String, Object> userGatheringMap: userGatheringsMapList) {
+			Event event = null;
+			if (eventIdMap.containsKey(Long.valueOf(userGatheringMap.get("event_id").toString()))) {
+				event = eventIdMap.get(Long.valueOf(userGatheringMap.get("event_id").toString()));
+				
+				List<EventMember> eventMmembers = event.getEventMembers();
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			} else {
+				event = populateEventBo(userGatheringMap);
+				List<EventMember> eventMmembers = null;
+				if (event.getEventMembers() == null) {
+					eventMmembers = new ArrayList<>();
+				} else {
+					eventMmembers = event.getEventMembers();
+				}
+				
+				eventMmembers.add(populateEventMembers(userGatheringMap));
+				event.setEventMembers(eventMmembers);
+			}
+			eventIdMap.put(event.getEventId(), event);
+		}
+		
+		List<Event> events = new ArrayList<>();
+		for (Entry<Long, Event> eventEntrySet: eventIdMap.entrySet()) {
+			events.add(eventEntrySet.getValue());
+		}
+		return events;
+	}
+	
+public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, String eventDate, String endDate) {
+		
+		String sourcesQuery = findSourcesQueryString(createdById);
+				
+		/*String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from "
+				+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+				+ "e.start_time >= '"+eventDate+"' and  em.user_id = "+createdById+" and em.status = 'Going' "
+				+ "and e.schedule_as in ('Event','Holiday','Gathering')) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
+				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc limit "+pageNumber+","+offSet+"";*/
+	
+		String query =  "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname, "
+					+ "uc.name as phonebookName from "
+					+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+					+ "e.start_time >= '"+eventDate+"' and e.end_time >= '"+endDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" "
+					+ "and em.user_id = "+createdById+" and em.status = 'Going' "
+					+ " "+sourcesQuery+" order by e.start_time asc) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
 					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_contact_id = uc.user_contact_id "
 					+ "order by event_temp.start_time asc";
 		

@@ -4,9 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -14,10 +12,8 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,12 +35,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cg.bo.CalendarSyncToken;
+import com.cg.bo.CalendarSyncToken.AccountType;
+import com.cg.bo.CalendarSyncToken.ActiveStatus;
 import com.cg.bo.CenesProperty;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.GatheringPreviousLocation;
-import com.cg.bo.CalendarSyncToken.AccountType;
-import com.cg.bo.CalendarSyncToken.ActiveStatus;
 import com.cg.bo.Notification.NotificationType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dao.EventServiceDao;
@@ -607,6 +602,47 @@ public class EventController {
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 		}
 	}
+	
+		//This API is to show events at home screen
+		@RequestMapping(value = "/api/getEventsMonthWise/v2", method = RequestMethod.GET)
+		public ResponseEntity<Map<String, Object>> getMonthWiseEvents(Long userId, Long startimeStamp, Long endtimeStamp) {
+			Map<String, Object> response = new HashMap<>();
+			try {
+
+				System.out.println("[USER EVENTS V2 -  User Id : " + userId + "]");
+
+				String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startimeStamp);
+
+				String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endtimeStamp);
+
+				List<HomeScreenDto> responseDataToSend = eventManager.getMonthWiseEvents(userId, startDateStr, endDateStr);
+				System.out.println("[USER EVENTS V2 -  Events list : " + responseDataToSend.size() + "]");
+
+				int counts = 0;
+				try {
+					counts = eventServiceDao.findCountByGatheringsByUserIdAndStartDateAndEndDate(userId, startDateStr, endDateStr);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+				response.put("totalCounts", counts);
+
+				response.put("success", true);
+				response.put("data", responseDataToSend);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				response.put("success", false);
+				response.put("data", new ArrayList<>());
+				response.put("errorCode", ErrorCodes.InternalServerError.ordinal());
+				response.put("errorDetail", ErrorCodes.InternalServerError.toString());
+
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
+		}
+	
 
 	//This API is to show dots in Calendar.
 	@RequestMapping(value = "/api/homeCalendarEvents/v2", method = RequestMethod.GET)
