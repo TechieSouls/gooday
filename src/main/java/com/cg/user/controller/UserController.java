@@ -1517,6 +1517,19 @@ public class UserController {
 		}
 		return null;
 	}
+
+	@RequestMapping(value = "/auth/responseFromOutlook", method = RequestMethod.GET)
+	public Map<String, Object> responeFromOutlook(HttpServletRequest request) {
+		try {
+			System.out.println(request.getParameterMap().toString());
+			System.out.println(request.getQueryString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	
 	@RequestMapping(value = "/api/user/validatePassword", method = RequestMethod.POST)
 	public Map<String, Object> validatePassword(@RequestBody ChangePasswordDto changePasswordDto) {
@@ -1732,7 +1745,7 @@ public class UserController {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
-		CalendarSyncToken calendarSyncToken = eventManager.findByCalendarSyncTokenId(calendarSyncTokenId);
+		/*CalendarSyncToken calendarSyncToken = eventManager.findByCalendarSyncTokenId(calendarSyncTokenId);
 		if (calendarSyncToken.getAccountType() == AccountType.Google) {
 			GoogleService gs = new GoogleService();
 			try {
@@ -1748,10 +1761,10 @@ public class UserController {
 			} catch(Exception e) {
 				System.out.println("Exception Outlook : "+e.getMessage());
 			}
-		}
+		}*/
 		
-		//userService.deleteCalendarSyncTokenByCalendarSyncTokenId(calendarSyncTokenId);
-		calendarSyncToken.setIsActive(CalendarSyncToken.ActiveStatus.InActive);
+		userService.deleteCalendarSyncTokenByCalendarSyncTokenId(calendarSyncTokenId);
+		//calendarSyncToken.setIsActive(CalendarSyncToken.ActiveStatus.InActive);
 		return response;
 		
 	}
