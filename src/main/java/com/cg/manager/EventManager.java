@@ -1221,13 +1221,13 @@ public class EventManager {
 			if (googleEvents != null && googleEvents.getItems() != null
 					&& googleEvents.getItems().size() > 0) {
 				for (GoogleEventItem eventItem : googleEvents.getItems()) {
-					Event event = null;
-					List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+					Event event = new Event();
+					/*List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
 					if (dbevents == null || dbevents.size() == 0) {
 						event = new Event();
 					} else {
 						event = dbevents.get(0);
-					}
+					}*/
 					
 					if (eventItem.getStart() != null) {
 						Date startDate = null;
