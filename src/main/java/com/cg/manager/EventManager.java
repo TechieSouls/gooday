@@ -773,7 +773,7 @@ public class EventManager {
 	
 	public List<Event> processGoogleEventsCalendarList(List<GoogleEvents> googleEventsCalendarList, User user, List<Event> events, Event.EventProcessRequest eventProcessRequestFrom) {
 		
-		Map<Long, Event> googleEventIdsToDelete = new HashMap<>();
+		Map<String, Event> googleEventIdsToDelete = new HashMap<>();
 		List<Event> eventsToDeleteList = new ArrayList<Event>();
 		
 		
@@ -789,7 +789,7 @@ public class EventManager {
 
 			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 			for (Event exEvent: existingGoogleEvents) {
-				googleEventIdsToDelete.put(exEvent.getEventId(), exEvent);
+				googleEventIdsToDelete.put(exEvent.getSourceEventId(), exEvent);
 			}
 		} else {
 			
@@ -804,16 +804,19 @@ public class EventManager {
 			
 			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 			for (Event exEvent: existingGoogleEvents) {
-				googleEventIdsToDelete.put(exEvent.getEventId(), exEvent);
+				googleEventIdsToDelete.put(exEvent.getSourceEventId(), exEvent);
 				eventsToDeleteList.add(exEvent);
 			}
 			System.out.println("Totdal Events from databse : "+eventsToDeleteList.size());
 		}
 		
 		
-		List<Event> newEventsToSave = new ArrayList<>();
 		if (googleEventsCalendarList != null
 				&& googleEventsCalendarList.size() > 0) {
+			
+			List<GoogleEventItem> googleEventItems = new ArrayList<>();
+			
+			//We will iterate the events and remove all those that are to be added and that are to be deleted.
 			for (GoogleEvents googleEvents : googleEventsCalendarList) {
 				if (googleEvents.getItems() != null
 						&& googleEvents.getItems() != null
@@ -822,20 +825,46 @@ public class EventManager {
 						if ("cancelled".equals(eventItem.getStatus())) {
 							continue;
 						}
-						/*boolean eventMemberIsBlocked = false;
-						if (eventItem.isSelf()) {
-							eventMemberIsBlocked = true;
-						}
-						if (!eventMemberIsBlocked) {
-							eventMemberIsBlocked = eventMemberIsBlocked(eventItem.getAttendees());
-						}
 						
-						
-						if (!eventMemberIsBlocked) {
-							//If event member not blocked
-							//then we not save this event
+						if (googleEventIdsToDelete.containsKey(eventItem.getId())) {
+							
+							eventsToDeleteList.remove(googleEventIdsToDelete.get(eventItem.getId()));
+							googleEventIdsToDelete.remove(eventItem.getId());
+						}						
+						googleEventItems.add(eventItem);
+					}
+				}
+			}
+			
+			
+			eventThread.runGoogleEventSyncThread(googleEventItems, user.getUserId(), googleEventsCalendarList.get(0).getTimeZone());
+			if (eventsToDeleteList.size() > 0) {
+				
+				//If there are not events to add/update
+				//Then we will add empty event object so that we can send notification
+				//checking the size if there are any updates from google.
+				//if (events.size() == 0) {
+				//	events.add(new Event());
+				//}
+				System.out.println("Events to be deleted : "+eventsToDeleteList.size());
+				eventThread.runDeleteEventThread(eventsToDeleteList);
+			}
+			
+			
+			/*
+			 commenting code
+			 
+			 
+			//Now lets distribute the events to threads.
+			for (GoogleEvents googleEvents : googleEventsCalendarList) {
+				if (googleEvents.getItems() != null
+						&& googleEvents.getItems() != null
+						&& googleEvents.getItems().size() > 0) {
+					for (GoogleEventItem eventItem : googleEvents.getItems()) {
+						if ("cancelled".equals(eventItem.getStatus())) {
 							continue;
-						}*/
+						}
+						
 						
 						//Lets check first if the creator Exists in our DB or Not.
 						//If it exists in db then we will set the created by id as its user id
@@ -848,15 +877,15 @@ public class EventManager {
 						//We will fetch that event by created by id and google event id.
 						//If creator has not synced the event then we will create new event. 
 						//If creator is different then he will see the event without syncing the google calendar.
-						List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-						if (dbevents != null && dbevents.size() != 0) {
-							Event eve = dbevents.get(0);
-							if (googleEventIdsToDelete.containsKey(eve.getEventId())) {
-								googleEventIdsToDelete.remove(eve.getEventId());
-								eventsToDeleteList.remove(eve);
-							}
-							continue;
-						}
+						//List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+						//if (dbevents != null && dbevents.size() != 0) {
+						//	Event eve = dbevents.get(0);
+						//	if (googleEventIdsToDelete.containsKey(eve.getEventId())) {
+						//		googleEventIdsToDelete.remove(eve.getEventId());
+						//		eventsToDeleteList.remove(eve);
+						//	}
+						//	continue;
+						//}
 						
 						System.out.println("Adding new Event: "+eventItem.getSummary());
 						event  = new Event();
@@ -951,12 +980,6 @@ public class EventManager {
 						if (eventItem.getRecurringEventId() != null) {
 							event.setRecurringEventId(eventItem.getRecurringEventId());
 						}
-						
-						
-						/*System.out.println("Event Changed For : "+eventChangeFor);
-						if (eventChangeFor == null || eventChangeFor.equals("Time")) {
-							event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
-						}*/
 						newEventsToSave.add(event);
 					}
 					
@@ -982,43 +1005,94 @@ public class EventManager {
 					//}
 					System.out.println("Events to be deleted : "+eventsToDeleteList.size());
 					eventThread.runDeleteEventThread(eventsToDeleteList);
-					/*List<Event> eventsToDelete = new ArrayList<>();
-					for (Entry<Long, Event> entryMap: googleEventIdsToDelete.entrySet()) {
-						
-
-						Event eventToUpdate = entryMap.getValue();
-						//eventToUpdate.setIsActive(Event.EventStatus.InActive);
-						//this.eventRepository.save(eventToUpdate);
-						eventServiceDao.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
-						//eventTimeSlotManager.deleteEventTimeSlotsByEventId(eventToUpdate.getEventId());
-						System.out.println("[Google Event to Delete : "+eventToUpdate.getEventId()+" , "+eventToUpdate.getTitle()+" "+eventToUpdate.getStartTime()+" ]");
-						try {
-							//this.eventRepository.delete(eventToUpdate);
-							eventsToDelete.add(eventToUpdate);
-						} catch(Exception e) {
-							e.printStackTrace();
-						}
-					}
-					try {
-						System.out.println("Deleing event counts : "+eventsToDelete.size());
-						
-						this.eventRepository.delete(eventsToDelete);
-					} catch(Exception e) {
-						e.printStackTrace();
-					}
-					//Releasing Memory
-					googleEventIdsToDelete = null;*/
+					
 					
 					
 					
 				}
-			}
+			}*/
 		}
 		
 		return events;
 	}
 	
 	
+	public void saveGoogleEventIems(GoogleEventItem eventItem, Long userId, String timeZone) {
+		
+		Event event  = new Event();
+		event.setSourceEventId(eventItem.getId());
+		event.setSource(EventSource.Google.toString());
+		event.setTitle(eventItem.getSummary());
+		event.setCreatedById(userId);
+		if (eventItem.getDescription() != null) {
+			event.setDescription(eventItem.getDescription());
+		}
+		//event.setEventPicture("http://cenes.test2.redblink.net/assets/default_images/default_event_image.png");
+		if (eventItem.getLocation() != null) {
+			event.setLocation(eventItem.getLocation());
+		}
+
+		event.setScheduleAs(ScheduleEventAs.Event.toString());
+		event.setTimezone(timeZone);
+		
+		try {
+			if (eventItem.getStart() != null) {
+				Date startDate = null;
+				if (eventItem.getStart().containsKey("dateTime")) {
+					startDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getStart().get("dateTime"));
+				} else if (eventItem.getStart().containsKey("date")) {
+					//Events with no hours and minutes
+					//We will mark them full day events.
+					startDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getStart().get("date"));
+					event.setIsFullDay(true);
+				}
+				if (startDate != null) {
+					String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
+					event.setStartTime(CenesUtils.yyyyMMddTHHmmss.parse(startDateStr));
+				}
+			} else {
+				event.setStartTime(new Date());
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			if (eventItem.getEnd() != null) {
+				Date endDate = null;
+				if (eventItem.getEnd().containsKey("dateTime")) {
+					endDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getEnd().get("dateTime"));
+				} else if (eventItem.getEnd().containsKey("date")) {
+					endDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getEnd().get("date"));
+				}
+				if (endDate != null) {
+					String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
+					event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+				}
+			} else {
+				event.setStartTime(new Date());
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		
+		//We will add event members only if its a new event.
+		List<EventMember> eventMembersTemp  = new ArrayList<>();
+		EventMember eventMember = new EventMember();
+		//eventMember.setName(user.getName());
+		eventMember.setStatus(MemberStatus.Going.toString());
+		eventMember.setSource(EventSource.Google.toString());
+		eventMember.setUserId(userId);
+		eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+		eventMembersTemp.add(eventMember);
+		event.setEventMembers(eventMembersTemp);
+		
+		if (eventItem.getRecurringEventId() != null) {
+			event.setRecurringEventId(eventItem.getRecurringEventId());
+		}
+		this.eventRepository.save(event);
+	}
 	
 	public Boolean eventMemberIsBlocked(List<GoogleEventAttendees> attendees) {
 		boolean blocked = false;

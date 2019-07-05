@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.cg.dao.EventServiceDao;
 import com.cg.events.bo.Event;
+import com.cg.events.bo.GoogleEventItem;
 import com.cg.manager.EventManager;
 import com.cg.manager.EventTimeSlotManager;
 import com.cg.service.UserService;
@@ -79,6 +80,42 @@ public class EventThread {
 	}
 	
 
+	public void runGoogleEventSyncThread(List<GoogleEventItem> events, Long userId, String timezone) {
+		System.out.println("[ Date : "+new Date()+" Googel Event Sync Thread Run STARTS]");
+		
+		List<GoogleEventItem> eventsToAllocateToThread = new ArrayList<>();
+		int trackElementsTraversed = 0;
+		for (GoogleEventItem event : events) {
+			eventsToAllocateToThread.add(event);
+			trackElementsTraversed += 1;
+			if (events.size() == trackElementsTraversed) {
+
+				GoogleEventSyncThread googleEventSyncThread = new  GoogleEventSyncThread();
+				googleEventSyncThread.setItems(eventsToAllocateToThread);
+				googleEventSyncThread.setUserId(userId);
+				googleEventSyncThread.setTimezone(timezone);
+				googleEventSyncThread.run();
+				//Releasing Space allocated to List
+				eventsToAllocateToThread = null;
+
+				eventsToAllocateToThread = new ArrayList<>();
+			} else {
+				if (eventsToAllocateToThread.size() == 5) {
+					GoogleEventSyncThread googleEventSyncThread = new GoogleEventSyncThread();
+					googleEventSyncThread.setItems(eventsToAllocateToThread);
+					googleEventSyncThread.setUserId(userId);
+					googleEventSyncThread.setTimezone(timezone);
+					googleEventSyncThread.run();
+					//Releasing Space allocated to List
+					eventsToAllocateToThread = null;
+					
+					eventsToAllocateToThread = new ArrayList<>();
+				}
+			}
+		}
+		System.out.println("[ Date : "+new Date()+" Googel Event Sync Thread Run ENDS]");
+	}
+	
 	class GoogleSyncThread implements Runnable {
 
 		private Long userId;
@@ -172,6 +209,45 @@ public class EventThread {
 			System.out.println("[Event Thread : ContactSyncThread  STARTS]");
 			userService.syncPhoneContacts(phoneContacts);
 			System.out.println("[Event Thread : ContactSyncThread  STOPS]");
+		}
+	}
+	
+	class GoogleEventSyncThread implements Runnable {
+				
+		private List<GoogleEventItem> items;
+		private Long userId;
+		private String timezone;
+		
+		public List<GoogleEventItem> getItems() {
+			return items;
+		}
+
+		public void setItems(List<GoogleEventItem> items) {
+			this.items = items;
+		}
+
+		public Long getUserId() {
+			return userId;
+		}
+
+		public void setUserId(Long userId) {
+			this.userId = userId;
+		}
+
+		public String getTimezone() {
+			return timezone;
+		}
+
+		public void setTimezone(String timezone) {
+			this.timezone = timezone;
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			for (GoogleEventItem event: items) {
+				eventManager.saveGoogleEventIems(event, userId, timezone);
+			}
 		}
 	}
 	
