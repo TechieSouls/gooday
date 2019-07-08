@@ -2357,6 +2357,15 @@ public class EventController {
 					 * eventService.saveCenesPropertyValue(cenesPropertyValue); }
 					 */
 					response.put("data", calendarSyncToken);
+				} else {
+					CalendarSyncToken cst = new CalendarSyncToken();
+					cst.setUserId(user.getUserId());
+					cst.setAccountType(CalendarSyncToken.AccountType.Apple);
+					cst.setIsActive(ActiveStatus.Active);
+					cst.setEmailId(eventMap.get("name").toString());
+					eventManager.saveCalendarSyncToken(cst);
+					response.put("data", cst);
+
 				}
 			}
 			response.put("success", true);
