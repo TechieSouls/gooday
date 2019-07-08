@@ -68,6 +68,7 @@ import com.cg.service.GoogleService;
 import com.cg.service.OutlookService;
 import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
+import com.cg.threads.EventThread;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -2342,8 +2343,11 @@ public class EventController {
 						members.add(eventMember);
 						deviceEvent.setEventMembers(members);
 					}
-					eventService.saveEventsBatch(deviceEvents);
-
+					
+					
+					
+					//eventService.saveEventsBatch(deviceEvents);
+					eventManager.runDeviceSyncThread(deviceEvents);
 					/*
 					 * CenesProperty cenesProperty =
 					 * eventService.findCenesPropertyByNameAndOwner("device_calendar",

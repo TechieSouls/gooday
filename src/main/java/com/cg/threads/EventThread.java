@@ -38,10 +38,10 @@ public class EventThread {
 		Thread outlookTh = new Thread(new OutlookSyncThread(userId));
 		outlookTh.start();
 		
-		if (eventMap != null && eventMap.size() > 0) {
+		/*if (eventMap != null && eventMap.size() > 0) {
 			Thread deviceTh = new Thread(new DeviceSyncThread(eventMap));
 			deviceTh.start();
-		}
+		}*/
 		
 		Thread contactTh = new Thread(new ContactSyncThread(phoneContacts));
 		contactTh.start();
@@ -115,6 +115,40 @@ public class EventThread {
 		}
 		System.out.println("[ Date : "+new Date()+" Googel Event Sync Thread Run ENDS]");
 	}
+	
+	public void runDeviceEventSyncThread(List<Event> events) {
+		System.out.println("[ Date : "+new Date()+" Device Event Sync Thread Run STARTS]");
+		
+		List<Event> eventsToAllocateToThread = new ArrayList<>();
+		int trackElementsTraversed = 0;
+		for (Event event : events) {
+			eventsToAllocateToThread.add(event);
+			trackElementsTraversed += 1;
+			if (events.size() == trackElementsTraversed) {
+
+				DeviceEventSyncThread deviceEventSyncThread = new  DeviceEventSyncThread();
+				deviceEventSyncThread.setEvents(events);
+				deviceEventSyncThread.run();
+				//Releasing Space allocated to List
+				eventsToAllocateToThread = null;
+
+				eventsToAllocateToThread = new ArrayList<>();
+			} else {
+				if (eventsToAllocateToThread.size() == 10) {
+					DeviceEventSyncThread deviceEventSyncThread = new  DeviceEventSyncThread();
+					deviceEventSyncThread.setEvents(events);
+					deviceEventSyncThread.run();
+					//Releasing Space allocated to List
+					eventsToAllocateToThread = null;
+					
+					eventsToAllocateToThread = new ArrayList<>();
+				}
+			}
+		}
+		System.out.println("[ Date : "+new Date()+" Device Event Sync Thread Run ENDS]");
+	}
+	
+	
 	
 	class GoogleSyncThread implements Runnable {
 
@@ -248,6 +282,24 @@ public class EventThread {
 			for (GoogleEventItem event: items) {
 				eventManager.saveGoogleEventIems(event, userId, timezone);
 			}
+		}
+	}
+	
+	class DeviceEventSyncThread implements Runnable {
+		
+		private List<Event> events;
+		
+		public List<Event> getEvents() {
+			return events;
+		}
+		public void setEvents(List<Event> events) {
+			this.events = events;
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			eventManager.saveEventsInBatch(events);
 		}
 	}
 	

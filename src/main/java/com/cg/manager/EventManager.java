@@ -1552,6 +1552,10 @@ public class EventManager {
 		eventThread.runEventThread(userId, eventMap, phoneContacts);
 	}
 	
+	public void runDeviceSyncThread(List<Event> events) {
+		eventThread.runDeviceEventSyncThread(events);
+	}
+	
 	public void updateTimeSlotsToFreeByEvent(Event event) {
 		List<EventTimeSlot> timeSlots  = eventService.findEventTimeSlotByEventDateAndEventId(event.getStartTime().getTime(),event.getEndTime().getTime(),event.getEventId());
 		if (timeSlots != null && timeSlots.size() > 0) {
@@ -1654,6 +1658,9 @@ public class EventManager {
 		return calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
 	}
 	
+	public void saveEventsInBatch(List<Event> events) {
+		eventRepository.save(events);
+	}
 	
 	/*public static void main(String[] args) {
 		String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(new Date());
