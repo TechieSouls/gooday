@@ -1745,15 +1745,19 @@ public class UserController {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
-		/*CalendarSyncToken calendarSyncToken = eventManager.findByCalendarSyncTokenId(calendarSyncTokenId);
+		CalendarSyncToken calendarSyncToken = eventManager.findByCalendarSyncTokenId(calendarSyncTokenId);
 		if (calendarSyncToken.getAccountType() == AccountType.Google) {
-			GoogleService gs = new GoogleService();
+			/*GoogleService gs = new GoogleService();
 			try {
 				gs.unsubscribeGoogleNotification(calendarSyncToken);
 
 			} catch(Exception e) {
 				System.out.println("Exception Google : "+e.getMessage());
-			}
+			}*/
+			List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			eventManager.runEventDeleteThread(events);
+			
+			
 		} else if (calendarSyncToken.getAccountType() == AccountType.Outlook) {
 			try {
 				OutlookService os = new OutlookService();
@@ -1761,7 +1765,7 @@ public class UserController {
 			} catch(Exception e) {
 				System.out.println("Exception Outlook : "+e.getMessage());
 			}
-		}*/
+		}
 		
 		userService.deleteCalendarSyncTokenByCalendarSyncTokenId(calendarSyncTokenId);
 		//calendarSyncToken.setIsActive(CalendarSyncToken.ActiveStatus.InActive);

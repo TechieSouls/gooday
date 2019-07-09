@@ -1556,6 +1556,10 @@ public class EventManager {
 		eventThread.runDeviceEventSyncThread(events);
 	}
 	
+	public void runEventDeleteThread(List<Event> events) {
+		eventThread.runDeleteEventThread(events);
+	}
+	
 	public void updateTimeSlotsToFreeByEvent(Event event) {
 		List<EventTimeSlot> timeSlots  = eventService.findEventTimeSlotByEventDateAndEventId(event.getStartTime().getTime(),event.getEndTime().getTime(),event.getEventId());
 		if (timeSlots != null && timeSlots.size() > 0) {
@@ -1662,6 +1666,11 @@ public class EventManager {
 		eventRepository.save(events);
 	}
 	
+	public List<Event> findEventsByCreatedByIdAndSourceAndScheduleAs(Long createdById, String source, String scheduleAs) {
+		
+		return eventRepository.findByCreatedByIdAndSourceAndScheduleAs(createdById, source, scheduleAs);
+		
+	}
 	/*public static void main(String[] args) {
 		String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(new Date());
 		Date outlookDate = null;
