@@ -1760,10 +1760,18 @@ public class UserController {
 			
 		} else if (calendarSyncToken.getAccountType() == AccountType.Outlook) {
 			try {
-				OutlookService os = new OutlookService();
-				os.unsubscribeFromOutlookService(calendarSyncToken);
+				List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Outlook.toString(), Event.ScheduleEventAs.Event.toString());
+				eventManager.runEventDeleteThread(events);
 			} catch(Exception e) {
 				System.out.println("Exception Outlook : "+e.getMessage());
+			}
+			
+		} else if (calendarSyncToken.getAccountType() == AccountType.Apple) {
+			try {
+				List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Apple.toString(), Event.ScheduleEventAs.Event.toString());
+				eventManager.runEventDeleteThread(events);
+			} catch(Exception e) {
+				System.out.println("Exception Apple Event : "+e.getMessage());
 			}
 		}
 		
