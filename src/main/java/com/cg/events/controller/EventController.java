@@ -881,7 +881,7 @@ public class EventController {
 					
 					//We will save subscription id, expiration date and resource id 
 					//If user has not subscribed yet
-					if (calendarSyncToken.getResourceId() == null) {
+					/*if (calendarSyncToken.getResourceId() == null) {
 						
 						//We will subscribe with new UUID only if user does not have uuid in database.
 						String uuidChannelId = UUID.randomUUID().toString();
@@ -898,7 +898,7 @@ public class EventController {
 							calendarSyncToken.setResourceId(subscribeResponse.getString("resourceId"));
 							calendarSyncToken.setSubExpiryDate(new Date(expirationTime));
 						}
-					}
+					}*/
 					
 					System.out.println("[Google Sync V2] Date : " + new Date() + " Saving Refresh Token : "
 							+ authCodeResponse.toString());
@@ -916,10 +916,10 @@ public class EventController {
 		String accessToken = syncParams.get("accessToken").toString();
 		Calendar cal = Calendar.getInstance();
 		cal.set(Calendar.DAY_OF_MONTH, Calendar.DAY_OF_MONTH - 1);
-		eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(), userId,
-				Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
-		eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),
-				Event.ScheduleEventAs.Event.toString());
+		//eventManager.deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(cal.getTime(), userId,
+				//Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+		//eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId, Event.EventSource.Google.toString(),
+				//Event.ScheduleEventAs.Event.toString());
 		System.out
 				.println("[ Syncing Google Events V2 - User Id : " + userId + ", Access Token : " + accessToken + "]");
 		List<Event> events = new ArrayList<>();
