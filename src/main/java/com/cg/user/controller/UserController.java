@@ -1754,22 +1754,32 @@ public class UserController {
 			} catch(Exception e) {
 				System.out.println("Exception Google : "+e.getMessage());
 			}*/
-			List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
-			eventManager.runEventDeleteThread(events);
 			
+			eventManager.deleteEventTimeSlotsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			//eventManager.runEventDeleteThread(events);
+			eventManager.deleteEventBatch(events);
 			
 		} else if (calendarSyncToken.getAccountType() == AccountType.Outlook) {
 			try {
+				
+				eventManager.deleteEventTimeSlotsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Outlook.toString(), Event.ScheduleEventAs.Event.toString());
 				List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Outlook.toString(), Event.ScheduleEventAs.Event.toString());
-				eventManager.runEventDeleteThread(events);
+				//eventManager.runEventDeleteThread(events);
+				eventManager.deleteEventBatch(events);
+
 			} catch(Exception e) {
 				System.out.println("Exception Outlook : "+e.getMessage());
 			}
 			
 		} else if (calendarSyncToken.getAccountType() == AccountType.Apple) {
 			try {
+				
+				eventManager.deleteEventTimeSlotsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Apple.toString(), Event.ScheduleEventAs.Event.toString());
 				List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Apple.toString(), Event.ScheduleEventAs.Event.toString());
-				eventManager.runEventDeleteThread(events);
+				//eventManager.runEventDeleteThread(events);
+				eventManager.deleteEventBatch(events);
+
 			} catch(Exception e) {
 				System.out.println("Exception Apple Event : "+e.getMessage());
 			}

@@ -65,7 +65,7 @@ public class EventThread {
 
 				eventsToAllocateToThread = new ArrayList<>();
 			} else {
-				if (eventsToAllocateToThread.size() == 5) {
+				if (eventsToAllocateToThread.size() == 10) {
 					EventDeleteThread eventDeleteThread = new EventDeleteThread();
 					eventDeleteThread.setEventsToDelete(eventsToAllocateToThread);
 					eventDeleteThread.run();
