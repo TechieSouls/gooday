@@ -845,8 +845,9 @@ public class EventManager {
 							
 							eventsToDeleteList.remove(googleEventIdsToDelete.get(eventItem.getId()));
 							googleEventIdsToDelete.remove(eventItem.getId());
-						}						
-						googleEventItems.add(eventItem);
+						} else {
+							googleEventItems.add(eventItem);
+						}
 					}
 				}
 			}
