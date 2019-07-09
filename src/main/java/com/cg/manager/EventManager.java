@@ -1752,6 +1752,10 @@ public class EventManager {
 		return eventRepository.findByCreatedByIdAndSourceAndScheduleAs(createdById, source, scheduleAs);
 		
 	}
+	
+	public void deleteEventTimeSlotsByCreatedByIdAndSourceAndScheduleAs(Long createdById, String source, String scheduleAs) {
+		eventTimeSlotRepository.deleteByUserIdAndSourceAndScheduleAs(createdById, source, scheduleAs);
+	}
 	/*public static void main(String[] args) {
 		String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(new Date());
 		Date outlookDate = null;
