@@ -1064,9 +1064,9 @@ public class EventManager {
 			if (appleEventIdsToDelete.containsKey(devEvent.getSourceEventId())) {
 				eventsToDeleteList.remove(appleEventIdsToDelete.get(devEvent.getSourceEventId()));
 				appleEventIdsToDelete.remove(devEvent.getSourceEventId());
+			} else {
+				finalEventsToSave.add(devEvent);
 			}
-			
-			finalEventsToSave.add(devEvent);
 		}
 		
 		

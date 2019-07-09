@@ -319,7 +319,10 @@ public class EventThread {
 		public void run() {
 			// TODO Auto-generated method stub
 			for (Event event: eventsToDelete) {
+				System.out.println("Therad Deleting Time Slots Starts");
 				eventServiceDao.deleteEventTimeSlotsByEventId(event.getEventId());
+				System.out.println("Therad Deleting Time Slots ENDs");
+
 			}
 			
 			eventManager.deleteEventBatch(eventsToDelete);
