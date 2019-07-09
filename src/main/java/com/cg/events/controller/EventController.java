@@ -994,6 +994,38 @@ public class EventController {
 		System.out.println("[ Syncing Google Events ENDS]");
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
+	
+	
+	@RequestMapping(value = "/api/apple/refreshEvents", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> refreshAppleEvents(@RequestBody Map<String, Object> eventMap) {
+
+		Long userId = Long.valueOf(eventMap.get("userId").toString());
+		
+		System.out.println("[Apple Refresh : User ID : " + userId + "]");
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		CalendarSyncToken calendarSyncToken = eventManager.findByUserIdAndAccountTypeAndIsActive(userId,
+				CalendarSyncToken.AccountType.Apple, ActiveStatus.Active);
+
+		if (calendarSyncToken != null) {
+			try {
+				User user = userService.findUserById(userId);
+
+				List<Event> events = eventManager.syncAppleEvents(eventMap, user);
+				response.put("data", events);
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			} catch (Exception e) {
+				e.printStackTrace();
+				response.put("data", new ArrayList<>());
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
+		}
+
+		System.out.println("[ Syncing Google Events ENDS]");
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+	}
 
 	// Method to get Google events from API.
 	@RequestMapping(value = "/api/holiday/calendar/events", method = RequestMethod.GET)
@@ -2318,13 +2350,22 @@ public class EventController {
 				// Event event = ((ArrayList<Event>)eventMap.get("data")).get(0);
 				User user = userService.findUserById(Long.valueOf(eventMap.get("userId").toString()));
 
-				CalendarSyncToken calendarSyncToken = eventManager.findByUserIdAndAccountTypeAndIsActive(user.getUserId(), CalendarSyncToken.AccountType.Apple, ActiveStatus.Active);				
+				//CalendarSyncToken calendarSyncToken = eventManager.findByUserIdAndAccountTypeAndIsActive(user.getUserId(), CalendarSyncToken.AccountType.Apple, ActiveStatus.Active);				
 				
-				if (calendarSyncToken != null) {
-					eventManager.deleteEventsByCreatedByIdSource(user.getUserId(), Event.EventSource.Apple.toString());
-					eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(user.getUserId(),
-							Event.EventSource.Apple.toString());
+				//if (calendarSyncToken != null) {
+					//eventManager.deleteEventsByCreatedByIdSource(user.getUserId(), Event.EventSource.Apple.toString());
+					//eventTimeSlotManager.deleteEventTimeSlotsByUserIdSource(user.getUserId(),
+					//		Event.EventSource.Apple.toString());
 
+				CalendarSyncToken cst = new CalendarSyncToken();
+				cst.setUserId(user.getUserId());
+				cst.setAccountType(CalendarSyncToken.AccountType.Apple);
+				cst.setIsActive(ActiveStatus.Active);
+				cst.setEmailId(eventMap.get("name").toString());
+				eventManager.saveCalendarSyncToken(cst);
+				response.put("data", cst);
+
+				
 					List<Event> deviceEvents = new ObjectMapper().convertValue(eventMap.get("data"),
 							new TypeReference<List<Event>>() {
 							});
@@ -2344,8 +2385,6 @@ public class EventController {
 						deviceEvent.setEventMembers(members);
 					}
 					
-					
-					
 					//eventService.saveEventsBatch(deviceEvents);
 					eventManager.runDeviceSyncThread(deviceEvents);
 					/*
@@ -2360,8 +2399,8 @@ public class EventController {
 					 * cenesPropertyValue.setValue("true");
 					 * eventService.saveCenesPropertyValue(cenesPropertyValue); }
 					 */
-					response.put("data", calendarSyncToken);
-				} else {
+
+				/*} else {
 					CalendarSyncToken cst = new CalendarSyncToken();
 					cst.setUserId(user.getUserId());
 					cst.setAccountType(CalendarSyncToken.AccountType.Apple);
@@ -2370,7 +2409,7 @@ public class EventController {
 					eventManager.saveCalendarSyncToken(cst);
 					response.put("data", cst);
 
-				}
+				}*/
 			}
 			response.put("success", true);
 		} catch (Exception e) {

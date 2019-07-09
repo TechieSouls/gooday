@@ -59,6 +59,8 @@ import com.cg.threads.EventThread;
 import com.cg.threads.TimeSlotThread;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import okhttp3.internal.framed.ErrorCode;
 
@@ -749,6 +751,19 @@ public class EventManager {
 		return null;
 	}
 	
+	
+	public List<Event> syncAppleEvents(Map<String, Object> dataMap, User user) {
+		List<Event> events = new ArrayList<>();
+		
+		try {
+			events = processAppleEvents(user, dataMap);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return events;
+	}
+	
+	
 	//This method will be called, whenever from the google webhook.
 	public List<Event> syncGoogleEventsOnNotification(String resourceUrl, String accessToken,User user) {
 		
@@ -1014,6 +1029,71 @@ public class EventManager {
 		}
 		
 		return events;
+	}
+	
+	public List<Event> processAppleEvents(User user, Map<String, Object> eventMap) {
+		
+		Map<String, Event> appleEventIdsToDelete = new HashMap<>();
+		List<Event> eventsToDeleteList = new ArrayList<Event>();
+		
+		//Lets fetch all events from current date and check which one to delete or not.
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		List<Event> existingAppleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Apple.toString(), Event.ScheduleEventAs.Event.toString());
+		for (Event exEvent: existingAppleEvents) {
+			appleEventIdsToDelete.put(exEvent.getSourceEventId(), exEvent);
+			eventsToDeleteList.add(exEvent);
+		}
+		System.out.println("Totdal Apple Events from databse : "+eventsToDeleteList.size());
+
+		
+		List<Event> finalEventsToSave = new ArrayList<>();
+		
+		List<Event> deviceEvents = new ObjectMapper().convertValue(eventMap.get("data"),
+				new TypeReference<List<Event>>() {
+				});
+		
+		
+		//Filtering events which already exists in database
+		for (Event devEvent: deviceEvents) {
+			if (appleEventIdsToDelete.containsKey(devEvent.getSourceEventId())) {
+				eventsToDeleteList.remove(appleEventIdsToDelete.get(devEvent.getSourceEventId()));
+				appleEventIdsToDelete.remove(devEvent.getSourceEventId());
+			}
+			
+			finalEventsToSave.add(devEvent);
+		}
+		
+		
+		for (Event deviceEvent : finalEventsToSave) {
+			
+			List<EventMember> members = new ArrayList<>();
+
+			EventMember eventMember = new EventMember();
+			eventMember.setName(user.getName());
+			eventMember.setPicture(user.getPhoto());
+			eventMember.setStatus(MemberStatus.Going.toString());
+			eventMember.setSource(EventSource.Apple.toString());
+			if (user.getEmail() != null) {
+				eventMember.setSourceEmail(user.getEmail());
+			}
+			eventMember.setUserId(user.getUserId());
+			members.add(eventMember);
+			deviceEvent.setEventMembers(members);
+		}
+		
+		if (finalEventsToSave.size() > 0) {
+			eventThread.runDeviceEventSyncThread(finalEventsToSave);
+		}
+		if (eventsToDeleteList.size() > 0) {
+			eventThread.runDeleteEventThread(eventsToDeleteList);
+		}
+		
+		return finalEventsToSave;
 	}
 	
 	
