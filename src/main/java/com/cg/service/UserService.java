@@ -442,6 +442,8 @@ public class UserService {
 				
 				boolean userStatExist = false;
 
+				
+				//Lets check if user is hosting the events. Then we will increase hosted counts
 				for (UserStat userStat: usersStat) {
 					
 					//If User Stat exists for Event Members
@@ -450,13 +452,20 @@ public class UserService {
 						//Check if event Member is a host 
 						if (event.getCreatedById().equals(goingMember.getUserId())) {
 							userStat.setEventsHostedCounts(userStat.getEventsHostedCounts() + 1);
-							usersStatToUpdate.add(userStat);
-							userStatExist  = true;
 							break;
+						} else {
+							
+							//If event member is not a host
+							//Then we will update his events attended counts.
+							userStat.setEventsHostedCounts(userStat.getEventsAttendedCounts() + 1);
 						}
+						
+						usersStatToUpdate.add(userStat);
+						userStatExist  = true;
 					}
 				}
 				
+
 				//If Stats Does not exist for user. Then create new stats
 				if (!userStatExist) {
 					
