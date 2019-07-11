@@ -768,6 +768,7 @@ public class EventManager {
 	public List<Event> syncGoogleEventsOnNotification(String resourceUrl, String accessToken,User user) {
 		
 		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - 1);
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
@@ -812,6 +813,7 @@ public class EventManager {
 			//Lets fetch all events from current date and check which one to delete or not.
 			
 			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - 1);
 			cal.set(Calendar.HOUR_OF_DAY, 0);
 			cal.set(Calendar.MINUTE, 0);
 			cal.set(Calendar.SECOND, 0);
@@ -1039,13 +1041,18 @@ public class EventManager {
 		
 		//Lets fetch all events from current date and check which one to delete or not.
 		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - 1);
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
 		cal.set(Calendar.SECOND, 0);
 		cal.set(Calendar.MILLISECOND, 0);
 		
+		
+		System.out.println("Aplle User Id : "+user.getUserId());
 		List<Event> existingAppleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Apple.toString(), Event.ScheduleEventAs.Event.toString());
 		for (Event exEvent: existingAppleEvents) {
+			
+			System.out.println("Source Event Id to Track : "+exEvent.getSourceEventId());
 			appleEventIdsToDelete.put(exEvent.getSourceEventId(), exEvent);
 			eventsToDeleteList.add(exEvent);
 		}
@@ -1061,6 +1068,8 @@ public class EventManager {
 		
 		//Filtering events which already exists in database
 		for (Event devEvent: deviceEvents) {
+			
+			System.out.println("Source Event Id EXISTS OT NOT : "+devEvent.getSourceEventId());
 			if (appleEventIdsToDelete.containsKey(devEvent.getSourceEventId())) {
 				eventsToDeleteList.remove(appleEventIdsToDelete.get(devEvent.getSourceEventId()));
 				appleEventIdsToDelete.remove(devEvent.getSourceEventId());
