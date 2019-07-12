@@ -458,6 +458,7 @@ public class UserService {
 							//If event member is not a host
 							//Then we will update his events attended counts.
 							userStat.setEventsHostedCounts(userStat.getEventsAttendedCounts() + 1);
+							break;
 						}
 						
 						usersStatToUpdate.add(userStat);
