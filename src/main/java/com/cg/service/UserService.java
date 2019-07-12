@@ -452,17 +452,15 @@ public class UserService {
 						//Check if event Member is a host 
 						if (event.getCreatedById().equals(goingMember.getUserId())) {
 							userStat.setEventsHostedCounts(userStat.getEventsHostedCounts() + 1);
-							break;
 						} else {
-							
 							//If event member is not a host
 							//Then we will update his events attended counts.
 							userStat.setEventsHostedCounts(userStat.getEventsAttendedCounts() + 1);
-							break;
 						}
 						
 						usersStatToUpdate.add(userStat);
 						userStatExist  = true;
+						break;
 					}
 				}
 				
