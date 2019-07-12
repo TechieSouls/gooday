@@ -1069,6 +1069,8 @@ public class EventManager {
 		//Filtering events which already exists in database
 		for (Event devEvent: deviceEvents) {
 			
+			System.out.println("Event Title from apple : "+devEvent+", Start Time : "+devEvent.getStartTime());
+			
 			System.out.println("Source Event Id EXISTS OT NOT : "+devEvent.getSourceEventId());
 			if (appleEventIdsToDelete.containsKey(devEvent.getSourceEventId())) {
 				eventsToDeleteList.remove(appleEventIdsToDelete.get(devEvent.getSourceEventId()));
