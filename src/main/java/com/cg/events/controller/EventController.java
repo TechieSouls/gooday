@@ -1908,7 +1908,7 @@ public class EventController {
 	}
 
 	// Method to get Outlook events from API.
-	@RequestMapping(value = "/api/outlook/refreshevents", method = RequestMethod.GET)
+	@RequestMapping(value = "/api/outlook/refreshEvents", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<Map<String, Object>> refreshOutlookEvents(Long userId) {
 		System.out.println("[ Refreshing Outlook Events - User Id : " + userId + "]");
