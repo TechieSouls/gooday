@@ -1679,8 +1679,10 @@ public class UserController {
 				return response;
 			} else {					
 					
-				userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
 				for (User userByPhone: usersToDelete) {
+					
+					userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
+					
 					if (user.getPassword() != null) {
 						System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
 						if (userByPhone.getPassword() != null && !userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
