@@ -1681,25 +1681,25 @@ public class UserController {
 					
 				userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
 				for (User userByPhone: usersToDelete) {
-					
-				}
-				if (user.getPassword() != null) {
-					System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
-					if (userByPhone.getPassword() != null && !userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
-						response.put("success", false);
-						response.put("message", "Incorrect Password");
-						return response;
+					if (user.getPassword() != null) {
+						System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+						if (userByPhone.getPassword() != null && !userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+							response.put("success", false);
+							response.put("message", "Incorrect Password");
+							return response;
+						}
 					}
+					
+					
+					//eventManager.deleteEventsByCreatedById(user.getUserId());
+					userService.deleteContactsByUserId(userByPhone.getUserId());
+					//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+					//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+					userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
+					userService.deleteUserDeviceByUserId(userByPhone.getUserId());
+					userService.deleteUserByUserId(userByPhone.getUserId());
 				}
 				
-				
-				//eventManager.deleteEventsByCreatedById(user.getUserId());
-				userService.deleteContactsByUserId(userByPhone.getUserId());
-				//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
-				//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
-				userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
-				userService.deleteUserDeviceByUserId(userByPhone.getUserId());
-				userService.deleteUserByUserId(userByPhone.getUserId());
 			}
 			
 			
