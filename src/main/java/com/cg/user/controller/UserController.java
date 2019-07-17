@@ -1673,7 +1673,7 @@ public class UserController {
 		
 		try {
 			List<User> usersToDelete = userRepository.findListByPhone(user.getPhone());
-			if (usersByPhone == null || usersByPhone.size() == 0) {
+			if (usersToDelete == null || usersToDelete.size() == 0) {
 				response.put("success", false);
 				response.put("message", "User not found");
 				return response;
