@@ -22,6 +22,10 @@ public interface UserRepository extends CrudRepository<User, Long> {
 	User findByEmailAndGoogleIdIsNull(String email);
 	User findUserByEmailAndPassword(String email,String password);
 	User findByPhone(String phone);
+	
+	@Query("select u from User u where phone = :phone")
+	List<User> findListByPhone(@Param("phone") String phone);
+	
 	List<User> findByPhoneContaining(String phone);
 	User findByEmailAndResetTokenIsNull(String email);
 	

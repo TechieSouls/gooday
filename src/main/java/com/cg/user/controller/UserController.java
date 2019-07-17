@@ -1672,31 +1672,37 @@ public class UserController {
 		System.out.println("User : "+user.toString());
 		
 		try {
-			User userByPhone = userRepository.findByPhone(user.getPhone());
-			if (userByPhone == null) {
+			List<User> usersToDelete = userRepository.findListByPhone(user.getPhone());
+			if (usersByPhone == null || usersByPhone.size() == 0) {
 				response.put("success", false);
 				response.put("message", "User not found");
 				return response;
-			}
-			
-			if (user.getPassword() != null) {
-				System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
-				if (!userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
-					response.put("success", false);
-					response.put("message", "Incorrect Password");
-					return response;
+			} else {					
+					
+				userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
+				for (User userByPhone: usersToDelete) {
+					
 				}
+				if (user.getPassword() != null) {
+					System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+					if (!userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+						response.put("success", false);
+						response.put("message", "Incorrect Password");
+						return response;
+					}
+				}
+				
+				
+				//eventManager.deleteEventsByCreatedById(user.getUserId());
+				userService.deleteContactsByUserId(userByPhone.getUserId());
+				//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+				//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+				userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
+				userService.deleteUserDeviceByUserId(userByPhone.getUserId());
+				userService.deleteUserByUserId(userByPhone.getUserId());
 			}
 			
 			
-			//eventManager.deleteEventsByCreatedById(user.getUserId());
-			userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
-			userService.deleteContactsByUserId(userByPhone.getUserId());
-			//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
-			//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
-			userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
-			userService.deleteUserDeviceByUserId(userByPhone.getUserId());
-			userService.deleteUserByUserId(userByPhone.getUserId());
 		} catch(Exception e) {
 			e.printStackTrace();
 			
