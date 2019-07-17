@@ -1685,7 +1685,7 @@ public class UserController {
 				}
 				if (user.getPassword() != null) {
 					System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
-					if (!userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+					if (userByPhone.getPassword() != null && !userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
 						response.put("success", false);
 						response.put("message", "Incorrect Password");
 						return response;
