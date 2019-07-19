@@ -194,10 +194,10 @@ public class EventManager {
 			System.out.println(ev.getEventId()+ " - "+ ev.getUserId()+"  -  "+ev.getStatus());
 		}
 		
-		/*System.out.println("After Saving : "+event.toString());
+		System.out.println("After Saving : "+event.toString());
 		if (!Event.EventUpdateFor.Nothing.equals(event.getUpdatedFor())) {
 			notificationManager.sendGatheringNotification(event);
-		}*/
+		}
 		
 		System.out.println("[CreateEvent : "+new Date()+", ENDS]");
 		// saveEventsInSlots(event);

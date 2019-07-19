@@ -1233,12 +1233,12 @@ public class EventController {
 								// if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime())) &&
 								// userEts.getStatus().equals(TimeSlotStatus.Free.toString())) {
 								// System.out.println(CenesUtils.hhmm.format(userEts.getStartTime()));
-								System.out.println(
-										"Time In Hour Format : " + CenesUtils.hhmm.format(userEts.getStartTime()));
+								//System.out.println(
+								//		"Time In Hour Format : " + CenesUtils.hhmm.format(userEts.getStartTime()));
 								// System.out.println("userEts.getStatus() : "+userEts.getStatus());
 								if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime()))) {
 									slotExistsBetweenTimeRange = true;
-									System.out.println("Friend Found.." + userEts.getStatus());
+									//System.out.println("Friend Found.." + userEts.getStatus());
 									checkForNumberOfSlotsUserIsBusy.add(userEts.getStatus());
 									if (userEts.getStatus().equals(EventTimeSlot.TimeSlotStatus.Free.toString())) {
 										// This is to check if the events are of date yyyy-MM-dd
@@ -1516,12 +1516,12 @@ public class EventController {
 								// if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime())) &&
 								// userEts.getStatus().equals(TimeSlotStatus.Free.toString())) {
 								// System.out.println(CenesUtils.hhmm.format(userEts.getStartTime()));
-								System.out.println(
-										"Time In Hour Format : " + CenesUtils.hhmm.format(userEts.getStartTime()));
+								//System.out.println(
+								//		"Time In Hour Format : " + CenesUtils.hhmm.format(userEts.getStartTime()));
 								// System.out.println("userEts.getStatus() : "+userEts.getStatus());
 								if (hoursList.contains(CenesUtils.hhmm.format(userEts.getStartTime()))) {
 									slotExistsBetweenTimeRange = true;
-									System.out.println("Friend Found.." + userEts.getStatus());
+									//System.out.println("Friend Found.." + userEts.getStatus());
 									checkForNumberOfSlotsUserIsBusy.add(userEts.getStatus());
 									if (userEts.getStatus().equals(EventTimeSlot.TimeSlotStatus.Free.toString())) {
 										// This is to check if the events are of date yyyy-MM-dd
