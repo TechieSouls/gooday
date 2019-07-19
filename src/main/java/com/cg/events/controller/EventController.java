@@ -1709,6 +1709,7 @@ public class EventController {
 				Thumbnails.of(originalFile).size(250, 250).outputFormat("jpg").toFile(thumbnailPath);
 
 				String thumbnailImageUrl = domain + "/assets/uploads/events/thumbnail/" + fileName;
+				System.out.println("Thumbnail Url : "+thumbnailImageUrl);
 				event.setThumbnail(thumbnailImageUrl);
 			} catch (Exception e) {
 				e.printStackTrace();
