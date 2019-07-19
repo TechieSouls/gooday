@@ -676,14 +676,14 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 			+ "e.end_time >= '"+startDate+"' and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and ";
 	
 			if (status == null) {
-				query += "em.status is NULL) as event_temp ";
+				query += "em.status is NULL order by e.start_time asc limit "+pageNumber+","+offSet+") as event_temp ";
 			} else {
-				query += "em.status = '"+status+"') as event_temp ";
+				query += "em.status = '"+status+"' order by e.start_time asc limit "+pageNumber+","+offSet+") as event_temp ";
 			}
 					
 			query += "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
 			+ "LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = "+userId+" "
-			+ "order by event_temp.start_time asc limit "+pageNumber+","+offSet+" ";
+			+ "order by event_temp.start_time asc";
 		
 		System.out.println(query);
 		
