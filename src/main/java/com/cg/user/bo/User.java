@@ -40,20 +40,22 @@ public class User extends CgGeneral{
 	private String password;
 	
 	
-	@ApiModelProperty(required=true)
 	@Column(name="facebook_id")
-	private String facebookID;
+	private String facebookId;
 	
+	@Column(name="google_id")
+	private String googleId;
 	
 	@Transient
 	private AuthenticateType authType;
 	
 	
-	@ApiModelProperty(required=true)
 	@Column(name="facebook_auth_token")
 	private String facebookAuthToken;
 	
-	@ApiModelProperty(required=true)
+	@Column(name="google_auth_token")
+	private String googleAuthToken;
+	
 	@Column(nullable=false)
 	private String name;
 	
@@ -88,13 +90,15 @@ public class User extends CgGeneral{
 		return token;
 	}
 
-	public String getFacebookID() {
-		return facebookID;
+	public String getFacebookId() {
+		return facebookId;
 	}
 
-	public void setFacebookID(String facebookID) {
-		this.facebookID = facebookID;
+
+	public void setFacebookId(String facebookId) {
+		this.facebookId = facebookId;
 	}
+
 
 	public AuthenticateType getAuthType() {
 		return authType;
@@ -229,6 +233,32 @@ public class User extends CgGeneral{
 
 	public void setBirthDayStr(String birthDayStr) {
 		this.birthDayStr = birthDayStr;
+	}
+
+	public String getGoogleId() {
+		return googleId;
+	}
+
+	public void setGoogleId(String googleId) {
+		this.googleId = googleId;
+	}
+
+	public String getGoogleAuthToken() {
+		return googleAuthToken;
+	}
+
+	public void setGoogleAuthToken(String googleAuthToken) {
+		this.googleAuthToken = googleAuthToken;
+	}
+
+	@Override
+	public String toString() {
+		return "User [userId=" + userId + ", username=" + username + ", email=" + email + ", password=" + password
+				+ ", facebookId=" + facebookId + ", googleId=" + googleId + ", authType=" + authType
+				+ ", facebookAuthToken=" + facebookAuthToken + ", googleAuthToken=" + googleAuthToken + ", name=" + name
+				+ ", photo=" + photo + ", gender=" + gender + ", phone=" + phone + ", resetToken=" + resetToken
+				+ ", resetTokenCreatedAt=" + resetTokenCreatedAt + ", country=" + country + ", birthDate=" + birthDate
+				+ ", birthDayStr=" + birthDayStr + ", isNew=" + isNew + ", token=" + token + "]";
 	}
 	
 }

@@ -7,7 +7,9 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -72,6 +74,7 @@ public class UserDetailController {
 			HttpServletResponse response,
 			@RequestBody User user) {
 		
+		
 		String phone = user.getPhone();
 		
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user");
@@ -104,7 +107,7 @@ public class UserDetailController {
 			}
 		}
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user "+user.toString());	
-		user.setPassword(null);
+		user.setPassword("password");
 		return new ResponseEntity<User>(user, HttpStatus.OK);
 	}
 	
@@ -114,7 +117,7 @@ public class UserDetailController {
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "product updated successfuly", response = User.class) })
 	@RequestMapping(value = "/api/users/{userId}", method = RequestMethod.GET)
 	@ResponseBody
-	public ResponseEntity<User> getUserDetail(@ApiParam(name = "userId", value = "User id", required = true) 
+		public ResponseEntity<User> getUserDetail(@ApiParam(name = "userId", value = "User id", required = true) 
 		@PathVariable("userId") Long userId) {
 		User user = new User();
 		try {
@@ -150,6 +153,26 @@ public class UserDetailController {
 		user.setErrorCode(ErrorCodes.RowNotFound.getErrorCode());
 		user.setErrorDetail(ErrorCodes.RowNotFound.toString());
 		return new ResponseEntity<User>(user, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/user/findByEmail", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> findUserByEmail(String email) {
+		
+		Map<String, Object> response = new HashMap<String, Object>();
+		response.put("success", true);
+		
+		User user = null;
+		try {
+			user = userRepository.findUserByEmail(email);
+			if (user != null) {
+				response.put("success", false);
+				response.put("message", "This Account Already Exists");
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
 
 	private String establishUserAndLogin(HttpServletResponse response,

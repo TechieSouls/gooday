@@ -10,11 +10,14 @@ import java.util.Map.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.cg.bo.CalendarSyncToken;
+import com.cg.bo.CenesProperty;
 import com.cg.bo.HolidayCalendar;
 import com.cg.bo.UserStat;
 import com.cg.dao.UserDao;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
+import com.cg.repository.CalendarSyncTokenRepository;
 import com.cg.repository.HolidayCalendarRepository;
 import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserDeviceRepository;
@@ -42,6 +45,9 @@ public class UserService {
 	
 	@Autowired
 	UserStatRepository userStatRepository;
+	
+	@Autowired
+	CalendarSyncTokenRepository calendarSyncTokenRepository;
 	
 	@Autowired
 	UserDao userDao;
@@ -79,7 +85,7 @@ public class UserService {
 	}
 	
 	public User findUserByFacebookId(String facebookId) {
-		return userRepository.findUserByFacebookID(facebookId);
+		return userRepository.findUserByFacebookId(facebookId);
 	}
 	
 	public User findUserByEmail(String email) {
@@ -128,6 +134,26 @@ public class UserService {
 	public List<HolidayCalendar> findHolidayCalendarByUserId(Long userId) {
 		
 		return holidayCalendarRepository.findByUserId(userId);
+	}
+	
+	public void updateNameByUserId(String name, Long userId) {
+		userRepository.updateNameByUserId(name, userId);
+	}
+	
+	public void updateGenderByUserId(String gender, Long userId) {
+		userRepository.updateGenderByUserId(gender, userId);
+	}
+	
+	public void updateBirthDayByUserId(String birthDayStr, Long userId) {
+		userRepository.updateDobStrByUserId(birthDayStr, userId);
+	}
+	
+	public void updatePasswordByUserId(String password, Long userId) {
+		userRepository.updatePasswordByUserId(password, userId);
+	}
+	
+	public void updateProfilePicByUserId(String profilePicUrl, Long userId) {
+		userRepository.updateProfilePicByUserId(profilePicUrl, userId);
 	}
 	
 	/**
@@ -352,6 +378,19 @@ public class UserService {
 		return userStatRepository.save(userStat);
 	}
 	
+	
+	
+	/************** Cenes Properties ************************/
+	public List<CalendarSyncToken> fincSyncTokensByUserId(Long userId) {
+		return calendarSyncTokenRepository.findByUserId(userId);
+	}
+	public void deleteCalendarSyncTokenByCalendarSyncTokenId(Long calendarSyncTokenId) {
+		calendarSyncTokenRepository.deleteByRefreshTokenId(calendarSyncTokenId);
+	}
+	public void deleteCalendarSyncTokensByUserId(Long userId) {
+		calendarSyncTokenRepository.deleteByUserId(userId);
+	}
+	
 	//This function will update the cenes member counts in user contacts.
 	public void updateCenesMemberCountsByUserContacts(List<UserContact> userContacts) {
 		
@@ -373,7 +412,7 @@ public class UserService {
 				}
 			}
 			
-			if (userStat == null) {
+			if (userStat == null) {	
 				userStat  = new UserStat();
 				userStat.setCenesMemberCounts(1l);
 				userStatToUpdate.add(userStat);
@@ -391,7 +430,7 @@ public class UserService {
 			
 			List<EventMember> goingMembers = new ArrayList<>();
 			for (EventMember eventMember: eventMembers) {
-				if (eventMember.getStatus().equals(EventMember.MemberStatus.Going.toString())) {
+				if (eventMember.getStatus() != null && eventMember.getStatus().equals(EventMember.MemberStatus.Going.toString())) {
 					goingMembers.add(eventMember);
 				}
 			}
@@ -403,6 +442,8 @@ public class UserService {
 				
 				boolean userStatExist = false;
 
+				
+				//Lets check if user is hosting the events. Then we will increase hosted counts
 				for (UserStat userStat: usersStat) {
 					
 					//If User Stat exists for Event Members
@@ -411,13 +452,19 @@ public class UserService {
 						//Check if event Member is a host 
 						if (event.getCreatedById().equals(goingMember.getUserId())) {
 							userStat.setEventsHostedCounts(userStat.getEventsHostedCounts() + 1);
-							usersStatToUpdate.add(userStat);
-							userStatExist  = true;
-							break;
+						} else {
+							//If event member is not a host
+							//Then we will update his events attended counts.
+							userStat.setEventsHostedCounts(userStat.getEventsAttendedCounts() + 1);
 						}
+						
+						usersStatToUpdate.add(userStat);
+						userStatExist  = true;
+						break;
 					}
 				}
 				
+
 				//If Stats Does not exist for user. Then create new stats
 				if (!userStatExist) {
 					
@@ -428,6 +475,7 @@ public class UserService {
 					} else {//Increment Attended counts
 						userStat.setEventsAttendedCounts(1l);
 					}
+					userStat.setUserId(goingMember.getUserId());
 					usersStatToUpdate.add(userStat);
 				}
 			}

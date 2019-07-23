@@ -1,5 +1,7 @@
 package com.cg.bo;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -17,8 +19,9 @@ import com.cg.user.bo.User;
 @Table(name="calendar_sync_tokens")
 public class CalendarSyncToken {
 
-	public enum AccountType {Google,Outlook}
-	
+	public enum AccountType {Google,Outlook, Apple, Holiday}
+	public enum ActiveStatus {InActive, Active}
+
 	public CalendarSyncToken() {
 		
 	}
@@ -51,6 +54,20 @@ public class CalendarSyncToken {
 	
 	@Column(name="email_id")
 	private String emailId;
+	
+	@Column(name="subscription_id")
+	private String subscriptionId;
+	
+	@Column(name="resource_id")
+	private String resourceId;
+	
+	@Column(name="sub_expiry_date")
+	private Date subExpiryDate;
+		
+	
+	@Enumerated(EnumType.ORDINAL)
+	@Column(name="is_active")
+	private ActiveStatus isActive = ActiveStatus.Active;
 	
 	@ManyToOne
 	@JoinColumn(name="user_id",updatable=false,insertable=false)
@@ -103,5 +120,37 @@ public class CalendarSyncToken {
 
 	public void setUser(User user) {
 		this.user = user;
+	}
+
+	public String getSubscriptionId() {
+		return subscriptionId;
+	}
+
+	public void setSubscriptionId(String subscriptionId) {
+		this.subscriptionId = subscriptionId;
+	}
+
+	public Date getSubExpiryDate() {
+		return subExpiryDate;
+	}
+
+	public void setSubExpiryDate(Date subExpiryDate) {
+		this.subExpiryDate = subExpiryDate;
+	}
+
+	public String getResourceId() {
+		return resourceId;
+	}
+
+	public void setResourceId(String resourceId) {
+		this.resourceId = resourceId;
+	}
+
+	public ActiveStatus getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(ActiveStatus isActive) {
+		this.isActive = isActive;
 	}
 }

@@ -42,4 +42,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 	@Transactional
 	@Query("update Notification n set n.readStatus = :readStatus where n.recepientId = :recepientId and n.notificationTypeId = :notificationTypeId")
 	public void updateReadStatusByreceipientIdAndNotificationTypeId(@Param("readStatus") Notification.NotificationReadStatus readStatus ,@Param("recepientId") Long recepientId, @Param("notificationTypeId") Long notificationTypeId);
+
+
+	@Modifying(clearAutomatically = true)
+	@Transactional
+	@Query("update Notification n set n.readStatus = :readStatus where n.notificationId = :notificationId")
+	public void updateReadStatusByNotificationId(@Param("readStatus") Notification.NotificationReadStatus readStatus ,@Param("notificationId") Long notificationId);
+
 }

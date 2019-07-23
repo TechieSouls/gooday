@@ -92,4 +92,11 @@ public class UserDevice extends CgGeneral {
 	public void setVersion(String version) {
 		this.version = version;
 	}
+
+	@Override
+	public String toString() {
+		return "UserDevice [userTokenId=" + userTokenId + ", deviceToken=" + deviceToken + ", deviceType=" + deviceType
+				+ ", manufacturer=" + manufacturer + ", model=" + model + ", version=" + version + ", userId=" + userId
+				+ "]";
+	}
 }

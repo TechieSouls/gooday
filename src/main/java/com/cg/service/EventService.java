@@ -10,13 +10,13 @@ import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CenesProperty;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
+import com.cg.dao.EventServiceDao;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventTimeSlot;
 import com.cg.events.bo.RecurringEvent;
 import com.cg.events.bo.RecurringEvent.RecurringEventProcessStatus;
 import com.cg.events.bo.RecurringPattern;
-import com.cg.events.dao.EventServiceDao;
 import com.cg.events.repository.EventMemberRepository;
 import com.cg.events.repository.EventRepository;
 import com.cg.events.repository.EventTimeSlotRepository;
@@ -169,7 +169,7 @@ public class EventService {
 	public void deleteEventsByCreatedByIdAndSourceAndScheduleAs(Long createdById,String source,String scheduleAs) {
 		eventRepository.deleteEventsByCreatedByIdAndSourceAndScheduleAs(createdById, source,scheduleAs);
 	}	
-
+	
 	public void deleteEventsByCreatedById(Long createdById) {
 		eventRepository.deleteByCreatedById(createdById);
 	}

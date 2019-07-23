@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 @Entity
 @Table(name="cenes_properties")
@@ -75,6 +76,10 @@ public class CenesProperty {
 	
 	@Column(name="property_owner_entity_id")
 	private Long propertyOwnerEntityId;
+	
+	@Transient
+	private CenesPropertyValue cenesPropertyValue;
+	
 	
 	public Long getCenesPropertyId() {
 		return cenesPropertyId;
@@ -151,5 +156,13 @@ public class CenesProperty {
 
 	public void setPropertyConfigValues(String propertyConfigValues) {
 		this.propertyConfigValues = propertyConfigValues;
+	}
+
+	public CenesPropertyValue getCenesPropertyValue() {
+		return cenesPropertyValue;
+	}
+
+	public void setCenesPropertyValue(CenesPropertyValue cenesPropertyValue) {
+		this.cenesPropertyValue = cenesPropertyValue;
 	}
 }

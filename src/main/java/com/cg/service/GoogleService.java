@@ -8,8 +8,10 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -17,6 +19,7 @@ import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONException;
 import org.primefaces.json.JSONObject;
 
+import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.GoogleCountries;
 import com.cg.events.bo.GoogleEventAttendees;
 import com.cg.events.bo.GoogleEventItem;
@@ -177,17 +180,48 @@ public class GoogleService {
 				
 				HttpService httpService = null;
 				
-				String recurringEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				//String recurringEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				//String recurringEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&"+tokenParam+"&singleEvents=true";
+				String recurringEventsAPI = events_list_api_str+"?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&alt=json";
 				httpService = new HttpService();
 				JSONObject calResponse = httpService.getRequestWithAuthorization(recurringEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(recurringEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
 				
 				httpService = new HttpService();
-				String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+				//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&"+tokenParam;
+				String normalEventsAPI = events_list_api_str+"?maxResults=100&singleEvents=false&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&alt=json";
+
 				calResponse = httpService.getRequestWithAuthorization(normalEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(normalEventsAPI,"GET");
 				googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
 		/*	}
 		}	*/
+		return googleCalendarEvents;
+	}
+	
+	
+	public List<GoogleEvents> getGoogleEventsOnNotification(String resourceUrl, String accessToken, Date minTime) {
+		
+		List<GoogleEvents> googleCalendarEvents = new ArrayList<>();
+		HttpService httpService = new HttpService();
+
+		/*String resourceUrlTemp = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=100&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
+		JSONObject calResponse = httpService.getRequestWithAuthorization(resourceUrlTemp, "GET", accessToken);
+		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));*/
+
+		
+		String recurringEventsAPI = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=50&singleEvents=true&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
+		System.out.println("Url recurringEventsAPI : "+recurringEventsAPI);
+		JSONObject calResponse = httpService.getRequestWithAuthorization(recurringEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(recurringEventsAPI,"GET");
+		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,true));
+		
+		httpService = new HttpService();
+		//String normalEventsAPI = events_list_api_str+"?key="+CenesUtils.googleAPIKey+"&future_events=true"+tokenParam+"&timeMin="+URLEncoder.encode(sdf.format(minTimeCal.getTime()))+"&timeMax="+URLEncoder.encode(sdf.format(maxTimeCal.getTime()));
+		String normalEventsAPI = "https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=50&timeMin="+URLEncoder.encode(sdf.format(minTime))+"&alt=json";
+		System.out.println("Url normalEventsAPI : "+normalEventsAPI);
+		calResponse = httpService.getRequestWithAuthorization(normalEventsAPI, "GET", accessToken);//doGoogleCalendarRestRequest(normalEventsAPI,"GET");
+		googleCalendarEvents.addAll(parseGoogleEventsResponse(calResponse,false));
+		
 		return googleCalendarEvents;
 	}
 	
@@ -354,6 +388,8 @@ public class GoogleService {
 	
 	public String httpPostQueryString(String apiUrl, String postStr) {
 		try {
+			System.setProperty("https.protocols", "TLSv1,TLSv1.1,TLSv1.2");
+
 			URL obj = new URL(apiUrl);
 			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
 
@@ -372,6 +408,50 @@ public class GoogleService {
 			int responseCode = con.getResponseCode();
 			System.out.println("\nSending 'POST' request to URL : " + apiUrl);
 			System.out.println("Post parameters : " + postStr);
+			System.out.println("Response Code : " + responseCode);
+
+			BufferedReader in = new BufferedReader(
+			        new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+			
+			//print result
+			System.out.println(response.toString());
+			return response.toString();
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public String httpPostWithoutData(String apiUrl, String accessToken, String postData) {
+		try {
+			URL obj = new URL(apiUrl);
+			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+
+			//add request header
+			con.setRequestMethod("POST");
+			//con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+			con.setRequestProperty("Authorization", "Bearer "+accessToken+"");
+			con.setRequestProperty("Content-Type", "application/json");
+			con.setRequestProperty("Content-Length", "0");
+
+			// Send post request
+			con.setDoOutput(true);
+
+			// Send post request
+			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes(postData);
+			wr.flush();
+			wr.close();
+
+			int responseCode = con.getResponseCode();
+			System.out.println("\nSending 'POST' request to URL : " + apiUrl);
 			System.out.println("Response Code : " + responseCode);
 
 			BufferedReader in = new BufferedReader(
@@ -440,6 +520,33 @@ public class GoogleService {
 	}
 	
 	
+	//To subscribe, Channel Id is necessary and should be same which is used very first time
+	public JSONObject subscribeToGoogleEventWatcher(String accessToken, String channelId) {
+		
+		System.out.println("Subscribing.. Access Token : "+accessToken);
+		String apiUrl = "https://www.googleapis.com/calendar/v3/calendars/primary/events/watch";
+		try {
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.DAY_OF_MONTH, 3);
+			
+
+			JSONObject postData = new JSONObject();
+			postData.put("id", ""+channelId+"");
+			postData.put("type", "web_hook");
+			postData.put("address", "https://deploy.cenesgroup.com/api/event/google/notifyWebhook");
+			postData.put("expiration", calendar.getTimeInMillis());
+
+			JSONObject json = new JSONObject(httpPostWithoutData(apiUrl, accessToken, postData.toString()));
+			System.out.println(json.toString());
+			return json;
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return  null;
+	}
+	
+	
 	public void getAccessTokenFromRefreshTokenBkp(String refreshToken) {
 		
 		String url = "https://www.googleapis.com/oauth2/v4/token";
@@ -493,6 +600,42 @@ public class GoogleService {
 		return gc;
 	}
 	
+	public void unsubscribeGoogleNotification(CalendarSyncToken calendarSyncToken) {
+		
+		
+		JSONObject resp = getAccessTokenFromRefreshToken(calendarSyncToken.getRefreshToken());
+		
+		String url = "https://www.googleapis.com/calendar/v3/channels/stop";
+
+		
+		JSONObject jsonObj = new JSONObject();
+		try {
+			String accessToken = resp.getString("access_token");
+
+			jsonObj.put("id", calendarSyncToken.getSubscriptionId());
+			jsonObj.put("resourceId", calendarSyncToken.getResourceId());
+
+			HttpService httpService = new HttpService();
+			httpService.httpPostWithDataAccessToken(url, accessToken, jsonObj.toString());
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	//Subscription call
+	/*public static void main(String[] args) {
+		GoogleService gs = new GoogleService();
+		try {
+			JSONObject json = gs.getAccessTokenFromRefreshToken("1/kXkYzmXkrGJwza7UgJ5nTiQultJPE3KeKRPyGxfv6B4Oh2nQIZv7D-QADMq-Zhde");
+			String accessToken = json.getString("access_token");
+			//String accessToken = "ya29.GlsYB8zmcdMOBQ77Hr5k5I5Ucs6XQgj3lfM4EK87lJ4zuQBUbXIiGWqk8qP61VJYNItVyURxo_phfjZtRvWN44bfQsmUTXWkP32lNWDhd2LkjIAsuf1D57Ct8Yzb";
+			JSONObject json2 = gs.subscribeToGoogleEventWatcher(accessToken);
+			System.out.println(json2.toString());
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}*/
 	/*public static void main(String[] args) {
 		//new GoogleService().getCountryHolidayEvents("en.canadian#holiday@group.v.calendar.google.com");
 		
@@ -539,5 +682,10 @@ public class GoogleService {
 		
 		
 		System.out.println(URLEncoder.encode("en.malaysia#holiday@group.v.calendar.google.com"));
+	}*/
+	
+	/*public static void main(String[] args) {
+		GoogleService gs = new GoogleService();
+		System.out.println(gs.getAccessTokenFromRefreshToken("1/vtmthlD7W_4ufUQk5J48S89EIdLP9KP-xlM7ttcEXuw"));
 	}*/
 }

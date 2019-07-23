@@ -21,6 +21,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	
 	List<Event> findBySourceEventId(String sourceEventId);
 	
+	List<Event> findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(Long createdById, Date startTime, String source, String scheduleAs);
+	
 	public void deleteByCreatedById(Long createdById);
 	
 	List<Event> findBySourceEventIdAndCreatedById(String sourceEventId,Long createdById);
@@ -67,7 +69,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query("select e from Event e JOIN e.eventMembers em where DATE(e.startTime) >= now() and em.userId = :createdById and em.status = 'Going' and e.scheduleAs in ('Event','Holiday','Gathering') order by e.startTime asc")
 	List<Event> findByCreatedByIdAndStartDateOnlyAndEventMemberStatus(@Param("createdById") Long createdById);
 		
-	@Query("select e from Event e where  DATE_FORMAT(now(),'%Y-%m-%d %H:%i:00') >= DATE_FORMAT(e.endTime,'%Y-%m-%d %H:%i:00') and e.source = 'Cenes' and e.scheduleAs = 'Gathering' order by e.startTime asc")
+	@Query("select e from Event e where DATE_FORMAT(now(),'%Y-%m-%d %H:%i:00') >= DATE_FORMAT(e.endTime,'%Y-%m-%d %H:%i:00') and e.source = 'Cenes' and e.scheduleAs = 'Gathering' order by e.startTime asc")
 	List<Event> findPastUserGatherings();
 	
 	@Query("select e from Event e JOIN e.eventMembers em where em.processed = :processed and em.status = :status")
@@ -86,9 +88,13 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query("delete from Event e where e.createdById = :createdById and e.source = :source and e.scheduleAs = :scheduleAs")
 	public void deleteEventsByCreatedByIdAndSourceAndScheduleAs(@Param("createdById") Long createdById,@Param("source") String source,@Param("scheduleAs") String scheduleAs);
 	
+	public void deleteByStartTimeGreaterThanAndCreatedByIdAndSourceAndScheduleAs(Date startTime, Long createdById, String source, String scheduleAs);
+	
 	public void deleteEventsByCreatedByIdAndScheduleAs(@Param("createdById") Long createdById,@Param("scheduleAs") String scheduleAs);
 	
 	public void deleteByRecurringEventId(String recurringEventId);
 	
-
+	@Modifying(clearAutomatically = true)
+	@Transactional
+	public void deleteBySourceAndScheduleAsAndSourceEventId(String source, String scheduleAs, String sourceEventId);
 }

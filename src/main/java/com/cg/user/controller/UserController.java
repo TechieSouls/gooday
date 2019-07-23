@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -25,6 +26,7 @@ import java.util.UUID;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.tomcat.util.codec.binary.Base64;
@@ -32,6 +34,7 @@ import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +50,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.FacebookProfile;
@@ -54,6 +58,7 @@ import com.cg.bo.HolidayCalendar;
 import com.cg.bo.UserFriend;
 import com.cg.bo.UserFriend.UserStatus;
 import com.cg.bo.UserStat;
+import com.cg.bo.CalendarSyncToken.AccountType;
 import com.cg.constant.CgConstants.ErrorCodes;
 import com.cg.dto.ChangePasswordDto;
 import com.cg.enums.CgEnums.AuthenticateType;
@@ -67,12 +72,14 @@ import com.cg.events.bo.RecurringPattern;
 import com.cg.manager.EmailManager;
 import com.cg.manager.EventManager;
 import com.cg.manager.EventTimeSlotManager;
+import com.cg.manager.GeoLocationManager;
 import com.cg.manager.RecurringManager;
 import com.cg.repository.CenesPropertyValueRepository;
 import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserFriendRepository;
 import com.cg.repository.UserRepository;
 import com.cg.service.FacebookService;
+import com.cg.service.GoogleService;
 import com.cg.service.OutlookService;
 import com.cg.service.TwilioService;
 import com.cg.service.UserService;
@@ -84,6 +91,7 @@ import com.cg.user.bo.UserContact.CenesMember;
 import com.cg.user.bo.UserDevice;
 import com.cg.utils.CenesUtils;
 import com.google.common.collect.Sets;
+import com.maxmind.geoip2.record.Country;
 
 @RestController
 @Api(value = "User", description = "Create User data")
@@ -112,6 +120,9 @@ public class UserController {
 	
 	@Autowired
 	EmailManager emailManager;
+	
+	@Autowired
+	GeoLocationManager geoLoactionManager;
 	
 	@Autowired
 	CenesPropertyValueRepository cenesPropertyValueRepository;
@@ -144,7 +155,7 @@ public class UserController {
 		
 		//Setting auth type in case it is not passed in the api
 		if (user.getAuthType() == null) {
-			if (user.getFacebookID() != null) {
+			if (user.getFacebookId() != null) {
 				user.setAuthType(AuthenticateType.facebook);
 			} else if (user.getEmail() != null) {
 				user.setAuthType(AuthenticateType.email);
@@ -233,14 +244,14 @@ public class UserController {
 				user.setErrorDetail(ErrorCodes.FacebookTokenNotPresent.toString());
 				return new ResponseEntity<User>(user, HttpStatus.PARTIAL_CONTENT);
 			}
-			if (user.getFacebookID() == null) {
+			if (user.getFacebookId() == null) {
 				user.setErrorCode(ErrorCodes.FacebookIdNotPresent.getErrorCode());
 				user.setErrorDetail(ErrorCodes.FacebookIdNotPresent.toString());
 				return new ResponseEntity<User>(user, HttpStatus.PARTIAL_CONTENT);
 			}
 			
 			System.out.println("[ Date : "+new Date()+" ] ,UserType : Facebook, Message : Facebook Type User");
-			userInfo = userRepository.findUserByFacebookID(user.getFacebookID());
+			userInfo = userRepository.findUserByFacebookId(user.getFacebookId());
 			if (userInfo == null) {
 				System.out.println("[ Date : "+new Date()+" ] ,UserType : Facebook, Message : New signup request");
 				try {
@@ -299,6 +310,178 @@ public class UserController {
 		user.setErrorDetail(ErrorCodes.InternalServerError.toString());
 		return new ResponseEntity<User>(user, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
+	
+	@RequestMapping(value = "/api/users/signupstep1", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> signupUserStep1(@RequestBody User user, HttpServletResponse httpServletResponse) {
+
+		
+		boolean isNewUser = false;
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		
+		//If User signup via Email
+		if (user.getAuthType().equals(AuthenticateType.email)) {
+			
+			//Lets check if same phone number exists for the user.
+			if (user.getPhone() == null) {
+				response.put("success", false);
+				response.put("message", "Please visit Phone Verification Steps");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			User userByPhone = userRepository.findByPhone(user.getPhone());
+			if (userByPhone != null) {
+				response.put("success", false);
+				response.put("message", "Phone Already Exists.");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			
+			
+			
+			User emailUser = userRepository.findUserByEmail(user.getEmail());
+			if (emailUser != null) {
+				response.put("success", false);
+				response.put("message", "This Account Already Exists");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			
+			user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
+			user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+			user.setToken(establishUserAndLogin(httpServletResponse, user));
+			user = userService.saveUser(user);
+			
+			isNewUser = true;
+		}
+		
+		User emailUser = null;
+		//If its a Facebook User Request
+		if (user.getAuthType().equals(AuthenticateType.facebook)) {
+			
+			//Lets first find the user for the email used in facebook
+			if (user.getEmail() != null) {
+				emailUser = userRepository.findByEmailAndFacebookIdIsNull(user.getEmail());
+			}
+			
+			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
+			if (facebookIdUser != null) {
+				
+				if (facebookIdUser.getPhone() == null && user.getPhone() != null) {
+					facebookIdUser.setPhone(user.getPhone());
+					facebookIdUser = userService.saveUser(facebookIdUser);
+				}
+				
+				facebookIdUser.setIsNew(false);
+				response.put("success", true);
+				response.put("data", facebookIdUser);
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			
+			
+		}
+		
+		//If its a Google User Request
+		if (user.getAuthType().equals(AuthenticateType.google)) {
+			
+			//Lets first find the user for the email used in facebook
+			if (user.getEmail() != null) {
+				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
+			}
+			
+			User googleIdUser = userRepository.findUserByGoogleId(user.getGoogleId());
+			if (googleIdUser != null) {
+				
+				if (googleIdUser.getPhone() == null && user.getPhone() != null) {
+					googleIdUser.setPhone(user.getPhone());
+					googleIdUser = userService.saveUser(googleIdUser);
+				}
+				
+				googleIdUser.setIsNew(false);
+				response.put("success", true);
+				response.put("data", googleIdUser);
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+		}
+
+		//We will get email user if user did not logged in via Facebook/Google
+		if (emailUser != null) {
+			 
+			if (emailUser.getPhone() == null && user.getPhone() != null) {
+				emailUser.setPhone(user.getPhone());
+			}
+			emailUser.setPhoto(user.getPhoto());
+			emailUser.setName(user.getName());
+			emailUser.setGender(user.getGender());
+			if (user.getAuthType().equals(AuthenticateType.facebook)) {
+				emailUser.setFacebookId(user.getFacebookId());
+				emailUser.setFacebookAuthToken(user.getFacebookAuthToken());
+			} else if (user.getAuthType().equals(AuthenticateType.google)) {
+				emailUser.setGoogleId(user.getGoogleId());
+				emailUser.setGoogleAuthToken(user.getGoogleAuthToken());
+			}
+		
+			user = emailUser;
+			user.setIsNew(false);
+
+		} else {
+			
+			isNewUser = true;
+			
+			user.setIsNew(true);
+			user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
+			user.setToken(establishUserAndLogin(httpServletResponse, user));
+		}
+		
+		user = userService.saveUser(user);
+		try {
+			//Updating this user in other users contact list.
+			if (user.getPhone() != null) {
+				String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+				List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
+				if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+					for (UserContact userContact : userContactInOtherContacts) {
+						userContact.setCenesMember(CenesMember.yes);
+						userContact.setFriendId(user.getUserId());
+					}
+					userContactRepository.save(userContactInOtherContacts);
+					
+					//Now lets update the counts of cenes member counts under user stats
+					//UserThread userThread = new UserThread();
+					//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);`
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			user.setErrorCode(ErrorCodes.InternalServerError.ordinal());
+			user.setErrorDetail(ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+		
+		if (isNewUser) {
+			recurringManager.saveDefaultMeTime(user.getUserId());
+		}
+		
+		
+		response.put("data", user);
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/api/users/signupstep2", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> signupUserStep2(@RequestBody User user) {
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		User emailUser = userRepository.findUserByEmail(user.getEmail());
+		if (emailUser != null) {
+			response.put("success", false);
+			response.put("message", "This Account Already Exists");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+		response.put("data", user);
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
 
 	@ResponseBody
 	@RequestMapping(value="/api/user/update/", method = RequestMethod.POST)
@@ -568,6 +751,60 @@ public class UserController {
         return new ResponseEntity<User>(user, HttpStatus.OK);
     }
 	
+	@RequestMapping(value = "/api/user/profile/upload/v2", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> uploadImagev2(MultipartFile mediaFile, Long userId) {
+    	
+		Map<String, Object> response = new HashMap<String, Object>();
+		response.put("success", true);
+		
+		User user = userRepository.findOne(Long.valueOf(userId));
+		
+		InputStream inputStream = null;
+        OutputStream outputStream = null;
+        String extension = mediaFile.getOriginalFilename().substring(mediaFile.getOriginalFilename().trim().lastIndexOf("."),mediaFile.getOriginalFilename().length());
+        
+        String fileName = UUID.randomUUID().toString()+extension;
+
+        File f = new File(profileImageUploadPath);
+        if(!f.exists()) { 
+        	try {
+				f.mkdirs();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }        
+        File newFile = new File(profileImageUploadPath+fileName);
+        try {
+            inputStream = mediaFile.getInputStream();
+
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            outputStream = new FileOutputStream(newFile);
+            int read = 0;
+            byte[] bytes = new byte[1024];
+
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+           
+            String profilePicUrl = domain+"/assets/uploads/profile/"+fileName;
+            user.setPhoto(profilePicUrl);
+            userService.saveUser(user);
+    		response.put("data", profilePicUrl);
+
+                        
+        } catch (Exception e) {
+        	e.printStackTrace();
+    		response.put("success", false);
+    		response.put("message", e.getLocalizedMessage());
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+
+        }
+        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+    }
+	
 	
 	@RequestMapping(value = "/api/recurring/upload", method = RequestMethod.POST)
     public ResponseEntity<RecurringEvent> uploadRecurringEventImage(MultipartFile uploadfile,Long recurringEventId) {
@@ -646,12 +883,15 @@ public class UserController {
 		if (meTime != null && meTime.getRecurringEventId() != null) {
 			
 			RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(meTime.getRecurringEventId());
-			if (recurringEvent != null && recurringEvent.getPhoto() != null) {
-				imageUrl = recurringEvent.getPhoto();
+			if (recurringEvent != null) {
+				 if (recurringEvent.getPhoto() != null) {
+						imageUrl = recurringEvent.getPhoto();
+
+				 }
+					recurringEvent.setCreatedById(null);
+					recurringManager.saveRecurringEvent(recurringEvent);
 			}
-			recurringEvent.setCreatedById(null);
-			recurringManager.saveRecurringEvent(recurringEvent);
-			//deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
+			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
 		}
 		
 		Long starTimeMillis = new Date().getTime();
@@ -673,6 +913,8 @@ public class UserController {
 			for (MeTimeEvent meEvent : meTime.getEvents()) {
 				Calendar startCal = Calendar.getInstance();
 				startCal.setTimeInMillis(meEvent.getStartTime());
+				
+				System.out.println("MeTime Start Time : "+meEvent.getStartTime());
 				
 				if (!recurringEventMap.containsKey(meEvent.getTitle())) {
 					RecurringEvent recurringEvent = new RecurringEvent();
@@ -713,6 +955,7 @@ public class UserController {
 					dayOfWeekCal.setTimeInMillis(meEvent.getStartTime());
 					
 					recurringPattern.setDayOfWeek(dayOfWeekCal.get(Calendar.DAY_OF_WEEK));
+					//recurringPattern.setDayOfWeek(Integer.valueOf(meEvent.getDayOfWeek()));
 					recurringPatterns.add(recurringPattern);
 					
 					recurringEvent.setRecurringPatterns(recurringPatterns);
@@ -730,7 +973,8 @@ public class UserController {
 					Calendar dayOfWeekCal = Calendar.getInstance();
 					dayOfWeekCal.setTimeInMillis(meEvent.getStartTime());
 					recurringPattern.setDayOfWeek(dayOfWeekCal.get(Calendar.DAY_OF_WEEK));
-					
+					//recurringPattern.setDayOfWeek(Integer.valueOf(meEvent.getDayOfWeek()));
+
 					//recurringPattern.setDayOfWeek(dayOfWeekMap.get(meEvent.getDayOfWeek()));
 					//recurringPattern.setDayOfWeek(startCal.get(Calendar.DAY_OF_WEEK));
 					//System.out.println(startCal.get(Calendar.DAY_OF_WEEK));
@@ -771,7 +1015,7 @@ public class UserController {
 		RecurringEvent recurringEvent = recurringManager.findByRecurringEventId(recurringEventId);
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
-		/*try {
+		try {
 			eventManager.deleteEventsByRecurringEventId(recurringEventId);
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -796,7 +1040,7 @@ public class UserController {
 			e.printStackTrace();
 		}
 		
-		try{
+		/*try{
 			if (recurringEvent.getPhoto() != null) {
 				String fileName = recurringEvent.getPhoto().substring(recurringEvent.getPhoto().lastIndexOf("/")+1, recurringEvent.getPhoto().length());
 	    		File file = new File(recurringEventUploadPath+fileName);
@@ -811,8 +1055,8 @@ public class UserController {
     		e.printStackTrace();
     		
     	}*/
-		recurringEvent.setCreatedById(null);
-		recurringManager.saveRecurringEvent(recurringEvent);
+		//recurringEvent.setCreatedById(null);
+		//recurringManager.saveRecurringEvent(recurringEvent);
 		return new ResponseEntity(response, HttpStatus.OK);
 	}
 	
@@ -855,6 +1099,8 @@ public class UserController {
 	public ResponseEntity<Map<String, Object>> registerDevice(@RequestBody UserDevice userDevice) {
 		Map<String,Object> response = new HashMap<>();
 		try {
+			
+			System.out.println("User Device : "+userDevice.toString());
 			
 			UserDevice savedUser = userService.findUserDeviceByDeviceTypeAndUserId(userDevice.getDeviceType(), userDevice.getUserId());
 			if (savedUser != null) {
@@ -921,6 +1167,7 @@ public class UserController {
 				} else {
 					response.put("success", false);
 					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
 				}
 				response.put("errorCode", 0);
 			} else {
@@ -934,8 +1181,140 @@ public class UserController {
 			response.put("success", false);
 			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
 			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
 		}
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/forgetPassword/v2", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> getForgetPasswordV2(String email) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					
+					String resetPasswordToken = CenesUtils.getAlphaNumeric(40);
+					user.setResetToken(resetPasswordToken);
+					user.setResetTokenCreatedAt(new Date());
+					user = userService.saveUser(user);
+					response.put("success", true);
+				} else {
+					response.put("success", false);
+					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
+				}
+				response.put("errorCode", 0);
+			} else {
+				response.put("success", false);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/forgetPassword/v2/sendEmail", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> sendForgetPasswordEmail(String email) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					
+					emailManager.sendForgotPasswordConfirmationLink(user);
+					response.put("success", true);
+				} else {
+					response.put("success", false);
+					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
+				}
+				response.put("errorCode", 0);
+			} else {
+				response.put("success", false);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	
+	@RequestMapping(value = "/auth/forgetPasswordConfirmation", method = RequestMethod.GET)
+	public ResponseEntity<Object> forgetPasswordConfirmationLinRequest(String resetToken, HttpServletRequest request) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			
+			user = userService.findUserByResetToken(resetToken);
+			
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Invalid Reset Token");
+				String url = request.getScheme()+"://thankyou.html?success=false";
+				
+			    URI yahoo = new URI(url);
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+				//return response.toString();
+				
+			}
+
+			user.setResetToken(null);
+			userService.saveUser(user);
+			response.put("success", true);
+			response.put("message", "Email Confirmed Successfully");
+
+			String userAgent = request.getHeader("User-Agent");
+			System.out.println("User Agent : "+userAgent);
+			if (userAgent.toLowerCase().indexOf("iphone") != -1 || userAgent.toLowerCase().indexOf("ipad") != -1  || userAgent.toLowerCase().indexOf("android") != -1 || 
+					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
+					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
+				
+				String url = domain+"://thankyou.html?success=true";
+				
+			    URI yahoo = new URI(url);
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+				
+			} else {
+			    return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
 	/**
@@ -943,31 +1322,45 @@ public class UserController {
 	 * 
 	 * */
 	@RequestMapping(value = "/auth/updatePassword", method = RequestMethod.POST)
-	public ResponseEntity<Map<String, Object>> updatePassword(Map<String, Object> requestBody) {
+	public ResponseEntity<Map<String, Object>> updatePassword(@RequestBody Map<String, Object> requestBody) {
 		
 		System.out.println(requestBody.toString());
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
-		if (!requestBody.containsKey("resetToken")) {
-			response.put("success", false);
-			response.put("message", "ResetToken is missing");
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-		}
-		
+		User user = null;
 		if (!requestBody.containsKey("password")) {
 			response.put("success", false);
 			response.put("message", "Password is missing");
 			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 		}
 		
-		String resetToken = requestBody.get("resetToken").toString();
-		User user = userService.findUserByResetToken(resetToken);
-		
-		if (user == null) {
-			response.put("success", false);
-			response.put("message", "Invalid Reset Token");
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		if (requestBody.containsKey("requestFrom") && requestBody.get("requestFrom").toString().equals("App")) {
+			
+			String email = requestBody.get("email").toString();
+			user = userRepository.findByEmailAndResetTokenIsNull(email);
+			
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Please click confirmation link in Email");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
+
+		} else {
+			if (!requestBody.containsKey("resetToken")) {
+				response.put("success", false);
+				response.put("message", "ResetToken is missing");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
+			
+			String resetToken = requestBody.get("resetToken").toString();
+			user = userService.findUserByResetToken(resetToken);
+			
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Invalid Reset Token");
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			}
 		}
 		
 		try {
@@ -1011,6 +1404,40 @@ public class UserController {
 		user = userService.saveUser(user);
 		response.put("success", true);
 		response.put("data", user);
+		return response;
+	}
+	
+	
+	@RequestMapping(value = "/api/user/updateDetails", method = RequestMethod.POST)
+	public Map<String, Object> updateUserDetails(@RequestBody Map<String, Object> updateUserDetails) {
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		Long userId = Long.valueOf(updateUserDetails.get("userId").toString());
+		
+		if (updateUserDetails.containsKey("username")) {
+			String userName =  updateUserDetails.get("username").toString();
+			
+			userService.updateNameByUserId(userName, userId);
+		} else if (updateUserDetails.containsKey("gender")) {
+			String gender =  updateUserDetails.get("gender").toString();
+			userService.updateGenderByUserId(gender, userId);
+		} else if (updateUserDetails.containsKey("birthDayStr")) {
+			String birthDayStr =  updateUserDetails.get("birthDayStr").toString();
+			userService.updateBirthDayByUserId(birthDayStr, userId);
+		} else if (updateUserDetails.containsKey("newPassword")) {
+			
+			String newPassword = updateUserDetails.get("newPassword").toString();
+			//Now lets create new password and update it.
+			String newPass = new Md5PasswordEncoder().encodePassword(newPassword, salt);
+			userService.updatePasswordByUserId(newPass, userId);
+		} else if (updateUserDetails.containsKey("profilePic")) {
+			String profilePic =  updateUserDetails.get("profilePic").toString();
+			userService.updateProfilePicByUserId(profilePic, userId);
+		}
+		
+		response.put("success", true);
 		return response;
 	}
 	
@@ -1090,12 +1517,65 @@ public class UserController {
 		}
 		return null;
 	}
+
+	@RequestMapping(value = "/auth/responseFromOutlook", method = RequestMethod.GET)
+	public Map<String, Object> responeFromOutlook(HttpServletRequest request) {
+		try {
+			System.out.println(request.getParameterMap().toString());
+			System.out.println(request.getQueryString());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	@RequestMapping(value = "/api/user/validatePassword", method = RequestMethod.POST)
+	public Map<String, Object> validatePassword(@RequestBody ChangePasswordDto changePasswordDto) {
+		try {
+			Map<String, Object> response = new HashMap<>();
+			response.put("success", true);
+			
+			User user = userService.findUserById(changePasswordDto.getUserId());
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "User does not exists.");
+				return response;
+			}
+			
+			String currentPassword = changePasswordDto.getCurrentPassword();
+			
+			if (!user.getPassword().equals(new Md5PasswordEncoder().encodePassword(currentPassword, salt))) {
+				response.put("success", false);
+				response.put("message", "Wrong Password.");
+				return response;
+			}
+			
+			response.put("success", true);
+			response.put("data", user);
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 	@RequestMapping(value = "/api/user/phonefriends", method = RequestMethod.GET)
 	@ResponseBody
 	public ResponseEntity<List<UserContact>> getUserPhoneFriends(@RequestParam("user_id") Long userId) {
 		List<UserContact> friends = (List)userContactRepository.findByUserIdOrderByNameAsc(userId);
 		return new ResponseEntity<List<UserContact>>(friends,HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/api/user/phonefriends/v2", method = RequestMethod.GET)
+	public Map<String, Object> getUserPhoneFriendsList(Long userId) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		List<UserContact> friends = (List)userContactRepository.findByUserIdOrderByNameAsc(userId);
+		response.put("data", friends);
+		return response;
 	}
 	
 	@RequestMapping(value = "/api/syncContacts", method = RequestMethod.POST)
@@ -1119,13 +1599,13 @@ public class UserController {
 	@RequestMapping(value = "/api/guest/sendVerificationCode", method = RequestMethod.POST)
 	public ResponseEntity<?> sendPhoneVerificationCode(@RequestBody Map<String,String> phoneMap) {
 		
-		Map<String, Object> phoneExistingMap = new HashMap<>();
+		/*Map<String, Object> phoneExistingMap = new HashMap<>();
 		phoneExistingMap.put("success", false);
 		phoneExistingMap.put("message","Phone Number Already Exists");
 		List<User> users = userRepository.findByPhoneContaining(phoneMap.get("phone").toString());
 		if (users != null && users.size() > 0) {
 			return new ResponseEntity<>(phoneExistingMap, HttpStatus.OK);
-		}
+		}*/
 		
 		TwilioService ts = new TwilioService();
 		Map<String, Object> response = ts.sendVerificationCode(phoneMap.get("countryCode").toString(), phoneMap.get("phone").toString());
@@ -1171,13 +1651,169 @@ public class UserController {
 		}
 		
 		eventManager.deleteEventsByCreatedById(user.getUserId());
-		userService.deleteContactsByUserId(user.getUserId());
-		userService.updateContactsByFriendIdAndUserId(null, user.getPhone());
 		eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
 		recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+		userService.updateContactsByFriendIdAndUserId(null, user.getPhone().substring(4, user.getPhone().length()));
+		userService.deleteContactsByUserId(user.getUserId());
+		//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+		//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+		userService.deleteCalendarSyncTokensByUserId(user.getUserId());
 		userService.deleteUserDeviceByUserId(user.getUserId());
 		userService.deleteUserByUserId(user.getUserId());
 		return response;
+	}
+	
+	@RequestMapping(value = "/api/deleteUserByPhonePassword", method = RequestMethod.POST)
+	public Map<String, Object> deleteUserByPhoneAndPassword(@RequestBody User user) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		response.put("message", "User Deleted SuccessFully");
+		
+		System.out.println("User : "+user.toString());
+		
+		try {
+			List<User> usersToDelete = userRepository.findListByPhone(user.getPhone());
+			if (usersToDelete == null || usersToDelete.size() == 0) {
+				response.put("success", false);
+				response.put("message", "User not found");
+				return response;
+			} else {					
+					
+				for (User userByPhone: usersToDelete) {
+					
+					userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
+					
+					if (user.getPassword() != null) {
+						System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+						if (userByPhone.getPassword() != null && !userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+							response.put("success", false);
+							response.put("message", "Incorrect Password");
+							return response;
+						}
+					}
+					
+					
+					//eventManager.deleteEventsByCreatedById(user.getUserId());
+					userService.deleteContactsByUserId(userByPhone.getUserId());
+					//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+					//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+					userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
+					userService.deleteUserDeviceByUserId(userByPhone.getUserId());
+					userService.deleteUserByUserId(userByPhone.getUserId());
+				}
+				
+			}
+			
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+			
+			response.put("success", false);
+			response.put("message", e.getMessage());
+
+			
+		}
+		
+		return response;
+	}
+	
+	
+	@RequestMapping(value = "/api/user/userStatsByUserId", method = RequestMethod.GET)
+	public Map<String, Object> findUserStatsByUserId(Long userId) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		UserStat userStat = userService.findUserStatByUserId(userId);
+		if (userStat == null) {
+			userStat = new UserStat();
+		}
+		
+		response.put("data", userStat);
+		response.put("message", "User not found");
+		return response;
+	}
+	
+	@RequestMapping(value = "/api/user/syncDetails", method = RequestMethod.GET)
+	public Map<String, Object> findUserSyncDetailsByUserId(Long userId) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		List<CalendarSyncToken> syncTokens = userService.fincSyncTokensByUserId(userId);
+		if (syncTokens == null) {
+			syncTokens = new ArrayList<CalendarSyncToken>();
+		}
+		
+		response.put("data", syncTokens);
+		return response;
+		
+	}
+	
+	@RequestMapping(value = "/api/user/deleteSyncBySyncId", method = RequestMethod.DELETE)
+	public Map<String, Object> deleteSyncTokenBySyncTokenId(Long calendarSyncTokenId) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		CalendarSyncToken calendarSyncToken = eventManager.findByCalendarSyncTokenId(calendarSyncTokenId);
+		if (calendarSyncToken.getAccountType() == AccountType.Google) {
+			/*GoogleService gs = new GoogleService();
+			try {
+				gs.unsubscribeGoogleNotification(calendarSyncToken);
+
+			} catch(Exception e) {
+				System.out.println("Exception Google : "+e.getMessage());
+			}*/
+			
+			eventManager.deleteEventTimeSlotsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			//eventManager.runEventDeleteThread(events);
+			eventManager.deleteEventBatch(events);
+			
+		} else if (calendarSyncToken.getAccountType() == AccountType.Outlook) {
+			try {
+				
+				eventManager.deleteEventTimeSlotsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Outlook.toString(), Event.ScheduleEventAs.Event.toString());
+				List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Outlook.toString(), Event.ScheduleEventAs.Event.toString());
+				//eventManager.runEventDeleteThread(events);
+				eventManager.deleteEventBatch(events);
+
+			} catch(Exception e) {
+				System.out.println("Exception Outlook : "+e.getMessage());
+			}
+			
+		} else if (calendarSyncToken.getAccountType() == AccountType.Apple) {
+			try {
+				
+				eventManager.deleteEventTimeSlotsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Apple.toString(), Event.ScheduleEventAs.Event.toString());
+				List<Event> events = eventManager.findEventsByCreatedByIdAndSourceAndScheduleAs(calendarSyncToken.getUserId(), Event.EventSource.Apple.toString(), Event.ScheduleEventAs.Event.toString());
+				//eventManager.runEventDeleteThread(events);
+				eventManager.deleteEventBatch(events);
+
+			} catch(Exception e) {
+				System.out.println("Exception Apple Event : "+e.getMessage());
+			}
+		}
+		
+		userService.deleteCalendarSyncTokenByCalendarSyncTokenId(calendarSyncTokenId);
+		//calendarSyncToken.setIsActive(CalendarSyncToken.ActiveStatus.InActive);
+		return response;
+		
+	}
+
+	@RequestMapping(value = "/auth/getCountryByIpAddress", method = RequestMethod.GET)
+	public Map<String, Object> getCountryByIpAddress(String ipAddress) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		Country country = geoLoactionManager.getLocation(ipAddress);
+		if (country != null) {
+			response.put("data", country);
+		} else {
+			response.put("data", null);
+			response.put("success", false);
+		}
+		
+		return response;
+		
 	}
 	
 	@Autowired
@@ -1205,4 +1841,5 @@ public class UserController {
 		user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
 		return establishUserAndLogin(null, user);
 	}
+	
 }

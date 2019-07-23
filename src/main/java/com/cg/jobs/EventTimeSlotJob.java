@@ -39,6 +39,10 @@ public class EventTimeSlotJob {
 					timeSlotThread.setTimeSlotManager(timeSlotManager);
 					timeSlotThread.setEvents(eventsToAllocateToThread);
 					timeSlotThread.run();
+					
+					//Releasing Space allocated to List
+					eventsToAllocateToThread = null;
+
 					eventsToAllocateToThread = new ArrayList<>();
 				} else {
 					if (eventsToAllocateToThread.size() == 10) {
@@ -46,6 +50,11 @@ public class EventTimeSlotJob {
 						timeSlotThread.setTimeSlotManager(timeSlotManager);
 						timeSlotThread.setEvents(eventsToAllocateToThread);
 						timeSlotThread.run();
+						
+						
+						//Releasing Space allocated to List
+						eventsToAllocateToThread = null;
+						
 						eventsToAllocateToThread = new ArrayList<>();
 					}
 				}
@@ -65,12 +74,20 @@ public class EventTimeSlotJob {
 					EventMemberTimeSlotThread timeSlotThread = new EventMemberTimeSlotThread();
 					timeSlotThread.setEvents(eventsToAllocateToThread);
 					timeSlotThread.run();
+
+					//Releasing Space allocated to List
+					eventsToAllocateToThread = null;
+					
 					eventsToAllocateToThread = new ArrayList<>();
 				} else {
 					if (eventsToAllocateToThread.size() == 10) {
 						EventMemberTimeSlotThread timeSlotThread = new EventMemberTimeSlotThread();
 						timeSlotThread.setEvents(eventsToAllocateToThread);
 						timeSlotThread.run();
+
+						//Releasing Space allocated to List
+						eventsToAllocateToThread = null;
+						
 						eventsToAllocateToThread = new ArrayList<>();
 					}
 				}

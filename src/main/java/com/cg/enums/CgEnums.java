@@ -7,6 +7,6 @@ public class CgEnums {
 	}
 	
 	public enum AuthenticateType{
-		email,facebook
+		email,facebook, google
 	}
 }

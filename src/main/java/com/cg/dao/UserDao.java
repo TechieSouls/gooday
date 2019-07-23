@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.cg.bo.CenesProperty;
 import com.cg.bo.UserStat;
 import com.cg.events.bo.EventMember;
+import com.cg.mappers.CenesPropertyMapper;
 import com.cg.mappers.UserStatMapper;
 import com.cg.user.bo.UserContact;
 
@@ -55,5 +57,5 @@ public class UserDao {
 		List <UserStat> usersStat = jdbcTemplate.query(query, new UserStatMapper());
 	    return usersStat;
 	}
-	
+		
 }

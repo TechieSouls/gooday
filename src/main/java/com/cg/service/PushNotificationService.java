@@ -19,6 +19,7 @@ import org.primefaces.json.JSONArray;
 import org.primefaces.json.JSONObject;
 
 import com.cg.bo.Notification.NotificationType;
+import com.cg.constant.CgConstants;
 import com.cg.utils.CenesUtils;
 
 public class PushNotificationService {
@@ -45,23 +46,37 @@ public class PushNotificationService {
 	
 	/*public static void main(String[] args) {
 		List devices = new ArrayList<>();
-		devices.add("429e2452be7b0694ccaca988180233708abc3d74bfba0361de6a4da402b4ede0");
+		devices.add("ab22b6b8bd02916ac74dd2844a04505e6615b94ab40d99b87a2fd7eb50fc1a01");
 		
 		JSONObject notifyObj = new JSONObject();
 		
 		try {
 			JSONObject payloadObj = new JSONObject();
-			payloadObj.put("notificationTypeId","123");
-			payloadObj.put("notificationTypeLocation","asadsdfsdsfgfgfghfghfh");
-			payloadObj.put("notificationTypeTime","23435654676434");
-
-			payloadObj.put("notificationType",NotificationType.Reminder.toString());
+			//payloadObj.put("notificationTypeId","123");
+			//payloadObj.put("notificationTypeLocation","asadsdfsdsfgfgfghfghfh");
+			//payloadObj.put("notificationTypeTime","23435654676434");
+//
+			//payloadObj.put("notificationType",NotificationType.Reminder.toString());
+			
+			payloadObj.put(CgConstants.notificationTypeTitle,"Title of pUsh");
+			payloadObj.put(CgConstants.notificationTypeId,2453453);
+			payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
 			
 			JSONObject alert = new JSONObject();
-			alert.put("title","Mandy called you to his event Welcome");
-			//alert.put("content-available",1);
+			alert.put("title","Title of piusj");
+			alert.put("body","Heyh hey");
+
 			payloadObj.put("alert",alert);
+			payloadObj.put("badge",1);
+			payloadObj.put("sound","cenes-notification-ringtone.aiff");
+
 			notifyObj.put("aps", payloadObj);
+
+			//alert.put("content-available",1);
+			//payloadObj.put("alert",alert);
+			//payloadObj.put("content-available",1);
+			//payloadObj.put("type","HomeRefresh");
+			//notifyObj.put("aps", payloadObj);
 			
 			//{"aps":{"alert":{"title":"Hello from APNs Tester."},"notificationTypeId":"123","nType":"Reminder"}}
 		} catch(Exception e) {

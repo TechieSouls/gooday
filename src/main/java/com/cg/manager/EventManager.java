@@ -2,6 +2,7 @@ package com.cg.manager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -17,13 +18,12 @@ import org.springframework.stereotype.Service;
 
 import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CalendarSyncToken.AccountType;
-import com.cg.bo.CenesProperty;
-import com.cg.bo.CenesProperty.PropertyOwningEntity;
-import com.cg.bo.CenesPropertyValue;
+import com.cg.bo.CalendarSyncToken.ActiveStatus;
 import com.cg.bo.GatheringPreviousLocation;
 import com.cg.bo.Member;
 import com.cg.bo.Member.MemberType;
 import com.cg.constant.CgConstants.ErrorCodes;
+import com.cg.dao.EventServiceDao;
 import com.cg.dto.HomeScreenDto;
 import com.cg.dto.LocationDto;
 import com.cg.events.bo.Event;
@@ -42,7 +42,6 @@ import com.cg.events.bo.GoogleEvents;
 import com.cg.events.bo.OutlookEventAttendees;
 import com.cg.events.bo.OutlookEventItem;
 import com.cg.events.bo.OutlookEvents;
-import com.cg.events.dao.EventServiceDao;
 import com.cg.events.repository.EventMemberRepository;
 import com.cg.events.repository.EventRepository;
 import com.cg.events.repository.EventTimeSlotRepository;
@@ -57,8 +56,11 @@ import com.cg.service.GoogleService;
 import com.cg.service.OutlookService;
 import com.cg.service.UserService;
 import com.cg.threads.EventThread;
+import com.cg.threads.TimeSlotThread;
 import com.cg.user.bo.User;
 import com.cg.utils.CenesUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import okhttp3.internal.framed.ErrorCode;
 
@@ -101,7 +103,9 @@ public class EventManager {
 	@Autowired
 	EventTimeSlotRepository eventTimeSlotRepository;
 	
-	
+	@Autowired
+	CalendarSyncTokenRepository calendarSyncTokenRepository;
+
 	public Event saveUpdateEvent(Event event) {
 		return eventService.saveEvent(event);
 	}
@@ -161,6 +165,9 @@ public class EventManager {
 				if (null == eventMem.getStatus() || eventMem.getStatus().equals("Going")) {
 					eventMem.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
 				}
+				if (eventMem.getEventMemberId() != null) {
+					eventMem.setAlreadyInvited(true);
+				}
 			}
 		}
 		
@@ -174,11 +181,23 @@ public class EventManager {
 	        }
 		}
 		
+		System.out.println("Event Members status Befor Saving");
+		for (EventMember ev: event.getEventMembers()) {
+			System.out.println(ev.getUserId()+"  -  "+ev.getStatus());
+		}
+		
 		System.out.println("Before Saving : "+event.toString());
 		event = eventService.saveEvent(event);
 		
+		System.out.println("Event Members status After Saving");
+		for (EventMember ev: event.getEventMembers()) {
+			System.out.println(ev.getEventId()+ " - "+ ev.getUserId()+"  -  "+ev.getStatus());
+		}
+		
 		System.out.println("After Saving : "+event.toString());
-		notificationManager.sendGatheringNotification(event);
+		if (!Event.EventUpdateFor.Nothing.equals(event.getUpdatedFor())) {
+			notificationManager.sendGatheringNotification(event);
+		}
 		
 		System.out.println("[CreateEvent : "+new Date()+", ENDS]");
 		// saveEventsInSlots(event);
@@ -226,6 +245,151 @@ public class EventManager {
 			}
 		}
 
+		
+		for (Entry<String,List<HomeScreenDto>> entryMap : sortedMap.entrySet()) {
+			responseDataToSend.addAll(entryMap.getValue());
+		}
+	
+	return responseDataToSend;
+	}
+	
+	
+	public List<HomeScreenDto> getPastHomeScreenData(Long userId,String startDate, String endDate) {
+		List<HomeScreenDto> responseDataToSend = new ArrayList<>();
+		
+		Map<String,List<HomeScreenDto>> homeScreenDataMap = new HashMap<>();
+		//List<Event> events = eventRepository.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
+		List<Event> events = eventServiceDao.getPastEventsByCreatedByIdAndStartDateAndEndDate(userId, startDate, endDate);
+		if (events != null && events.size() > 0) {
+			homeScreenDataMap = parseEventsForHomeScreen(events, homeScreenDataMap);
+		}
+		
+		/*List<Reminder> reminders = reminderRepository.findAllRemindersByAcceptedReminderMemberStatusAsc(userId, endDate);
+		if (reminders != null && reminders.size() > 0) {
+			homeScreenDataMap = parseRemindersForHomeScreen(reminders, homeScreenDataMap);
+		}*/
+		
+		Map<String,List<HomeScreenDto>> sortedMap = new LinkedHashMap<>();
+		if (homeScreenDataMap.size() > 0) {
+			List<String> keysList = new ArrayList<>();
+			for (String key : homeScreenDataMap.keySet()) {
+				keysList.add(key);
+			}
+			
+			Comparator<String> cmp = new Comparator<String>() {
+		        public int compare(String o1, String o2) {
+		        	if (o1 == null) {
+		        		return -1;
+		        	} else if (o2 == null) {
+		        		return 1;
+		        	} else {
+		        		return o1.compareTo(o2);
+		        	}
+		            
+		        }
+		    };
+		    Collections.sort(keysList, cmp);
+			
+			for (String key : keysList)  {
+				sortedMap.put(key, homeScreenDataMap.get(key));
+			}
+		}
+		
+		for (Entry<String,List<HomeScreenDto>> entryMap : sortedMap.entrySet()) {
+			responseDataToSend.addAll(entryMap.getValue());
+		}
+	
+	return responseDataToSend;
+	}
+	
+	public List<HomeScreenDto> getPageableHomeScreenData(Long userId,String startDate,int pageNumber, int offSet) {
+		List<HomeScreenDto> responseDataToSend = new ArrayList<>();
+		
+		Map<String,List<HomeScreenDto>> homeScreenDataMap = new HashMap<>();
+		//List<Event> events = eventRepository.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
+		List<Event> events = eventServiceDao.findPaginationByCreatedByIdAndStartDate(userId, startDate, pageNumber, offSet);
+		if (events != null && events.size() > 0) {
+			homeScreenDataMap = parseEventsForHomeScreen(events, homeScreenDataMap);
+		}
+		
+		/*List<Reminder> reminders = reminderRepository.findAllRemindersByAcceptedReminderMemberStatusAsc(userId, endDate);
+		if (reminders != null && reminders.size() > 0) {
+			homeScreenDataMap = parseRemindersForHomeScreen(reminders, homeScreenDataMap);
+		}*/
+		
+		Map<String,List<HomeScreenDto>> sortedMap = new LinkedHashMap<>();
+		if (homeScreenDataMap.size() > 0) {
+			List<String> keysList = new ArrayList<>();
+			for (String key : homeScreenDataMap.keySet()) {
+				keysList.add(key);
+			}
+			
+			Comparator<String> cmp = new Comparator<String>() {
+		        public int compare(String o1, String o2) {
+		        	if (o1 == null) {
+		        		return -1;
+		        	} else if (o2 == null) {
+		        		return 1;
+		        	} else {
+		        		return o1.compareTo(o2);
+		        	}
+		            
+		        }
+		    };
+		    Collections.sort(keysList, cmp);
+			
+			for (String key : keysList)  {
+				sortedMap.put(key, homeScreenDataMap.get(key));
+			}
+		}
+		
+		for (Entry<String,List<HomeScreenDto>> entryMap : sortedMap.entrySet()) {
+			responseDataToSend.addAll(entryMap.getValue());
+		}
+	
+	return responseDataToSend;
+	}
+	
+	public List<HomeScreenDto> getMonthWiseEvents(Long userId,String startDate, String endDate) {
+		List<HomeScreenDto> responseDataToSend = new ArrayList<>();
+		
+		Map<String,List<HomeScreenDto>> homeScreenDataMap = new HashMap<>();
+		//List<Event> events = eventRepository.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
+		List<Event> events = eventServiceDao.findMonthWiseByCreatedByIdAndStartDate(userId, startDate, endDate);
+		if (events != null && events.size() > 0) {
+			homeScreenDataMap = parseEventsForHomeScreen(events, homeScreenDataMap);
+		}
+		
+		/*List<Reminder> reminders = reminderRepository.findAllRemindersByAcceptedReminderMemberStatusAsc(userId, endDate);
+		if (reminders != null && reminders.size() > 0) {
+			homeScreenDataMap = parseRemindersForHomeScreen(reminders, homeScreenDataMap);
+		}*/
+		
+		Map<String,List<HomeScreenDto>> sortedMap = new LinkedHashMap<>();
+		if (homeScreenDataMap.size() > 0) {
+			List<String> keysList = new ArrayList<>();
+			for (String key : homeScreenDataMap.keySet()) {
+				keysList.add(key);
+			}
+			
+			Comparator<String> cmp = new Comparator<String>() {
+		        public int compare(String o1, String o2) {
+		        	if (o1 == null) {
+		        		return -1;
+		        	} else if (o2 == null) {
+		        		return 1;
+		        	} else {
+		        		return o1.compareTo(o2);
+		        	}
+		            
+		        }
+		    };
+		    Collections.sort(keysList, cmp);
+			
+			for (String key : keysList)  {
+				sortedMap.put(key, homeScreenDataMap.get(key));
+			}
+		}
 		
 		for (Entry<String,List<HomeScreenDto>> entryMap : sortedMap.entrySet()) {
 			responseDataToSend.addAll(entryMap.getValue());
@@ -287,7 +451,11 @@ public class EventManager {
 			}
 			
 			HomeScreenDto homeScreenDto =  new HomeScreenDto();
-			homeScreenDto.setId(event.getEventId());
+			homeScreenDto.setType("Event");
+			homeScreenDto.setEvent(event);
+			
+			
+			/*homeScreenDto.setId(event.getEventId());
 			homeScreenDto.setTitle(event.getTitle());
 			homeScreenDto.setDescription(event.getDescription());
 			homeScreenDto.setPicture(event.getEventPicture());
@@ -356,7 +524,7 @@ public class EventManager {
 				}
 				homeScreenDto.setMembers(members);
 			}
-			
+			*/
 			homeScreenDtos.add(homeScreenDto);
 			homeScreenDataMap.put(dateKey, homeScreenDtos);
 		}
@@ -418,6 +586,10 @@ public class EventManager {
 		eventService.deleteEventsByCreatedByIdAndSourceAndScheduleAs(createdById, source,scheduleAs);
 	}
 	
+	public void deleteEventsByStartTimeGreatherThanCreatedByIdAndSourceAndScheduleAs(Date startTime, Long createdById,String source,String scheduleAs) {
+		eventRepository.deleteByStartTimeGreaterThanAndCreatedByIdAndSourceAndScheduleAs(startTime, createdById, source,scheduleAs);
+	}
+	
 	public void deleteEventsByCreatedByIdScheduleAs(Long createdById,String scheduleAs) {
 		eventRepository.deleteEventsByCreatedByIdAndScheduleAs(createdById, scheduleAs);
 	}
@@ -430,6 +602,13 @@ public class EventManager {
 		this.eventRepository.deleteByRecurringEventId(String.valueOf(recurringEventId));
 	}
 	
+	public void deleteEventBySourceAndScheduleAndEventId(Event.EventSource source, Event.ScheduleEventAs scheduleAs, String sourceEventId) {
+		this.eventRepository.deleteBySourceAndScheduleAsAndSourceEventId(source.toString(), scheduleAs.toString(), sourceEventId);
+	}
+	
+	public void deleteEventBatch(List<Event> events) {
+		eventRepository.delete(events);
+	}
 	public List<Event> syncFacebookEvents(String facebookId,String accessToken,User user) {
 		List<Event> events = new ArrayList<>();
 		
@@ -547,87 +726,203 @@ public class EventManager {
 		return members;
 	}
 
+	//This method is called when user sync the google clanedar manually.
 	public List<Event> syncGoogleEvents(boolean isNextSyncRequest, String accessToken,User user) {
 		List<Event> events = new ArrayList<>();
 		
 		try {
 			GoogleService gs = new GoogleService();
 			List<GoogleEvents> googleEventsCalendarList = gs.getCalenderEvents(isNextSyncRequest,accessToken);
-			if (googleEventsCalendarList != null
-					&& googleEventsCalendarList.size() > 0) {
-				for (GoogleEvents googleEvents : googleEventsCalendarList) {
-					if (googleEvents.getItems() != null
-							&& googleEvents.getItems() != null
-							&& googleEvents.getItems().size() > 0) {
-						for (GoogleEventItem eventItem : googleEvents.getItems()) {
-							if ("cancelled".equals(eventItem.getStatus())) {
-								continue;
-							}
-							boolean eventMemberIsBlocked = false;
-							if (eventItem.isSelf()) {
-								eventMemberIsBlocked = true;
-							}
-							if (!eventMemberIsBlocked) {
-								eventMemberIsBlocked = eventMemberIsBlocked(eventItem.getAttendees());
-							}
-							
-							
-							if (!eventMemberIsBlocked) {
-								//If event member not blocked
-								//then we not save this event
-								continue;
-								
-							}
-							
-							//Lets check first if the creator Exists in our DB or Not.
-							//If it exists in db then we will set the created by id as its user id
-							//Otherewise we can make the syncing user as creator.
-							/*User creatorExistsInDb = userService.findUserByEmail(eventItem.getCreatorEmail());
-							if (creatorExistsInDb != null) {
-								user = creatorExistsInDb;
-							}*/
-							
-							Event event = new Event();
-							System.out.println("Event Title : "+eventItem.getSummary());
-							System.out.println("[Event : "+eventItem.toString()+" ]");
-							/*if (isUserInvitee) {
-								List<Event> eventsTemp = this.eventRepository.findBySourceEventId(eventItem.getId());
-								if (eventsTemp != null && eventsTemp.size() > 0) {
-									userId = eventsTemp.get(0).getCreatedById();
-								}
-							}*/
-							//if (event == null) {
-							
-							//Now check if creator has already synced the calendar, then there will be an event already existing.
-							//We will fetch that event by created by id and google event id.
-							//If creator has not synced the event then we will create new event. 
-							//If creator is different then he will see the event without syncing the google calendar.
-							List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
-							if (dbevents != null && dbevents.size() != 0) {
-								//event = new Event();
-								continue;
-							//} //else {
-								//event = dbevents.get(0);
-							
-							}
-							
-							
-							
-							
-							event.setSourceEventId(eventItem.getId());
-							event.setSource(EventSource.Google.toString());
-							event.setTitle(eventItem.getSummary());
-							event.setCreatedById(user.getUserId());
-							if (eventItem.getDescription() != null) {
-								event.setDescription(eventItem.getDescription());
-							}
-							//event.setEventPicture("http://cenes.test2.redblink.net/assets/default_images/default_event_image.png");
-							if (eventItem.getLocation() != null) {
-								event.setLocation(eventItem.getLocation());
-							}
+			events = processGoogleEventsCalendarList(googleEventsCalendarList, user, events, Event.EventProcessRequest.Manual);
+			/*CenesProperty cenesProperty = eventService.findCenesPropertyByNameAndOwner("google_calendar", PropertyOwningEntity.User);
+			if (cenesProperty != null) {
+				CenesPropertyValue cenesPropertyValue = new CenesPropertyValue();
+				cenesPropertyValue.setCenesProperty(cenesProperty);
+				cenesPropertyValue.setDateValue(new Date());
+				cenesPropertyValue.setEntityId(user.getUserId());
+				cenesPropertyValue.setOwningEntity(PropertyOwningEntity.User);
+				cenesPropertyValue.setValue("true");
+				eventService.saveCenesPropertyValue(cenesPropertyValue);
+			}*/
+			return events;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	public List<Event> syncAppleEvents(Map<String, Object> dataMap, User user) {
+		List<Event> events = new ArrayList<>();
+		
+		try {
+			events = processAppleEvents(user, dataMap);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return events;
+	}
+	
+	
+	//This method will be called, whenever from the google webhook.
+	public List<Event> syncGoogleEventsOnNotification(String resourceUrl, String accessToken,User user) {
+		
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
 
-							event.setScheduleAs(ScheduleEventAs.Event.toString());
-							event.setTimezone(googleEvents.getTimeZone());
+		List<Event> events = new ArrayList<>();
+		
+		try {
+			GoogleService gs = new GoogleService();
+			List<GoogleEvents> googleEventsCalendarList = gs.getGoogleEventsOnNotification(resourceUrl, accessToken, cal.getTime());
+			events = processGoogleEventsCalendarList(googleEventsCalendarList, user, events, Event.EventProcessRequest.Webhook);
+			
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		return events;
+	}
+	
+	public List<Event> processGoogleEventsCalendarList(List<GoogleEvents> googleEventsCalendarList, User user, List<Event> events, Event.EventProcessRequest eventProcessRequestFrom) {
+		
+		Map<String, Event> googleEventIdsToDelete = new HashMap<>();
+		List<Event> eventsToDeleteList = new ArrayList<Event>();
+		
+		
+		if (eventProcessRequestFrom == Event.EventProcessRequest.Webhook) {
+			System.out.println("Webhook Request");
+			//Lets find all the future events.
+			
+			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.HOUR_OF_DAY, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+			cal.set(Calendar.MILLISECOND, 0);
+
+			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			for (Event exEvent: existingGoogleEvents) {
+				googleEventIdsToDelete.put(exEvent.getSourceEventId(), exEvent);
+			}
+		} else {
+			
+			
+			//Lets fetch all events from current date and check which one to delete or not.
+			
+			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - 1);
+			cal.set(Calendar.HOUR_OF_DAY, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+			cal.set(Calendar.MILLISECOND, 0);
+			
+			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+			for (Event exEvent: existingGoogleEvents) {
+				googleEventIdsToDelete.put(exEvent.getSourceEventId(), exEvent);
+				eventsToDeleteList.add(exEvent);
+			}
+			System.out.println("Totdal Events from databse : "+eventsToDeleteList.size());
+		}
+		
+		
+		if (googleEventsCalendarList != null
+				&& googleEventsCalendarList.size() > 0) {
+			
+			List<GoogleEventItem> googleEventItems = new ArrayList<>();
+			
+			//We will iterate the events and remove all those that are to be added and that are to be deleted.
+			for (GoogleEvents googleEvents : googleEventsCalendarList) {
+				if (googleEvents.getItems() != null
+						&& googleEvents.getItems() != null
+						&& googleEvents.getItems().size() > 0) {
+					for (GoogleEventItem eventItem : googleEvents.getItems()) {
+						if ("cancelled".equals(eventItem.getStatus())) {
+							continue;
+						}
+						
+						if (googleEventIdsToDelete.containsKey(eventItem.getId())) {
+							
+							eventsToDeleteList.remove(googleEventIdsToDelete.get(eventItem.getId()));
+							googleEventIdsToDelete.remove(eventItem.getId());
+						} else {
+							googleEventItems.add(eventItem);
+						}
+					}
+				}
+			}
+			
+			
+			eventThread.runGoogleEventSyncThread(googleEventItems, user.getUserId(), googleEventsCalendarList.get(0).getTimeZone());
+			if (eventsToDeleteList.size() > 0) {
+				
+				//If there are not events to add/update
+				//Then we will add empty event object so that we can send notification
+				//checking the size if there are any updates from google.
+				//if (events.size() == 0) {
+				//	events.add(new Event());
+				//}
+				System.out.println("Events to be deleted : "+eventsToDeleteList.size());
+				eventThread.runDeleteEventThread(eventsToDeleteList);
+			}
+			
+			
+			/*
+			 commenting code
+			 
+			 
+			//Now lets distribute the events to threads.
+			for (GoogleEvents googleEvents : googleEventsCalendarList) {
+				if (googleEvents.getItems() != null
+						&& googleEvents.getItems() != null
+						&& googleEvents.getItems().size() > 0) {
+					for (GoogleEventItem eventItem : googleEvents.getItems()) {
+						if ("cancelled".equals(eventItem.getStatus())) {
+							continue;
+						}
+						
+						
+						//Lets check first if the creator Exists in our DB or Not.
+						//If it exists in db then we will set the created by id as its user id
+						//Otherewise we can make the syncing user as creator.
+						
+						//String eventChangeFor = null;
+						Event event = null;
+						//System.out.println("Event Summarry : "+eventItem.getSummary());
+						//Now check if creator has already synced the calendar, then there will be an event already existing.
+						//We will fetch that event by created by id and google event id.
+						//If creator has not synced the event then we will create new event. 
+						//If creator is different then he will see the event without syncing the google calendar.
+						//List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+						//if (dbevents != null && dbevents.size() != 0) {
+						//	Event eve = dbevents.get(0);
+						//	if (googleEventIdsToDelete.containsKey(eve.getEventId())) {
+						//		googleEventIdsToDelete.remove(eve.getEventId());
+						//		eventsToDeleteList.remove(eve);
+						//	}
+						//	continue;
+						//}
+						
+						System.out.println("Adding new Event: "+eventItem.getSummary());
+						event  = new Event();
+						event.setSourceEventId(eventItem.getId());
+						event.setSource(EventSource.Google.toString());
+						event.setTitle(eventItem.getSummary());
+						event.setCreatedById(user.getUserId());
+						if (eventItem.getDescription() != null) {
+							event.setDescription(eventItem.getDescription());
+						}
+						//event.setEventPicture("http://cenes.test2.redblink.net/assets/default_images/default_event_image.png");
+						if (eventItem.getLocation() != null) {
+							event.setLocation(eventItem.getLocation());
+						}
+
+						event.setScheduleAs(ScheduleEventAs.Event.toString());
+						event.setTimezone(googleEvents.getTimeZone());
+						
+						try {
 							if (eventItem.getStart() != null) {
 								Date startDate = null;
 								if (eventItem.getStart().containsKey("dateTime")) {
@@ -645,7 +940,11 @@ public class EventManager {
 							} else {
 								event.setStartTime(new Date());
 							}
-							
+						} catch(Exception e) {
+							e.printStackTrace();
+						}
+						
+						try {
 							if (eventItem.getEnd() != null) {
 								Date endDate = null;
 								if (eventItem.getEnd().containsKey("dateTime")) {
@@ -660,27 +959,14 @@ public class EventManager {
 							} else {
 								event.setStartTime(new Date());
 							}
-							
-							//Lets populate the Invitees.
-							/*List<EventMember> eventMembersTemp  = new ArrayList<>();
-							if (eventItem.getAttendees() != null && eventItem.getAttendees().size() > 0) {
-								eventMembersTemp = parseGoogleEventMembers(eventItem.getAttendees());
-							}*/
-							
-							//Now we need to check if creator has invited himself in the event.
-							//if not then we will add him in the invitee list
-							/*boolean isUserInvitee = false;
-							if (eventMembersTemp != null && eventMembersTemp.size() > 0) {
-								for (EventMember attendeeMember : eventMembersTemp) {
-									if (attendeeMember.getUserId() != null && attendeeMember.getUserId().equals(user.getUserId())) {
-										isUserInvitee = true;
-										break;
-									}
-								}
-							}*/
-							
-							
-							//if (!isUserInvitee) {
+						} catch(Exception e) {
+							e.printStackTrace();
+						}
+
+						
+						//if (!isUserInvitee) {
+						//We will add event members only if its a new event.
+						if (event.getEventId() == null) {
 							List<EventMember> eventMembersTemp  = new ArrayList<>();
 							EventMember eventMember = new EventMember();
 							eventMember.setName(user.getName());
@@ -705,43 +991,199 @@ public class EventManager {
 							
 							event.setEventMembers(eventMembersTemp);
 							//}
-							
-							if (eventItem.getRecurringEventId() != null) {
-								event.setRecurringEventId(eventItem.getRecurringEventId());
-							}
-							event.setProcessed(EventProcessedStatus.UnProcessed.ordinal());
-							events.add(event);
 						}
-						this.eventRepository.save(events);
+						
+						
+						
+						if (eventItem.getRecurringEventId() != null) {
+							event.setRecurringEventId(eventItem.getRecurringEventId());
+						}
+						newEventsToSave.add(event);
+					}
+					
+					if (newEventsToSave.size() > 0) {
+						this.eventRepository.save(newEventsToSave);
 						System.out.println("[ Syncing Google Events - User Id : "
 										+ user.getUserId() + ", Total Events to Sync : "
-										+ events.size() + "]");
+										+ newEventsToSave.size() + "]");
 						
-					} else {
-						/*if (googleEvents.getErrorDetail() != null) {
-							Event event = new Event();
-							event.setErrorCode(googleEvents.getErrorCode());
-							event.setErrorDetail(googleEvents.getErrorDetail());
-							events.add(event);
-						}*/
+						newEventsToSave = null;
 					}
+					
+							
 				}
+				
+				if (eventsToDeleteList.size() > 0) {
+					
+					//If there are not events to add/update
+					//Then we will add empty event object so that we can send notification
+					//checking the size if there are any updates from google.
+					//if (events.size() == 0) {
+					//	events.add(new Event());
+					//}
+					System.out.println("Events to be deleted : "+eventsToDeleteList.size());
+					eventThread.runDeleteEventThread(eventsToDeleteList);
+					
+					
+					
+					
+				}
+			}*/
+		}
+		
+		return events;
+	}
+	
+	public List<Event> processAppleEvents(User user, Map<String, Object> eventMap) {
+		
+		Map<String, Event> appleEventIdsToDelete = new HashMap<>();
+		List<Event> eventsToDeleteList = new ArrayList<Event>();
+		
+		//Lets fetch all events from current date and check which one to delete or not.
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		
+		System.out.println("Aplle User Id : "+user.getUserId());
+		List<Event> existingAppleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Apple.toString(), Event.ScheduleEventAs.Event.toString());
+		for (Event exEvent: existingAppleEvents) {
+			
+			System.out.println("Source Event Id to Track : "+exEvent.getSourceEventId());
+			appleEventIdsToDelete.put(exEvent.getSourceEventId(), exEvent);
+			eventsToDeleteList.add(exEvent);
+		}
+		System.out.println("Totdal Apple Events from databse : "+eventsToDeleteList.size());
+
+		
+		List<Event> finalEventsToSave = new ArrayList<>();
+		
+		List<Event> deviceEvents = new ObjectMapper().convertValue(eventMap.get("data"),
+				new TypeReference<List<Event>>() {
+				});
+		
+		
+		//Filtering events which already exists in database
+		for (Event devEvent: deviceEvents) {
+			
+			System.out.println("Event Title from apple : "+devEvent+", Start Time : "+devEvent.getStartTime());
+			
+			System.out.println("Source Event Id EXISTS OT NOT : "+devEvent.getSourceEventId());
+			if (appleEventIdsToDelete.containsKey(devEvent.getSourceEventId())) {
+				eventsToDeleteList.remove(appleEventIdsToDelete.get(devEvent.getSourceEventId()));
+				appleEventIdsToDelete.remove(devEvent.getSourceEventId());
+			} else {
+				finalEventsToSave.add(devEvent);
 			}
-			CenesProperty cenesProperty = eventService.findCenesPropertyByNameAndOwner("google_calendar", PropertyOwningEntity.User);
-			if (cenesProperty != null) {
-				CenesPropertyValue cenesPropertyValue = new CenesPropertyValue();
-				cenesPropertyValue.setCenesProperty(cenesProperty);
-				cenesPropertyValue.setDateValue(new Date());
-				cenesPropertyValue.setEntityId(user.getUserId());
-				cenesPropertyValue.setOwningEntity(PropertyOwningEntity.User);
-				cenesPropertyValue.setValue("true");
-				eventService.saveCenesPropertyValue(cenesPropertyValue);
+		}
+		
+		
+		for (Event deviceEvent : finalEventsToSave) {
+			
+			List<EventMember> members = new ArrayList<>();
+
+			EventMember eventMember = new EventMember();
+			eventMember.setName(user.getName());
+			eventMember.setPicture(user.getPhoto());
+			eventMember.setStatus(MemberStatus.Going.toString());
+			eventMember.setSource(EventSource.Apple.toString());
+			if (user.getEmail() != null) {
+				eventMember.setSourceEmail(user.getEmail());
 			}
-			return events;
-		} catch (Exception e) {
+			eventMember.setUserId(user.getUserId());
+			members.add(eventMember);
+			deviceEvent.setEventMembers(members);
+		}
+		
+		if (finalEventsToSave.size() > 0) {
+			eventThread.runDeviceEventSyncThread(finalEventsToSave);
+		}
+		if (eventsToDeleteList.size() > 0) {
+			eventThread.runDeleteEventThread(eventsToDeleteList);
+		}
+		
+		return finalEventsToSave;
+	}
+	
+	
+	public void saveGoogleEventIems(GoogleEventItem eventItem, Long userId, String timeZone) {
+		
+		Event event  = new Event();
+		event.setSourceEventId(eventItem.getId());
+		event.setSource(EventSource.Google.toString());
+		event.setTitle(eventItem.getSummary());
+		event.setCreatedById(userId);
+		if (eventItem.getDescription() != null) {
+			event.setDescription(eventItem.getDescription());
+		}
+		//event.setEventPicture("http://cenes.test2.redblink.net/assets/default_images/default_event_image.png");
+		if (eventItem.getLocation() != null) {
+			event.setLocation(eventItem.getLocation());
+		}
+
+		event.setScheduleAs(ScheduleEventAs.Event.toString());
+		event.setTimezone(timeZone);
+		
+		try {
+			if (eventItem.getStart() != null) {
+				Date startDate = null;
+				if (eventItem.getStart().containsKey("dateTime")) {
+					startDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getStart().get("dateTime"));
+				} else if (eventItem.getStart().containsKey("date")) {
+					//Events with no hours and minutes
+					//We will mark them full day events.
+					startDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getStart().get("date"));
+					event.setIsFullDay(true);
+				}
+				if (startDate != null) {
+					String startDateStr = CenesUtils.yyyyMMddTHHmmss.format(startDate);
+					event.setStartTime(CenesUtils.yyyyMMddTHHmmss.parse(startDateStr));
+				}
+			} else {
+				event.setStartTime(new Date());
+			}
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
-		return null;
+		
+		try {
+			if (eventItem.getEnd() != null) {
+				Date endDate = null;
+				if (eventItem.getEnd().containsKey("dateTime")) {
+					endDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getEnd().get("dateTime"));
+				} else if (eventItem.getEnd().containsKey("date")) {
+					endDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getEnd().get("date"));
+				}
+				if (endDate != null) {
+					String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(endDate);
+					event.setEndTime(CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+				}
+			} else {
+				event.setStartTime(new Date());
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		
+		//We will add event members only if its a new event.
+		List<EventMember> eventMembersTemp  = new ArrayList<>();
+		EventMember eventMember = new EventMember();
+		//eventMember.setName(user.getName());
+		eventMember.setStatus(MemberStatus.Going.toString());
+		eventMember.setSource(EventSource.Google.toString());
+		eventMember.setUserId(userId);
+		eventMember.setProcessed(Event.EventProcessedStatus.UnProcessed.ordinal());
+		eventMembersTemp.add(eventMember);
+		event.setEventMembers(eventMembersTemp);
+		
+		if (eventItem.getRecurringEventId() != null) {
+			event.setRecurringEventId(eventItem.getRecurringEventId());
+		}
+		this.eventRepository.save(event);
 	}
 	
 	public Boolean eventMemberIsBlocked(List<GoogleEventAttendees> attendees) {
@@ -934,6 +1376,9 @@ public class EventManager {
 	}
 	
 	public List<Event> syncHolidays(String calendarId,User user) {
+		
+		this.eventRepository.deleteEventsByCreatedByIdAndScheduleAs(user.getUserId(), "Holiday");
+		
 		List<Event> events = new ArrayList<>();
 		try {
 			GoogleService gs = new GoogleService();
@@ -942,13 +1387,13 @@ public class EventManager {
 			if (googleEvents != null && googleEvents.getItems() != null
 					&& googleEvents.getItems().size() > 0) {
 				for (GoogleEventItem eventItem : googleEvents.getItems()) {
-					Event event = null;
-					List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
+					Event event = new Event();
+					/*List<Event> dbevents = this.eventRepository.findBySourceEventIdAndCreatedById(eventItem.getId(), user.getUserId());
 					if (dbevents == null || dbevents.size() == 0) {
 						event = new Event();
 					} else {
 						event = dbevents.get(0);
-					}
+					}*/
 					
 					if (eventItem.getStart() != null) {
 						Date startDate = null;
@@ -967,7 +1412,7 @@ public class EventManager {
 					}
 
 					event.setSourceEventId(eventItem.getId());
-					event.setSource(EventSource.Google.toString());
+					event.setSource(EventSource.GoogleHoliday.toString());
 					event.setTitle(eventItem.getSummary());
 					event.setCreatedById(user.getUserId());
 					event.setIsFullDay(true);
@@ -1013,7 +1458,7 @@ public class EventManager {
 					eventMember.setName(user.getName());
 					eventMember.setPicture(user.getPhoto());
 					eventMember.setStatus("Going");
-					eventMember.setSource("Google");
+					eventMember.setSource(EventSource.GoogleHoliday.toString());
 					members.add(eventMember);
 					try {
 						if (event.getEventMembers() != null) {
@@ -1112,10 +1557,10 @@ public class EventManager {
 					String accessToken = refreshTokenResponse.getString("access_token");
 
 					User user = userService.findUserById(userId);
-					deleteEventsByCreatedByIdSourceScheduleAs(userId,
-							Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
-					eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId,
-							Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+					//deleteEventsByCreatedByIdSourceScheduleAs(userId,
+						//	Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
+					//eventTimeSlotManager.deleteEventTimeSlotsByUserIdSourceScheduleAs(userId,
+							//Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 
 					System.out.println("[ Syncing Google Refreshing Events - User Id : " + userId
 							+ ", Access Token : " + accessToken + "]");
@@ -1199,6 +1644,14 @@ public class EventManager {
 		eventThread.runEventThread(userId, eventMap, phoneContacts);
 	}
 	
+	public void runDeviceSyncThread(List<Event> events) {
+		eventThread.runDeviceEventSyncThread(events);
+	}
+	
+	public void runEventDeleteThread(List<Event> events) {
+		eventThread.runDeleteEventThread(events);
+	}
+	
 	public void updateTimeSlotsToFreeByEvent(Event event) {
 		List<EventTimeSlot> timeSlots  = eventService.findEventTimeSlotByEventDateAndEventId(event.getStartTime().getTime(),event.getEndTime().getTime(),event.getEventId());
 		if (timeSlots != null && timeSlots.size() > 0) {
@@ -1229,6 +1682,9 @@ public class EventManager {
 	public EventMember generateTimeSlotsForEventMember(Event event, EventMember eventMember) {
 		List<EventTimeSlot> eventTimeSlots = eventTimeSlotManager.getTimeSlots(event,eventMember.getUserId());
 		eventTimeSlotRepository.save(eventTimeSlots);
+		
+		//Releasing space occupied by List
+		eventTimeSlots = null;
 		eventMember.setProcessed(Event.EventProcessedStatus.Processed.ordinal());
 		return eventMember;
 	}
@@ -1266,6 +1722,10 @@ public class EventManager {
 		return refreshTokenRepository.findByUserIdAndAccountType(userId, accountType);
 	}
 	
+	public CalendarSyncToken findByCalendarSyncTokenId(Long calendarSyncTokenId) {
+		return refreshTokenRepository.findOne(calendarSyncTokenId);
+	}
+	
 	public void saveCalendarSyncToken(CalendarSyncToken calendarSyncToken) {
 		refreshTokenRepository.save(calendarSyncToken);
 	}
@@ -1282,6 +1742,31 @@ public class EventManager {
 		return gatheringPreviousLocationRepository.findTop15ByUserIdOrderByGatheringPreviousLocationIdDesc(userId);
 	}
 	
+	public CalendarSyncToken findCalendarSyncTokenByAccountTypeAndSubscriptionId(AccountType accountType, String subscriptionId) {
+		return calendarSyncTokenRepository.findByAccountTypeAndSubscriptionIdAndIsActive(accountType, subscriptionId, ActiveStatus.Active);
+	}
+	
+	public CalendarSyncToken findByUserIdAndAccountTypeAndIsActive(Long userId, AccountType accountType, ActiveStatus activeStatus) {
+		return calendarSyncTokenRepository.findByUserIdAndAccountTypeAndIsActive(userId, accountType, activeStatus);
+	}
+	
+	public List<CalendarSyncToken> findCalendarSyncTokensWithLastExpiryDate() {
+		return calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
+	}
+	
+	public void saveEventsInBatch(List<Event> events) {
+		eventRepository.save(events);
+	}
+	
+	public List<Event> findEventsByCreatedByIdAndSourceAndScheduleAs(Long createdById, String source, String scheduleAs) {
+		
+		return eventRepository.findByCreatedByIdAndSourceAndScheduleAs(createdById, source, scheduleAs);
+		
+	}
+	
+	public void deleteEventTimeSlotsByCreatedByIdAndSourceAndScheduleAs(Long createdById, String source, String scheduleAs) {
+		eventTimeSlotRepository.deleteByUserIdAndSourceAndScheduleAs(createdById, source, scheduleAs);
+	}
 	/*public static void main(String[] args) {
 		String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(new Date());
 		Date outlookDate = null;

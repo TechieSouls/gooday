@@ -56,11 +56,14 @@ public class EventTimeSlotManager {
 	 * */
 	public List<Event> saveEventsInSlots(List<Event> events) {
 		System.out.println("saveEventsInSlots STARTS");
-
 		try {
 			for (Event event : events) {
 				List<EventTimeSlot> eventTimeSlots = getTimeSlots(event,event.getCreatedById());
 				eventTimeSlotRepository.save(eventTimeSlots);
+				
+				//Releasing space allocated to time slots list
+				eventTimeSlots = null;
+
 				event.setProcessed(EventProcessedStatus.Processed.ordinal());
 			}
 		} catch (Exception e) {
@@ -71,6 +74,9 @@ public class EventTimeSlotManager {
 	}
 	
 	public List<EventTimeSlot> getTimeSlots(Event event,Long userId) {
+		
+		System.out.println("Start Time : "+event.getStartTime()+", End Time : "+event.getEndTime());
+		
 		List<EventTimeSlot> eventTimeSlots = new ArrayList<>();
 		Long eventDayStartTimeValue = CenesUtils.getStartOfDay(event.getStartTime()).getTime();
 		Long eventDayEndTimeValue = null;
@@ -87,7 +93,10 @@ public class EventTimeSlotManager {
 		// of 15 minutes.
 		// We will then use this list to compare with event creator time
 		List<Long> eventStarEndTimeInSlots = CenesUtils.divideTimeIntoMinuteSlots(event.getStartTime(),event.getEndTime(), minutesToAdd);
-
+		if (eventStarEndTimeInSlots.size() == 0) {
+			return eventTimeSlots;
+		}
+		
 		// Now we need to create 15 minutes slots for the whole day
 		// And we will check if any slot is booked and mark it as booked
 		// Otherwise free slot
@@ -166,21 +175,32 @@ public class EventTimeSlotManager {
 				}
 			}
 		//}
+			//Releasing space occupied by List
+			eventStarEndTimeInSlots = null;
 			return eventTimeSlots;
 	}
 	
 	
 	public List<Event> saveEventMemberSlots(List<Event> events) {
 		System.out.println("saveEventMemberSlots STARTS");
-
+		System.out.println("Events List : "+events.size());
 		try {
 			for (Event event : events) {
+				
+				System.out.println("Event Details : Event Members Size "+event.getEventMembers().size());
+				
 				for (EventMember eventMember : event.getEventMembers()) {
 					if (eventMember.getProcessed() == Event.EventProcessedStatus.Processed.ordinal()) {
 						continue;
 					}
 					List<EventTimeSlot> eventTimeSlots = getTimeSlots(event,eventMember.getUserId());
-					eventTimeSlotRepository.save(eventTimeSlots);
+					if (eventTimeSlots != null && eventTimeSlots.size() > 0) {
+						eventTimeSlotRepository.save(eventTimeSlots);
+					}
+					
+					//Releasing space allocated to time slots list
+					eventTimeSlots = null;
+					
 					eventMember.setProcessed(Event.EventProcessedStatus.Processed.ordinal());
 					eventMemberRepository.save(eventMember);
 				}
@@ -203,11 +223,19 @@ public class EventTimeSlotManager {
 		eventTimeSlotRepository.deleteByUserIdAndSourceAndScheduleAs(createdById, source,scheduleAs);
 	}
 	
+	public void deleteEventTimeSlotsByStartTimeGreaterThanAndUserIdAndSourceAndScheduleAs(Long startTime, Long createdById,String source,String scheduleAs) {
+		eventTimeSlotRepository.deleteByStartTimeGreaterThanAndUserIdAndSourceAndScheduleAs(startTime, createdById, source,scheduleAs);
+	}
+	
 	public void deleteEventTimeSlotsByUserId(Long userId) {
 		eventTimeSlotRepository.deleteByUserId(userId);
 	}
 	
 	public void deleteEventTimeSlotsByRecurringEventId(Long recurringEventId) {
 		eventTimeSlotRepository.deleteByRecurringEventId(recurringEventId);
+	}
+	
+	public void deleteEventTimeSlotsByEventId(Long eventId) {
+		eventTimeSlotRepository.deleteByEventId(eventId);
 	}
 }

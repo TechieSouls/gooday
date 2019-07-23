@@ -11,6 +11,7 @@ import javax.persistence.Transient;
 import com.cg.bo.CgGeneral;
 import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.user.bo.User;
+import com.cg.user.bo.UserContact;
 
 import io.swagger.annotations.ApiModelProperty;
 
@@ -60,8 +61,14 @@ public class EventMember extends CgGeneral {
 	@Column(name="processed")
 	private Integer processed = EventProcessedStatus.Processed.ordinal();	
 	
+	@Column(name="already_invited")
+	private boolean alreadyInvited;
+	
 	@Transient
 	private User user;
+	
+	@Transient
+	private UserContact userContact;
 	
 	@Column(name="user_contact_id")
 	private Long userContactId;
@@ -147,6 +154,21 @@ public class EventMember extends CgGeneral {
 	public void setUserContactId(Long userContactId) {
 		this.userContactId = userContactId;
 	}
+			
+	public boolean isAlreadyInvited() {
+		return alreadyInvited;
+	}
+	public void setAlreadyInvited(boolean alreadyInvited) {
+		this.alreadyInvited = alreadyInvited;
+	}
+	
+	public UserContact getUserContact() {
+		return userContact;
+	}
+	public void setUserContact(UserContact userContact) {
+		this.userContact = userContact;
+	}
+	
 	@Override
 	public String toString() {
 		return "EventMember [eventMemberId=" + eventMemberId + ", eventId=" + eventId + ", source=" + source

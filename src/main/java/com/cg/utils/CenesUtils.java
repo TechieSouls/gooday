@@ -64,13 +64,19 @@ public class CenesUtils {
 	}
 	
 	public static List<Long> divideTimeIntoMinuteSlots(Date startTime, Date endTime,int slotFrameInMinutes) {
+		
+		System.out.println("Before Dividing: StartTime : "+startTime+", End Time : "+endTime);
+		if (endTime == null) {
+			return new ArrayList<Long>();
+		}
 		Calendar startCalendar = Calendar.getInstance();
 		startCalendar.setTime(startTime);
 		startCalendar.set(Calendar.SECOND, 0);
 	    startCalendar.set(Calendar.MILLISECOND, 0);
 	    System.out.println(startCalendar.getTime());
 		Long startTimeLong = startCalendar.getTimeInMillis();
-	    
+		startCalendar = null;
+		
 		Calendar endCalendar = Calendar.getInstance();
 		endCalendar.set(Calendar.MILLISECOND, 0);
 		endCalendar.set(Calendar.SECOND, 0);
@@ -79,6 +85,7 @@ public class CenesUtils {
 	    System.out.println(endCalendar.getTime());
 
 	    Long endTimeLong = endCalendar.getTimeInMillis();
+	    endCalendar = null;
 	    
 	    List<Long> timeSlotValues = new ArrayList<>();
 	    //timeSlotValues.add(startTimeLong);
@@ -94,6 +101,7 @@ public class CenesUtils {
 			timeSlotValues.add(now.getTimeInMillis());
 		    incrementalTime = now.getTimeInMillis();
 		    //System.out.println(now.getTime());
+		    now = null;
 	    }
 	    //System.out.println("Divide time inot slots END");
 	    /*if (timeSlotValues.size() > 0) {

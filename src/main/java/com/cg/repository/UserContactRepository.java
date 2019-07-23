@@ -26,8 +26,11 @@ public interface UserContactRepository extends JpaRepository<UserContact, Long>{
 	
 	@Modifying(clearAutomatically = true)
 	@Transactional
-	@Query("update UserContact uc set uc.friendId = :friendId where phone = :phone")
+	@Query("update UserContact uc set uc.friendId = :friendId, uc.cenesMember = 0 where phone like %:phone%")
 	public void updateFrindIdByPhone(@Param("friendId") Long friendId, @Param("phone") String phone);
+	
+	@Transactional
+	@Modifying
 	public void deleteByUserId(Long userId); 
 
 }

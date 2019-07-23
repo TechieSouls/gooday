@@ -18,7 +18,9 @@ import com.cg.bo.Notification.NotificationTypeAction;
 import com.cg.bo.Notification.NotificationTypeStatus;
 import com.cg.bo.NotificationCountData;
 import com.cg.constant.CgConstants;
+import com.cg.dao.NotificationDao;
 import com.cg.events.bo.Event;
+import com.cg.events.bo.Event.EventUpdateFor;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventMember.MemberStatus;
 import com.cg.reminders.bo.Reminder;
@@ -35,6 +37,9 @@ public class NotificationManager {
 	
 	@Autowired
 	NotificationRepository notificationRepository;
+	
+	@Autowired
+	NotificationDao notificationDao;
 	
 	@Autowired
 	UserService userService;
@@ -71,20 +76,20 @@ public class NotificationManager {
 			}
 		}
 		if (owner != null) {
-			String pushMessage = owner.getName()+" deleted the invitation "+event.getTitle();
+			String pushMessage = "Event deleted by "+owner.getName();
 
 			for (EventMember eventMember : eventMembers) {
 				if (eventMember.getUserId() != null && !eventMember.getUserId().equals(event.getCreatedById())) {
 					
-					Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(event.getEventId(),eventMember.getUserId(), NotificationTypeAction.Delete );
-					if (notification == null) {
-						notification = new Notification();
-					}
-					
+					//Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(event.getEventId(),eventMember.getUserId(), NotificationTypeAction.Delete );
+					//if (notification == null) {
+					//	notification = new Notification();
+					//}
+					Notification notification = new Notification();
 					notification.setSenderId(owner.getUserId());
 					notification.setSender(owner.getName());
 					notification.setNotificationTypeStatus(NotificationTypeStatus.New);
-					notification.setMessage("deleted the event");
+					notification.setMessage("Event deleted by "+owner.getName());
 					notification.setTitle(event.getTitle());
 					notification.setRecepientId(eventMember.getUserId());
 					notification.setNotificationTypeId(event.getEventId());
@@ -95,7 +100,7 @@ public class NotificationManager {
 					notificationRepository.save(notification);
 					
 					
-					sendPushForAcceptAndDeclineRequest(pushMessage,eventMember.getUserId(),eventMember.getName(),Notification.NotificationType.Gathering);
+					sendPushForAcceptAndDeclineRequest(event.getTitle(), pushMessage,eventMember.getUserId(),eventMember.getName(),Notification.NotificationType.Gathering);
 				}
 			}
 		}
@@ -133,24 +138,42 @@ public class NotificationManager {
 		for (EventMember eventMember : eventMembers) {
 			if (eventMember.getUserId() != null && !eventMember.getUserId().equals(event.getCreatedById())) {
 				boolean notificationAlreadySent = false;
-				String eventMessage = "sent you an invitation";
 				
-				Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(event.getEventId(),eventMember.getUserId(), NotificationTypeAction.Create);
-				if (notification == null) {
-					notification = new Notification();
-				}
+				String eventMessage = "";
 				
+				//Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(event.getEventId(),eventMember.getUserId(), NotificationTypeAction.Create);
+				//if (notification == null) {
+				//	notification = new Notification();
+				//}
+				Notification notification = new Notification();
 				notification.setSenderId(fromUser.getUserId());
 				notification.setSender(fromUser.getName());
 				if (fromUser.getPhoto() != null) {
 					notification.setSenderPicture(fromUser.getPhoto());
 				}
 				
-				if (eventMember.getStatus() != null) {
-					eventMessage = " updated an invitation ";
-					notificationAlreadySent = true;
+				if (eventMember.isAlreadyInvited()) {
+					
+					if (EventUpdateFor.Title.equals(event.getUpdatedFor())) {
+						eventMessage = fromUser.getName()+" added a new event name";
+					} else if (EventUpdateFor.Image.equals(event.getUpdatedFor())) {
+						eventMessage = fromUser.getName()+" added a new event image";
+					} else if (EventUpdateFor.Time.equals(event.getUpdatedFor())) {
+						eventMessage = "Time modified by "+fromUser.getName();
+					} else if (EventUpdateFor.Description.equals(event.getUpdatedFor())) {
+						eventMessage = "New message from "+fromUser.getName();
+					} else if (EventUpdateFor.GuestList.equals(event.getUpdatedFor())) {
+						eventMessage = "Guest list updated by "+fromUser.getName();
+					} else if (EventUpdateFor.MultipleChanges.equals(event.getUpdatedFor())) {
+						eventMessage = fromUser.getName()+" made changes";
+					} else if (EventUpdateFor.Location.equals(event.getUpdatedFor())) {
+						eventMessage = fromUser.getName()+" changed the location";
+					}
 					notification.setNotificationTypeStatus(NotificationTypeStatus.Old);
+				} else {
+					eventMessage = "Invitation from "+fromUser.getName();
 				}
+				
 				notification.setMessage(eventMessage);
 				notification.setTitle(event.getTitle());
 				notification.setRecepientId(eventMember.getUserId());
@@ -158,10 +181,7 @@ public class NotificationManager {
 				notification.setType(NotificationType.Gathering);
 				notification.setCreatedAt(new Date());
 				notification.setUpdateAt(new Date());
-				if (!notificationAlreadySent) {
-					notificationRepository.save(notification);
-				}
-				
+				notificationRepository.save(notification);
 				
 				userIdBadgeCountMap.put(eventMember.getUserId(), getBadgeCountsByUserId(eventMember.getUserId()));
 				
@@ -170,29 +190,20 @@ public class NotificationManager {
 					for (UserDevice userDevice : toUserDeviceInfo) {
 						if ("android".equals(userDevice.getDeviceType())) {
 							JSONArray toAndroidArray = new JSONArray();
-							if (androidMap.containsKey("old")) {
-								toAndroidArray = androidMap.get("old");
+							if (androidMap.containsKey(eventMessage)) {
+								toAndroidArray = androidMap.get(eventMessage);
 							}
 							
-							String mapKey = "new";
-							if (notificationAlreadySent) {
-								mapKey = "old";
-							}
  							toAndroidArray.put(userDevice.getDeviceToken());
- 							androidMap.put(mapKey, toAndroidArray);
+ 							androidMap.put(eventMessage, toAndroidArray);
 						} else if ("ios".equals(userDevice.getDeviceType())) {
 							
 							List toIosArray = new ArrayList();
-							if (iOSMap.containsKey("old")) {
-								toIosArray = iOSMap.get("old");
-							}
-							
-							String mapKey = "new";
-							if (notificationAlreadySent) {
-								mapKey = "old";
+							if (iOSMap.containsKey(eventMessage)) {
+								toIosArray = iOSMap.get(eventMessage);
 							}
 							toIosArray.add(userDevice);
-							iOSMap.put(mapKey, toIosArray);
+							iOSMap.put(eventMessage, toIosArray);
 						}
 					}
 				}
@@ -202,22 +213,22 @@ public class NotificationManager {
 		try {
 			for (Entry<String,JSONArray> androidSet : androidMap.entrySet()) {
 
-				String pushMessage = " sent you an invitation ";
+				//String pushMessage = " sent you an invitation ";
 				
 				JSONObject payloadObj = new JSONObject();
 				payloadObj.put(CgConstants.notificationTypeTitle,event.getTitle());
 				payloadObj.put(CgConstants.notificationTypeId,event.getEventId());
 				payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
-				if (androidSet.getKey().equals("old")) {
+				/*if (androidSet.getKey().equals("old")) {
 					payloadObj.put(CgConstants.notificationTypeStatus,"Old");
 					pushMessage = " updated an invitation ";
 				} else {
 					payloadObj.put(CgConstants.notificationTypeStatus,"New");
-				}
+				}*/
 				
 				JSONObject notifyObj = new JSONObject();
-				notifyObj.put("title", fromUser.getName());
-				notifyObj.put("body", pushMessage+event.getTitle());
+				notifyObj.put("title", event.getTitle());
+				notifyObj.put("body", androidSet.getKey());
 				notifyObj.put("payload", payloadObj);
 				
 				PushNotificationService.sendAndroidPush(androidSet.getValue(),notifyObj);
@@ -230,22 +241,24 @@ public class NotificationManager {
 			for (Entry<String,List> iosSet : iOSMap.entrySet()) {
 				
 				for (UserDevice userDevice : (List<UserDevice>)iosSet.getValue()) {
-					String pushMessage = " sent you an invitation ";
+					//String pushMessage = " sent you an invitation ";
 					JSONObject notifyObj = new JSONObject();
 					
 					JSONObject payloadObj = new JSONObject();
 					payloadObj.put(CgConstants.notificationTypeTitle,event.getTitle());
 					payloadObj.put(CgConstants.notificationTypeId,event.getEventId());
 					payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
-					if (iosSet.getKey().equals("old")) {
+					/*if (iosSet.getKey().equals("old")) {
 						payloadObj.put(CgConstants.notificationTypeStatus,"Old");
 						pushMessage = " updated an invitation ";
 					} else {
 						payloadObj.put(CgConstants.notificationTypeStatus,"New");
-					}
+					}*/
 					
 					JSONObject alert = new JSONObject();
-					alert.put("title",fromUser.getName()+pushMessage+event.getTitle());
+					alert.put("title",event.getTitle());
+					alert.put("body",iosSet.getKey());
+
 					payloadObj.put("alert",alert);
 					//payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 					payloadObj.put("badge",userIdBadgeCountMap.get(userDevice.getUserId()));
@@ -272,11 +285,11 @@ public class NotificationManager {
 		
 		Notification notification = null;
 		if (eventMember.getStatus().equals(MemberStatus.Going.toString())) {
-			notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Accept);
-			pushMessage = "[username] accepts your invitation [title]";
+			//notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Accept);
+			pushMessage = "[username] accepted your invitation [title]";
 		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
-			notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Decline);
-			pushMessage = "[username] declines your invitation [title]";
+			//notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(eventMember.getEventId(),eventMember.getUserId(), NotificationTypeAction.Decline);
+			pushMessage = "[username] declined your invitation [title]";
 		}
 		
 		pushMessage = pushMessage.replace("[username]",eventMember.getName()).replace("[title]", event.getTitle());
@@ -291,20 +304,21 @@ public class NotificationManager {
 		notification.setNotificationTypeStatus(NotificationTypeStatus.New);
 		
 		if (eventMember.getStatus().equals(MemberStatus.Going.toString())) {
-			notification.setMessage("accepts your invitation");
+			notification.setMessage(eventMember.getName()+" accepted your invitation");
 		} else if (eventMember.getStatus().equals(MemberStatus.NotGoing.toString())) {
-			notification.setMessage("declines your invitation");
+			notification.setMessage(eventMember.getName()+" declined your invitation");
 		}
 		notification.setTitle(event.getTitle());
 		notification.setRecepientId(event.getCreatedById());
 		notification.setNotificationTypeId(event.getEventId());
 		notification.setType(NotificationType.Gathering);
+		notification.setAction(NotificationTypeAction.AcceptDecline);
 		notification.setCreatedAt(new Date());
 		notification.setUpdateAt(new Date());
 		notificationRepository.save(notification);
 		
 
-		sendPushForAcceptAndDeclineRequest(pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
+		sendPushForAcceptAndDeclineRequest(event.getTitle(), pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
 	}
 
 	public void sendReminderAcceptDeclinedPush(ReminderMember reminderMember) {
@@ -317,7 +331,7 @@ public class NotificationManager {
 
 		Reminder reminder = reminderManager.findReminderByReminderId(reminderMember.getReminderId());
 		pushMessage = pushMessage.replace("[username]",reminderMember.getName()).replace("[title]", reminder.getTitle());
-		sendPushForAcceptAndDeclineRequest(pushMessage,reminder.getCreatedById(),reminderMember.getName(),Notification.NotificationType.Reminder);
+		sendPushForAcceptAndDeclineRequest(reminder.getTitle(), pushMessage,reminder.getCreatedById(),reminderMember.getName(),Notification.NotificationType.Reminder);
 	}
 	
 	public void sendReminderCompletedPush(Reminder reminder,User user) {
@@ -496,7 +510,9 @@ public class NotificationManager {
 						JSONObject notifyObj = new JSONObject();
 						JSONObject payloadObj = new JSONObject();
 						JSONObject alert = new JSONObject();
-						alert.put("title","Happening Now: "+pushMessage);
+						alert.put("title","Happening Now");
+						alert.put("body",pushMessage);
+
 						payloadObj.put("alert",alert);
 						payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 						payloadObj.put("sound","cenes-notification-ringtone.aiff");
@@ -516,7 +532,7 @@ public class NotificationManager {
 		}
 	}
 	
-	public void sendPushForAcceptAndDeclineRequest(String pushMessage,Long organizerId,String receipentName,Notification.NotificationType type) {
+	public void sendPushForAcceptAndDeclineRequest(String title, String pushMessage,Long organizerId,String receipentName,Notification.NotificationType type) {
 		JSONArray toAndroidArray = new JSONArray();
 		List toIosArray = new ArrayList<>();
 		
@@ -558,7 +574,8 @@ public class NotificationManager {
 					JSONObject notifyObj = new JSONObject();
 					JSONObject payloadObj = new JSONObject();
 					JSONObject alert = new JSONObject();
-					alert.put("title",pushMessage);
+					alert.put("title",title);
+					alert.put("body",pushMessage);
 					payloadObj.put("alert",alert);
 					payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 					payloadObj.put("sound","cenes-notification-ringtone.aiff");
@@ -591,6 +608,55 @@ public class NotificationManager {
 		notificationCountDataRepository.save(ncd);
 		return badgeCount;
 	}
+	
+	public List<Notification> findPageableNotificationsByRecepientId(Long recepientId, int pageNumber, int offset) {
+		
+		return notificationDao.findPageableNotificationsByUserId(recepientId, pageNumber, offset);
+	}
+	
+	public int findNotificationsCountsByRecepientId(Long recepientId) {
+		
+		return notificationDao.findTotalNotificationCountsByRecepientId(recepientId);
+	}
+	
+	public void sendRefreshPushNotification(Long userId) {
+		List toIosArray = new ArrayList<>();
+
+		List<UserDevice> userDevices = userService.findUserDeviceInfoByUserId(userId);
+		if (userDevices != null && userDevices.size() > 0) {
+			for (UserDevice userDevice : userDevices) {
+				if ("ios".equals(userDevice.getDeviceType())){
+					toIosArray.add(userDevice);
+				}
+			}
+		}
+		
+		try {
+			System.out.println("IOS Push to send : "+toIosArray.size());
+			if (toIosArray.size() > 0) {
+				
+				List<UserDevice> iosUserDevices = toIosArray;
+				for (UserDevice userDevice : iosUserDevices) {
+					JSONObject notifyObj = new JSONObject();
+					JSONObject payloadObj = new JSONObject();
+					JSONObject alert = new JSONObject();
+					//alert.put("title","Refresh Home Screen");
+					payloadObj.put("content-available",1);
+					payloadObj.put("type","HomeRefresh");
+					notifyObj.put("aps", payloadObj);
+					
+					List deviceTokenList = new ArrayList();
+					deviceTokenList.add(userDevice.getDeviceToken());
+					System.out.println("IOS Device token : "+userDevice.getDeviceToken());
+					PushNotificationService.sendIosPushNotification(deviceTokenList,notifyObj);
+				}
+				
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	
 	public void sendTestingNotificationToAndroid() {
 		//ePRpH6WjCM0:APA91bF1hiSwM45o3-Zm2zfpCofWpBs3o8t7wKpeDBspNHOeFjwBn816W65phskOk4fsIvBgdRacuEPa9jPS7_SHSUKUBXrxKyxrmn7qt2tqgX8OyjVLfUmFdLxOIhsxp7rTvCIj4hTD

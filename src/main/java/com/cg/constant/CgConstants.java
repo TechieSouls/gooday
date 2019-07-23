@@ -41,6 +41,6 @@ public class CgConstants {
 	public static String notificationTypeId = "id";
 	public static String notificationType = "type";
 	public static String notificationTypeStatus = "status";
-	
+	public static String maxmindCityDatabase = "/Users/cenes_dev/Desktop/Mandeep/projects/java/gooday/src/main/resources/GeoLite2-City.mmdb";
 	
 }
