@@ -320,16 +320,16 @@ public class UserController {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		
-		
+		//Lets check if same phone number exists for the user.
+		if (user.getPhone() == null) {
+			response.put("success", false);
+			response.put("message", "Please visit Phone Verification Steps");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+
 		//If User signup via Email
 		if (user.getAuthType().equals(AuthenticateType.email)) {
 			
-			//Lets check if same phone number exists for the user.
-			if (user.getPhone() == null) {
-				response.put("success", false);
-				response.put("message", "Please visit Phone Verification Steps");
-				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
-			}
 			User userByPhone = userRepository.findByPhone(user.getPhone());
 			if (userByPhone != null) {
 				response.put("success", false);
@@ -358,9 +358,17 @@ public class UserController {
 		//If its a Facebook User Request
 		if (user.getAuthType().equals(AuthenticateType.facebook)) {
 			
+			User userByPhone = userRepository.findByPhone(user.getPhone());
+
 			//Lets first find the user for the email used in facebook
 			if (user.getEmail() != null) {
 				emailUser = userRepository.findByEmailAndFacebookIdIsNull(user.getEmail());
+				
+				if (userByPhone != null && !user.getEmail().equals(userByPhone.getEmail())) {
+					response.put("success", false);
+					response.put("message", "Phone Already Exists For Other Account");
+					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+				}
 			}
 			
 			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
@@ -383,9 +391,19 @@ public class UserController {
 		//If its a Google User Request
 		if (user.getAuthType().equals(AuthenticateType.google)) {
 			
-			//Lets first find the user for the email used in facebook
+			User userByPhone = userRepository.findByPhone(user.getPhone());
+			
+			//Lets first find the user for the email used in google
 			if (user.getEmail() != null) {
 				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
+				
+				if (userByPhone != null && !user.getEmail().equals(userByPhone.getEmail())) {
+					
+					response.put("success", false);
+					response.put("message", "Phone Already Exists For Other Account");
+					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+
+				}
 			}
 			
 			User googleIdUser = userRepository.findUserByGoogleId(user.getGoogleId());
