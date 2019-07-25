@@ -60,6 +60,7 @@ import com.cg.bo.UserFriend.UserStatus;
 import com.cg.bo.UserStat;
 import com.cg.bo.CalendarSyncToken.AccountType;
 import com.cg.constant.CgConstants.ErrorCodes;
+import com.cg.dao.EventServiceDao;
 import com.cg.dto.ChangePasswordDto;
 import com.cg.enums.CgEnums.AuthenticateType;
 import com.cg.events.bo.Event;
@@ -126,6 +127,9 @@ public class UserController {
 	
 	@Autowired
 	CenesPropertyValueRepository cenesPropertyValueRepository;
+	
+	@Autowired
+	EventServiceDao eventServiceDao;
 	
 	@Value("${cenes.imageUploadPath}")
 	private String imageUploadPath;
@@ -1668,8 +1672,9 @@ public class UserController {
 			return response;
 		}
 		
-		eventManager.deleteEventsByCreatedById(user.getUserId());
-		eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+		//eventManager.deleteEventsByCreatedById(user.getUserId());
+		//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+		eventServiceDao.deleteEventTimeSlotsAndEventsByCreatedById(user.getUserId());
 		recurringManager.deleteRecurringEventsByUserId(user.getUserId());
 		userService.updateContactsByFriendIdAndUserId(null, user.getPhone().substring(4, user.getPhone().length()));
 		userService.deleteContactsByUserId(user.getUserId());

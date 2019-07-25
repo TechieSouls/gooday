@@ -491,6 +491,15 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 
 	}
 	
+	public void deleteEventTimeSlotsAndEventsByCreatedById(Long createdById) {
+		String deleteEventTimeSlots = "delete from event_time_slots where event_id in (select event_id from events where created_by_id = "+createdById+")";
+		 jdbcTemplate.execute(deleteEventTimeSlots);
+
+		 String deleteEvnts = "delete from events where created_by_id = "+createdById+"";
+		 jdbcTemplate.execute(deleteEvnts);
+	}
+	
+	
 	public Event findGatheringByEventId(Long eventId) {
 		
 		String gatheringQuery = "select *,e.source as event_source,  em.source as member_source, "
