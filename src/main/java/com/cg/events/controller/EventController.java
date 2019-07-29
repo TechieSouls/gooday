@@ -1671,6 +1671,7 @@ public class EventController {
 				e.printStackTrace();
 			}
 		}
+				
 		File newFile = new File(dirPath + fileName);
 		try {
 			inputStream = uploadfile.getInputStream();
