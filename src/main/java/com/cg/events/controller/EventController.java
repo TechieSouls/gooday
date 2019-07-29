@@ -1719,9 +1719,9 @@ public class EventController {
 
 			
 			System.out.println("After Saving : "+event.toString());
-			if (!Event.EventUpdateFor.Nothing.equals(event.getUpdatedFor())) {
+			/*if (!Event.EventUpdateFor.Nothing.equals(event.getUpdatedFor())) {
 				notificationManager.sendGatheringNotification(event);
-			}
+			}*/
 			
 			JSONObject jobj = new JSONObject();
 			jobj.put("success", true);
