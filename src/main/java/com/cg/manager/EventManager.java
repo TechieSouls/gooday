@@ -211,7 +211,7 @@ public class EventManager {
 		List<Event> events = eventRepository.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
 		//List<Event> events = eventServiceDao.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, CenesUtils.yyyyMMddTHHmmss.format(startDate));
 		if (events != null && events.size() > 0) {
-			homeScreenDataMap = parseEventsForHomeScreen(events, homeScreenDataMap);
+			homeScreenDataMap = parseEventsForHomeScreenAndroid(events, homeScreenDataMap);
 		}
 		
 		List<Reminder> reminders = reminderRepository.findAllRemindersByAcceptedReminderMemberStatusAsc(userId, endDate);
@@ -439,6 +439,99 @@ public class EventManager {
 		return responseDataToSend;
 	}
 
+public Map<String, List<HomeScreenDto>> parseEventsForHomeScreenAndroid(List<Event> events, Map<String, List<HomeScreenDto>> homeScreenDataMap) {
+		
+		for (Event event : events) {
+			String dateKey = CenesUtils.yyyyMMdd.format(event.getStartTime());
+			List<HomeScreenDto> homeScreenDtos = null;
+			if (homeScreenDataMap.containsKey(dateKey)) {
+				homeScreenDtos = homeScreenDataMap.get(dateKey);
+			} else {
+				homeScreenDtos = new ArrayList<>();
+			}
+			
+			HomeScreenDto homeScreenDto =  new HomeScreenDto();
+			homeScreenDto.setType("Event");
+			homeScreenDto.setEvent(event);
+			
+			
+			homeScreenDto.setId(event.getEventId());
+			homeScreenDto.setTitle(event.getTitle());
+			homeScreenDto.setDescription(event.getDescription());
+			homeScreenDto.setPicture(event.getEventPicture());
+			if (event.getStartTime() != null) {
+				homeScreenDto.setStartTime(event.getStartTime().getTime());
+			}
+			if (event.getEndTime() != null) {
+				homeScreenDto.setEndTime(event.getEndTime().getTime());
+			}
+			if (event.getFullDayStartTime() != null) {
+				homeScreenDto.setFullDayStartTime(event.getFullDayStartTime());
+			}
+			homeScreenDto.setScheduleAs(event.getScheduleAs());
+			homeScreenDto.setLocation(event.getLocation());
+			homeScreenDto.setSource(event.getSource());
+			homeScreenDto.setCreatedById(event.getCreatedById());
+			homeScreenDto.setType("Event");
+			homeScreenDto.setIsFullDay(event.getIsFullDay());
+			if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
+				List<Member> members = new ArrayList<>();
+				for (EventMember eventMember : event.getEventMembers()) {
+					if (eventMember.getUserId() != null && eventMember.getUserId().equals(event.getCreatedById())) {
+						Member member = new Member();
+						member.setName(eventMember.getName());
+						member.setStatus(eventMember.getStatus());
+						member.setType(MemberType.Event.toString());
+						member.setTypeId(eventMember.getEventId());
+						member.setUserId(eventMember.getUserId());
+						if (eventMember.getUser() != null) {
+							member.setUser(eventMember.getUser());
+						}
+						member.setOwner(true);
+						member.setMemberId(eventMember.getEventMemberId());
+						members.add(member);
+						break;
+					}
+				}
+				for (EventMember eventMember : event.getEventMembers()) {
+					if (eventMember.getUserId() != null && !eventMember.getUserId().equals(event.getCreatedById())) {
+						Member member = new Member();
+						member.setName(eventMember.getName());
+						member.setPicture(eventMember.getPicture());
+						member.setStatus(eventMember.getStatus());
+						member.setType(MemberType.Event.toString());
+						member.setTypeId(eventMember.getEventId());
+						member.setUserId(eventMember.getUserId());
+						member.setMemberId(eventMember.getEventMemberId());
+						if (eventMember.getUser() != null) {
+							member.setUser(eventMember.getUser());
+						}
+						members.add(member);
+					} else if (eventMember.getUserId() == null) {
+						Member member = new Member();
+						member.setName(eventMember.getName());
+						member.setPicture(eventMember.getPicture());
+						member.setStatus(eventMember.getStatus());
+						member.setType(MemberType.Event.toString());
+						member.setTypeId(eventMember.getEventId());
+						member.setUserId(eventMember.getUserId());
+						member.setMemberId(eventMember.getEventMemberId());
+						if (eventMember.getUser() != null) {
+							member.setUser(eventMember.getUser());
+						}
+						members.add(member);
+					}
+				}
+				homeScreenDto.setMembers(members);
+			}
+			
+			homeScreenDtos.add(homeScreenDto);
+			homeScreenDataMap.put(dateKey, homeScreenDtos);
+		}
+		
+		return homeScreenDataMap;
+	}
+	
 	public Map<String, List<HomeScreenDto>> parseEventsForHomeScreen(List<Event> events, Map<String, List<HomeScreenDto>> homeScreenDataMap) {
 		
 		for (Event event : events) {
