@@ -208,8 +208,8 @@ public class EventManager {
 		List<HomeScreenDto> responseDataToSend = new ArrayList<>();
 		
 		Map<String,List<HomeScreenDto>> homeScreenDataMap = new HashMap<>();
-		List<Event> events = eventRepository.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
-		//List<Event> events = eventServiceDao.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, CenesUtils.yyyyMMddTHHmmss.format(startDate));
+		//List<Event> events = eventRepository.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, startDate, endDate);
+		List<Event> events = eventServiceDao.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, CenesUtils.yyyyMMddTHHmmss.format(startDate));
 		if (events != null && events.size() > 0) {
 			homeScreenDataMap = parseEventsForHomeScreenAndroid(events, homeScreenDataMap);
 		}
