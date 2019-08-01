@@ -1740,6 +1740,94 @@ public class EventController {
 			return new ResponseEntity<String>(jobj.toString(), HttpStatus.OK);
 		}
 	}
+	
+	@RequestMapping(value = "/api/event/uploadv2", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> uploadImagesV2(MultipartFile uploadfile) {
+
+		System.out.println("Uploading image STARTS : ");
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		
+		Map<String, String> images = new HashMap<>();
+		
+		InputStream inputStream = null;
+		OutputStream outputStream = null;
+		String extension = uploadfile.getOriginalFilename().substring(
+				uploadfile.getOriginalFilename().trim().lastIndexOf("."), uploadfile.getOriginalFilename().length());
+
+		String fileName = UUID.randomUUID().toString() + extension;
+
+		String dirPath = eventUploadPath + "large/";
+		File f = new File(dirPath);
+		if (!f.exists()) {
+			try {
+				f.mkdirs();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+				
+		File newFile = new File(dirPath + fileName);
+		try {
+			inputStream = uploadfile.getInputStream();
+
+			if (!newFile.exists()) {
+				newFile.createNewFile();
+			}
+			outputStream = new FileOutputStream(newFile);
+			int read = 0;
+			byte[] bytes = new byte[1024];
+
+			while ((read = inputStream.read(bytes)) != -1) {
+				outputStream.write(bytes, 0, read);
+			}
+
+			String eventImageUrl = domain + "/assets/uploads/events/large/" + fileName;
+			System.out.println("Image Uplod Url : "+eventImageUrl);
+			images.put("large", eventImageUrl);
+			try {
+				File originalFile = new File(dirPath + fileName);
+
+				String thumnailDirPath = eventUploadPath + "thumbnail/";
+				File thumbnailFile = new File(thumnailDirPath);
+				if (!thumbnailFile.exists()) {
+					try {
+						thumbnailFile.mkdirs();
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+				String thumbnailPath = eventUploadPath + "thumbnail/" + fileName;
+
+				Thumbnails.of(originalFile).size(250, 250).outputFormat("jpg").toFile(thumbnailPath);
+
+				String thumbnailImageUrl = domain + "/assets/uploads/events/thumbnail/" + fileName;
+				System.out.println("Thumbnail Url : "+thumbnailImageUrl);
+				images.put("thumbnail", thumbnailImageUrl);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			System.out.println("After Saving : ");
+			response.put("data", images);
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		response.put("sucess", false);
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+	}
+	
+	
+	
+	
 
 	// Method to get Outlook events from API.
 	@RequestMapping(value = "/api/outlook/events", method = RequestMethod.GET)
