@@ -23,6 +23,7 @@ public class HomeScreenDto {
 	private Event event;
 	private Boolean isFullDay;
 	private String fullDayStartTime;
+	private Boolean isExpired;
 
 	private List<Member> members = new ArrayList<>();
 	public Long getId() {
@@ -117,6 +118,14 @@ public class HomeScreenDto {
 	}
 	public void setEvent(Event event) {
 		this.event = event;
+	}
+	
+	
+	public Boolean getIsExpired() {
+		return isExpired;
+	}
+	public void setIsExpired(Boolean isExpired) {
+		this.isExpired = isExpired;
 	}
 	@Override
 	public String toString() {
