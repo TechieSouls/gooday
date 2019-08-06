@@ -24,14 +24,14 @@ import com.cg.utils.CenesUtils;
 
 public class PushNotificationService {
 
-/*	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		JSONArray toArr = new JSONArray();
 		try {
-			toArr.put("e7IIzk-L2P4:APA91bEhN4UMqNyMmabT8R9RCQQLo9CqAnq5y8lrBE78MaTzDxwoXkzMuhcz1c9GXmmkNBcfTSFEhdtaLcklZeIir0vPVeXSBwOK1F4YjSDbM4eWfoDW59byN4ov5mHKs21HRc9JNSp6");
+			toArr.put("c-hMWm6CENs:APA91bGIxCV-MJScpouTcUYf3WxWWmpzkW2tsmv5t07V2OeEt6F6uP2i2qA7jJij_V0d_8wMbpXphCea76eyee7MMt0xT9uz9Iey_fQ8nsmveuxNFLN7r6OUO0oB4XCPbbKt5ypPNrH4");
 			JSONObject payloadObj = new JSONObject();
-			payloadObj.put("notificationTypeTitle","Aajo");
-			payloadObj.put("notificationTypeId",145);
-			payloadObj.put("notificationType",NotificationType.Gathering.toString());
+			payloadObj.put(CgConstants.notificationTypeTitle,"Aajo");
+			payloadObj.put(CgConstants.notificationTypeId,145);
+			payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
 			
 			JSONObject notifyObj = new JSONObject();
 			notifyObj.put("title", "mandeep");
@@ -39,14 +39,14 @@ public class PushNotificationService {
 			notifyObj.put("payload", payloadObj);
 			sendAndroidPush(toArr,notifyObj);
 
-		} catch(Exception e){
+		} catch(Exception e) {
 			e.printStackTrace();
 		}
 	}*/
 	
 	/*public static void main(String[] args) {
 		List devices = new ArrayList<>();
-		devices.add("7139a0bb83e45b13234ded7b4091ad84340354c4fd3ea991c68ceb16be05f49b");
+		devices.add("2342dd581e9d44e01ec031e46a0594b8eb91ba6e47c164c013d03391169501ad");
 		
 		JSONObject notifyObj = new JSONObject();
 		
@@ -162,8 +162,13 @@ public class PushNotificationService {
             //payload.addBadge(1);
             //payload.addSound("default");
             System.out.println(payload.toString());
-            //List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/Users/cenes_dev/Desktop/Mandeep/projects/java/gooday-beta/gooday/src/main/resources/beta_push_cert.p12", "123456", false, devices);
-            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/beta/gooday/src/main/resources/beta_push_cert.p12", "123456", true, devices);
+            //List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/Users/cenes_dev/Desktop/Mandeep/projects/java/gooday-beta/gooday/src/main/resources/beta_development_push.p12", "123456", true, devices);
+            
+            //This is when build is in test flight or diawi link
+            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/beta/gooday/src/main/resources/beta_development_push.p12", "123456", true, devices);
+            
+            //This is when build is on App Store.. 
+            //List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/beta/gooday/src/main/resources/beta_push_cert.p12", "123456", true, devices);
             for (PushedNotification NOTIFICATION: NOTIFICATIONS) {
                 if (NOTIFICATION.isSuccessful()) {
                      //APPLE ACCEPTED THE NOTIFICATION AND SHOULD DELIVER IT 
