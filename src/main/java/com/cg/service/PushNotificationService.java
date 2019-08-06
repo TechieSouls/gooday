@@ -46,7 +46,7 @@ public class PushNotificationService {
 	
 	/*public static void main(String[] args) {
 		List devices = new ArrayList<>();
-		devices.add("2342dd581e9d44e01ec031e46a0594b8eb91ba6e47c164c013d03391169501ad");
+		devices.add("bef89acbe4e53690c9988452a9e972d9cb0c7688498eaca5e4ba429a91067df4");
 		
 		JSONObject notifyObj = new JSONObject();
 		
@@ -163,12 +163,13 @@ public class PushNotificationService {
             //payload.addSound("default");
             System.out.println(payload.toString());
             //List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/Users/cenes_dev/Desktop/Mandeep/projects/java/gooday-beta/gooday/src/main/resources/beta_development_push.p12", "123456", true, devices);
-            
+            //List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/Users/cenes_dev/Desktop/Mandeep/projects/java/gooday-beta/gooday/src/main/resources/beta_push_cert.p12", "123456", true, devices);
+
             //This is when build is in test flight or diawi link
-            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/beta/gooday/src/main/resources/beta_development_push.p12", "123456", true, devices);
+            //List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/beta/gooday/src/main/resources/beta_development_push.p12", "123456", true, devices);
             
             //This is when build is on App Store.. 
-            //List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/beta/gooday/src/main/resources/beta_push_cert.p12", "123456", true, devices);
+            List<PushedNotification> NOTIFICATIONS = Push.payload(payload, "/home/ubuntu/garage/beta/gooday/src/main/resources/beta_push_cert.p12", "123456", true, devices);
             for (PushedNotification NOTIFICATION: NOTIFICATIONS) {
                 if (NOTIFICATION.isSuccessful()) {
                      //APPLE ACCEPTED THE NOTIFICATION AND SHOULD DELIVER IT 
