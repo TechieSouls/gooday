@@ -104,6 +104,17 @@ public class UserDetailController {
 					userContactRepository.save(userContactInOtherContacts);
 				}
 				userRepository.save(user);
+			} else {
+				
+				//If logged In user logged in with different phone number.
+				//Then we will ask him to check phone number.
+				if (!phone.equals(user.getPhone())) {
+					
+					user = new User();
+					user.setErrorCode(ErrorCodes.PhoneAlreadyTaken.getErrorCode());
+					user.setErrorDetail(ErrorCodes.PhoneAlreadyTaken.toString());
+
+				}
 			}
 		}
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user "+user.toString());	

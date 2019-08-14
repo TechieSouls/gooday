@@ -146,9 +146,7 @@ public class UserController {
 	@Value("${cenes.salt}")
 	private String salt;
 	
-	@ApiOperation(value = "Create user", notes = "create user ", code = 200, httpMethod = "POST", produces = "application/json")
-	@ModelAttribute(value = "user")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "product updated successfuly") })
+	//Create user
 	@RequestMapping(value = "/api/users/", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<User> createUser(
