@@ -503,7 +503,7 @@ public class UserController {
 	}
 	
 	@RequestMapping(value = "/api/users/websignup", method = RequestMethod.POST)
-	public ResponseEntity<Map<String, Object>> signupUserStep1(@RequestBody User user, HttpServletResponse httpServletResponse) {
+	public ResponseEntity<Map<String, Object>> signupUserWeb(@RequestBody User user, HttpServletResponse httpServletResponse) {
 
 		
 		boolean isNewUser = false;
