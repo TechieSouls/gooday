@@ -502,6 +502,119 @@ public class UserController {
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/api/users/websignup", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> signupUserStep1(@RequestBody User user, HttpServletResponse httpServletResponse) {
+
+		
+		boolean isNewUser = false;
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		//Lets check if same phone number exists for the user.
+		if (user.getPhone() == null) {
+			response.put("success", false);
+			response.put("message", "Please visit Phone Verification Steps");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+	
+		//Lets check if Phone already exists during signup step
+		User userByPhone = userRepository.findByPhone(user.getPhone());
+		if (userByPhone != null) {
+			response.put("success", false);
+			response.put("errorCode", 1001);
+			response.put("message", "Phone Already Exists.");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+	
+		//If User signup via Email
+		if (user.getAuthType().equals(AuthenticateType.email)) {
+			
+			User emailUser = userRepository.findUserByEmail(user.getEmail());
+			if (emailUser != null) {
+				response.put("success", false);
+				response.put("errorCode", 1002);
+				response.put("message", "Account Already Exists");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			
+			user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
+			user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+			user.setToken(establishUserAndLogin(httpServletResponse, user));
+			user = userService.saveUser(user);
+			isNewUser = true;
+		}
+		
+		//User emailUser = null;
+		//If its a Facebook User Request
+		if (user.getAuthType().equals(AuthenticateType.facebook)) {
+			
+			//Lets first find the user for the email used in facebook
+			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
+			if (facebookIdUser != null) {
+				
+				response.put("success", false);
+				response.put("errorCode", 1002);
+				response.put("message", "Account Already Exists");
+				
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+		}
+		
+		//If its a Google User Request
+		if (user.getAuthType().equals(AuthenticateType.google)) {
+			
+			User googleIdUser = userRepository.findUserByGoogleId(user.getGoogleId());
+			if (googleIdUser != null) {
+				
+				response.put("success", false);
+				response.put("errorCode", 1002);
+				response.put("message", "Account Already Exists");
+
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+		}
+
+		//We will get email user if user did not logged in via Facebook/Google
+		if (user.getAuthType().equals(AuthenticateType.facebook) || user.getAuthType().equals(AuthenticateType.google)) {
+			if (user.getEmail() != null) {
+				user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
+			} else {
+				user.setUsername(user.getName().replaceAll(" ",".")+System.currentTimeMillis());
+			}
+			user.setToken(establishUserAndLogin(httpServletResponse, user));
+		}
+		
+		user = userService.saveUser(user);
+		try {
+			//Updating this user in other users contact list.
+			if (user.getPhone() != null) {
+				String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+				List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
+				if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+					for (UserContact userContact : userContactInOtherContacts) {
+						userContact.setCenesMember(CenesMember.yes);
+						userContact.setFriendId(user.getUserId());
+					}
+					userContactRepository.save(userContactInOtherContacts);
+					
+					//Now lets update the counts of cenes member counts under user stats
+					//UserThread userThread = new UserThread();
+					//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);`
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			user.setErrorCode(ErrorCodes.InternalServerError.ordinal());
+			user.setErrorDetail(ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+		
+		recurringManager.saveDefaultMeTime(user.getUserId());
+		
+		response.put("data", user);
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
 
 	@ResponseBody
 	@RequestMapping(value="/api/user/update/", method = RequestMethod.POST)
