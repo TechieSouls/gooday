@@ -447,7 +447,7 @@ public class UserController {
 					googleIdUser.setPhone(user.getPhone());
 					googleIdUser = userService.saveUser(googleIdUser);
 					
-				} else 	if (userByPhone == null && googleIdUser.getPhone() != null && !googleIdUser.getPhone().equals(user.getPhone())) {
+				} else if (userByPhone == null && googleIdUser.getPhone() != null && !googleIdUser.getPhone().equals(user.getPhone())) {
 					//If the user does not exist with new number, but the user exists for that email.
 					response.put("success", false);
 					response.put("errorCode", 1001);
@@ -1397,6 +1397,112 @@ public class UserController {
 		}
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 	}
+	
+	
+	@RequestMapping(value = "/auth/updatePhoneNumber/v2/sendEmail", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> sendForgetPasswordEmail(@RequestBody Map<String, Object> postData) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			
+			String email = postData.get("email").toString();
+			
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					
+					String newPhone = postData.get("email").toString();
+
+					emailManager.sendUpdatePhoneNumberConfirmationLink(user, newPhone);
+					response.put("success", true);
+				} else {
+					response.put("success", false);
+					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
+				}
+				response.put("errorCode", 0);
+			} else {
+				response.put("success", false);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/phoneNumberUpdateConfirmation", method = RequestMethod.GET)
+	public ResponseEntity<Object> updatePhoneConfirmationLinkRequest(HttpServletRequest request) {
+		
+		
+		System.out.println("Servlet request : "+request.getParameter("phone"));
+		System.out.println("Servlet request : "+request.getParameter("email"));		
+		
+		Map<String, Object> response = new HashMap<>();
+		return new ResponseEntity<>(response, HttpStatus.OK);
+
+		/*User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			
+			user = userService.findUserByResetToken(resetToken);
+			
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Invalid Reset Token");
+				String url = request.getScheme()+"://thankyou.html?success=false";
+				
+			    URI yahoo = new URI(url);
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+				//return response.toString();
+				
+			}
+
+			user.setResetToken(null);
+			userService.saveUser(user);
+			response.put("success", true);
+			response.put("message", "Email Confirmed Successfully");
+
+			String userAgent = request.getHeader("User-Agent");
+			System.out.println("User Agent : "+userAgent);
+			if (userAgent.toLowerCase().indexOf("iphone") != -1 || userAgent.toLowerCase().indexOf("ipad") != -1  || userAgent.toLowerCase().indexOf("android") != -1 || 
+					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
+					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
+				
+				String url = domain+"://thankyou.html?success=true";
+				
+			    URI yahoo = new URI(url);
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+				
+			} else {
+			    return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);*/
+	}
+	
+
 	
 	@RequestMapping(value = "/auth/forgetPassword/v2/sendEmail", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> sendForgetPasswordEmail(String email) {

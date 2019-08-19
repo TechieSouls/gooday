@@ -474,6 +474,7 @@ public Map<String, List<HomeScreenDto>> parseEventsForHomeScreenAndroid(List<Eve
 			homeScreenDto.setCreatedById(event.getCreatedById());
 			homeScreenDto.setType("Event");
 			homeScreenDto.setIsFullDay(event.getIsFullDay());
+			homeScreenDto.setIsExpired(event.isExpired());
 			if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
 				List<Member> members = new ArrayList<>();
 				for (EventMember eventMember : event.getEventMembers()) {
