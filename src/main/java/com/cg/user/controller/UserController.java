@@ -406,9 +406,7 @@ public class UserController {
 			User userByPhone = userRepository.findByPhone(user.getPhone());
 			
 			//Lets first find the user for the email used in google
-			if (user.getEmail() != null) {
-				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
-				
+			if (user.getEmail() != null) {				
 				
 				//If phone already exists for another account.
 				//This is the case if user has signup with email and now trying to login via gmail.
@@ -419,13 +417,16 @@ public class UserController {
 					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 
 				}
-				
-			 	if (userByPhone == null && emailUser.getPhone() != null && !emailUser.getPhone().equals(user.getPhone())) {
-					//If the user does not exist with new number, but the user exists for that email.
-					response.put("success", false);
-					response.put("errorCode", 1001);
-					response.put("message", "\"Google Email\" has been registered by different number");
-					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+
+				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
+				if (emailUser != null) {
+				 	if (userByPhone == null && emailUser.getPhone() != null && !emailUser.getPhone().equals(user.getPhone())) {
+						//If the user does not exist with new number, but the user exists for that email.
+						response.put("success", false);
+						response.put("errorCode", 1001);
+						response.put("message", "\"Google Email\" has been registered by different number");
+						return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+					}
 				}
 			}
 			
@@ -435,7 +436,15 @@ public class UserController {
 				if (googleIdUser.getPhone() == null && user.getPhone() != null) {
 					googleIdUser.setPhone(user.getPhone());
 					googleIdUser = userService.saveUser(googleIdUser);
+					
+				} else 	if (userByPhone == null && googleIdUser.getPhone() != null && !googleIdUser.getPhone().equals(user.getPhone())) {
+					//If the user does not exist with new number, but the user exists for that email.
+					response.put("success", false);
+					response.put("errorCode", 1001);
+					response.put("message", "\"Google Email\" has been registered by different number");
+					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 				}
+
 				
 				googleIdUser.setIsNew(false);
 				response.put("success", true);
