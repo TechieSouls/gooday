@@ -111,9 +111,8 @@ public class UserDetailController {
 				if (phone != null && user.getPhone() != null && !phone.equals(user.getPhone())) {
 					
 					user = new User();
-					user.setErrorCode(ErrorCodes.PhoneAlreadyTaken.getErrorCode());
-					user.setErrorDetail(ErrorCodes.PhoneAlreadyTaken.toString());
-
+					user.setErrorCode(1001);
+					user.setErrorDetail("\"Email\" has been registered by different number");
 				}
 			}
 		}

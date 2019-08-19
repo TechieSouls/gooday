@@ -364,7 +364,6 @@ public class UserController {
 
 			//Lets first find the user for the email used in facebook
 			if (user.getEmail() != null) {
-				emailUser = userRepository.findByEmailAndFacebookIdIsNull(user.getEmail());
 				
 				if (userByPhone != null && !user.getEmail().equals(userByPhone.getEmail())) {
 					response.put("success", false);
@@ -372,13 +371,17 @@ public class UserController {
 					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 				}
 				
-				if (userByPhone == null && emailUser.getPhone() != null && !emailUser.getPhone().equals(user.getPhone())) {
-					//If the user does not exist with new number, but the user exists for that email.
-					response.put("success", false);
-					response.put("errorCode", 1001);
-					response.put("message", "\"Google Email\" has been registered by different number");
-					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
+				if (emailUser != null) {
+				 	if (userByPhone == null && emailUser.getPhone() != null && !emailUser.getPhone().equals(user.getPhone())) {
+						//If the user does not exist with new number, but the user exists for that email.
+						response.put("success", false);
+						response.put("errorCode", 1001);
+						response.put("message", "\"FB\" has been registered by different number");
+						return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+					}
 				}
+
 			}
 			
 			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
@@ -387,7 +390,14 @@ public class UserController {
 				if (facebookIdUser.getPhone() == null && user.getPhone() != null) {
 					facebookIdUser.setPhone(user.getPhone());
 					facebookIdUser = userService.saveUser(facebookIdUser);
+				} else 	if (userByPhone == null && facebookIdUser.getPhone() != null && !facebookIdUser.getPhone().equals(user.getPhone())) {
+					//If the user does not exist with new number, but the user exists for that email.
+					response.put("success", false);
+					response.put("errorCode", 1001);
+					response.put("message", "\"FB\" has been registered by different number");
+					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 				}
+
 				
 				facebookIdUser.setIsNew(false);
 				response.put("success", true);
@@ -415,7 +425,7 @@ public class UserController {
 					response.put("success", false);
 					response.put("message", "Phone Already Exists For Other Account");
 					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
-
+					
 				}
 
 				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
