@@ -371,6 +371,14 @@ public class UserController {
 					response.put("message", "Phone Already Exists For Other Account");
 					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 				}
+				
+				if (userByPhone == null && emailUser.getPhone() != null && !emailUser.getPhone().equals(user.getPhone())) {
+					//If the user does not exist with new number, but the user exists for that email.
+					response.put("success", false);
+					response.put("errorCode", 1001);
+					response.put("message", "\"Google Email\" has been registered by different number");
+					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+				}
 			}
 			
 			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
@@ -393,18 +401,31 @@ public class UserController {
 		//If its a Google User Request
 		if (user.getAuthType().equals(AuthenticateType.google)) {
 			
+			//Lets first fetch the user from dabtabase by the verified phone number.
+			//We will then check this user with one for email id from google account.
 			User userByPhone = userRepository.findByPhone(user.getPhone());
 			
 			//Lets first find the user for the email used in google
 			if (user.getEmail() != null) {
 				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
 				
+				
+				//If phone already exists for another account.
+				//This is the case if user has signup with email and now trying to login via gmail.
 				if (userByPhone != null && !user.getEmail().equals(userByPhone.getEmail())) {
 					
 					response.put("success", false);
 					response.put("message", "Phone Already Exists For Other Account");
 					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 
+				}
+				
+			 	if (userByPhone == null && emailUser.getPhone() != null && !emailUser.getPhone().equals(user.getPhone())) {
+					//If the user does not exist with new number, but the user exists for that email.
+					response.put("success", false);
+					response.put("errorCode", 1001);
+					response.put("message", "\"Google Email\" has been registered by different number");
+					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 				}
 			}
 			
