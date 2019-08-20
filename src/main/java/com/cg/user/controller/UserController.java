@@ -55,6 +55,7 @@ import com.cg.bo.CenesProperty.PropertyOwningEntity;
 import com.cg.bo.CenesPropertyValue;
 import com.cg.bo.FacebookProfile;
 import com.cg.bo.HolidayCalendar;
+import com.cg.bo.SimCardInfo;
 import com.cg.bo.UserFriend;
 import com.cg.bo.UserFriend.UserStatus;
 import com.cg.bo.UserStat;
@@ -1443,8 +1444,8 @@ public class UserController {
 	public ResponseEntity<Object> updatePhoneConfirmationLinkRequest(HttpServletRequest request) {
 		
 		
-		System.out.println("Servlet request : "+request.getParameter("phone"));
-		System.out.println("Servlet request : "+request.getParameter("email"));		
+		System.out.println("phoneNumberUpdateConfirmation Servlet request : "+request.getParameter("phone"));
+		System.out.println("phoneNumberUpdateConfirmation Servlet request : "+request.getParameter("email"));		
 		
 		User user = null;
 		Map<String, Object> response = new HashMap<>();
@@ -2134,8 +2135,35 @@ public class UserController {
 		}
 		
 		return response;
-		
 	}
+	
+	@RequestMapping(value = "/api/user/saveSimCardInfo", method = RequestMethod.POST)
+	public Map<String, Object> saveSimCardInfo(@RequestBody SimCardInfo simCardInfo) {
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		response.put("data", userService.saveSimCardInfo(simCardInfo));
+		
+		return response;
+	}
+	
+	@RequestMapping(value = "/api/user/findSimCardByUserId", method = RequestMethod.GET)
+	public Map<String, Object> findSimCardInfoByUserId(Long userId) {
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		
+		SimCardInfo simCardInfo = userService.findSimCardInfoByUserId(userId);
+		if (simCardInfo == null) {
+			response.put("success", false);
+			response.put("message", "Sim Info not available");
+		} else {
+			response.put("data", simCardInfo);
+		}
+		return response;
+	}
+
 	
 	@Autowired
 	TokenAuthenticationService tokenAuthenticationService;

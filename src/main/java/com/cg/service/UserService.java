@@ -13,12 +13,14 @@ import org.springframework.stereotype.Service;
 import com.cg.bo.CalendarSyncToken;
 import com.cg.bo.CenesProperty;
 import com.cg.bo.HolidayCalendar;
+import com.cg.bo.SimCardInfo;
 import com.cg.bo.UserStat;
 import com.cg.dao.UserDao;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.EventMember;
 import com.cg.repository.CalendarSyncTokenRepository;
 import com.cg.repository.HolidayCalendarRepository;
+import com.cg.repository.SimCardInfoRepository;
 import com.cg.repository.UserContactRepository;
 import com.cg.repository.UserDeviceRepository;
 import com.cg.repository.UserRepository;
@@ -51,6 +53,9 @@ public class UserService {
 	
 	@Autowired
 	UserDao userDao;
+	
+	@Autowired
+	SimCardInfoRepository simCardInfoRepository;
 	
 	
 	/***********  USER BLOCK STARTS *****************/
@@ -485,5 +490,23 @@ public class UserService {
 				userStatRepository.save(usersStatToUpdate);
 			}
 		}
+	}
+	
+	public SimCardInfo findSimCardInfoByUserId(Long userId) {
+		
+		try {
+			
+			return simCardInfoRepository.findByUserId(userId);
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public SimCardInfo saveSimCardInfo(SimCardInfo simCardInfo) {
+		
+		return simCardInfoRepository.save(simCardInfo);
 	}
 }
