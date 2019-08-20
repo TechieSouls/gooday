@@ -1446,19 +1446,16 @@ public class UserController {
 		System.out.println("Servlet request : "+request.getParameter("phone"));
 		System.out.println("Servlet request : "+request.getParameter("email"));		
 		
-		Map<String, Object> response = new HashMap<>();
-		return new ResponseEntity<>(response, HttpStatus.OK);
-
-		/*User user = null;
+		User user = null;
 		Map<String, Object> response = new HashMap<>();
 		try {
 			
-			user = userService.findUserByResetToken(resetToken);
+			user = userService.findUserByEmail(request.getParameter("email"));
 			
 			if (user == null) {
 				response.put("success", false);
-				response.put("message", "Invalid Reset Token");
-				String url = request.getScheme()+"://thankyou.html?success=false";
+				response.put("message", "Link Expired.");
+				String url = request.getScheme()+"://thankyou-update-phone.html?success=false";
 				
 			    URI yahoo = new URI(url);
 			    HttpHeaders httpHeaders = new HttpHeaders();
@@ -1468,10 +1465,53 @@ public class UserController {
 				
 			}
 
-			user.setResetToken(null);
+			
+			//Lets first update all the contacts of old phone number to be 
+			try {
+				//Updating this user in other users contact list.
+				if (user.getPhone() != null) {
+					String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
+					if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+						for (UserContact userContact : userContactInOtherContacts) {
+							userContact.setCenesMember(CenesMember.no);
+							userContact.setFriendId(null);
+						}
+						userContactRepository.save(userContactInOtherContacts);
+						//Now lets update the counts of cenes member counts under user stats
+						//UserThread userThread = new UserThread();
+						//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);`
+					}
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			user.setPhone(request.getParameter("phone"));
 			userService.saveUser(user);
+			
+			try {
+				//Updating this user in other users contact list.
+				if (user.getPhone() != null) {
+					String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
+					if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+						for (UserContact userContact : userContactInOtherContacts) {
+							userContact.setCenesMember(CenesMember.yes);
+							userContact.setFriendId(user.getUserId());
+						}
+						userContactRepository.save(userContactInOtherContacts);
+						//Now lets update the counts of cenes member counts under user stats
+						//UserThread userThread = new UserThread();
+						//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);`
+					}
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
 			response.put("success", true);
-			response.put("message", "Email Confirmed Successfully");
+			response.put("message", "Phone Number Updated Successfully");
 
 			String userAgent = request.getHeader("User-Agent");
 			System.out.println("User Agent : "+userAgent);
@@ -1479,7 +1519,7 @@ public class UserController {
 					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
 					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
 				
-				String url = domain+"://thankyou.html?success=true";
+				String url = domain+"://thankyou-update-phone.html?success=true";
 				
 			    URI yahoo = new URI(url);
 			    HttpHeaders httpHeaders = new HttpHeaders();
@@ -1499,7 +1539,7 @@ public class UserController {
 			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
 
 		}
-		return new ResponseEntity<>(response, HttpStatus.OK);*/
+		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 	
 

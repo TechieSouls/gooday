@@ -231,7 +231,7 @@ public class EmailManager {
 				"<br/>\n" + 
 				"\n" + 
 				"<div align=\"center\">\n" + 
-				"	<a href=\""+updatePhoneLink+"\" class=\"reset-btn\" style=\"text-decoration: none;color: #EE9B26;\"><span style=\"font-size: 18px;border:2px solid #EE9B26; padding:15px 75px; border-radius: 35px;text-align:center;\">Update Phone Number</span></a>\n" + 
+				"	<a href=\""+updatePhoneLink+"\" class=\"reset-btn\" style=\"text-decoration: none;color: #EE9B26;\"><span style=\"font-size: 18px;border:2px solid #EE9B26; padding:15px 40px; border-radius: 35px;text-align:center;\">Update Phone Number</span></a>\n" + 
 				"</div>\n" + 
 				"<br>\n" + 
 				"<br>\n" + 
