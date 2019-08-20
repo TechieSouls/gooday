@@ -1412,7 +1412,7 @@ public class UserController {
 				user = userService.findUserByEmail(email);
 				if (user != null) {
 					
-					String newPhone = postData.get("email").toString();
+					String newPhone = postData.get("phone").toString();
 
 					emailManager.sendUpdatePhoneNumberConfirmationLink(user, newPhone);
 					response.put("success", true);
