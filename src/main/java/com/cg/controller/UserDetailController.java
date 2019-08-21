@@ -111,6 +111,69 @@ public class UserDetailController {
 		return new ResponseEntity<User>(user, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/auth/user/webauthenticate", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> loginInWeb(
+			HttpServletRequest request,
+			HttpServletResponse response,
+			@RequestBody User user) {
+		
+		
+		Map<String, Object> responseMap = new HashMap<String, Object>();
+		responseMap.put("success", true);
+		
+		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user");
+		
+		if (user.getAuthType() != null) {
+			
+		}
+		
+		if (user.getAuthType() == AuthenticateType.email && user.getEmail() != null) {
+			
+			User emailUser = userRepository.findUserByEmail(user.getEmail());
+			
+			if (emailUser == null) {
+				
+				responseMap.put("success", false);
+				responseMap.put("errorCode", 1001);
+				responseMap.put("message", "Account does not exist");
+				return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+			}
+			
+			String password = new Md5PasswordEncoder().encodePassword(user.getPassword(), salt);
+			user = userRepository.findUserByEmailAndPassword(user.getEmail(),password);
+			if (user == null) {
+				
+				responseMap.put("success", false);
+				responseMap.put("errorCode", 1002);
+				responseMap.put("message", ErrorCodes.IncorrectEmailOrPassword.toString());
+				return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+			}
+		} else if (user.getAuthType() == AuthenticateType.facebook) {
+			
+			user = this.userRepository.findUserByFacebookId(user.getFacebookId());
+			if (user == null) {
+				responseMap.put("success", false);
+				responseMap.put("errorCode", 1001);
+				responseMap.put("message", "Account does not exist");
+				return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+			}
+		} else if (user.getAuthType() == AuthenticateType.google) {
+			
+			user = this.userRepository.findUserByFacebookId(user.getGoogleId());
+			if (user == null) {
+				responseMap.put("success", false);
+				responseMap.put("errorCode", 1001);
+				responseMap.put("message", "Account does not exist");
+				return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+			}
+		}
+		
+		responseMap.put("data", user);
+		System.out.println("[ Date : "+new Date()+", Message : Logging user "+user.toString());	
+		return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+	}
+	
 	
 	@ApiOperation(value = "fetch user detail", notes = "Fecth user detail", code = 200, httpMethod = "GET", produces = "application/json")
 	@ModelAttribute(value = "product")

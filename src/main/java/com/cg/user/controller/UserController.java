@@ -146,9 +146,7 @@ public class UserController {
 	@Value("${cenes.salt}")
 	private String salt;
 	
-	@ApiOperation(value = "Create user", notes = "create user ", code = 200, httpMethod = "POST", produces = "application/json")
-	@ModelAttribute(value = "user")
-	@ApiResponses(value = { @ApiResponse(code = 200, message = "product updated successfuly") })
+	//Create user
 	@RequestMapping(value = "/api/users/", method = RequestMethod.POST)
 	@ResponseBody
 	public ResponseEntity<User> createUser(
@@ -366,22 +364,56 @@ public class UserController {
 
 			//Lets first find the user for the email used in facebook
 			if (user.getEmail() != null) {
-				emailUser = userRepository.findByEmailAndFacebookIdIsNull(user.getEmail());
 				
 				if (userByPhone != null && !user.getEmail().equals(userByPhone.getEmail())) {
-					response.put("success", false);
-					response.put("message", "Phone Already Exists For Other Account");
-					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+					
+					if (!"cenesking@gmail.com".equals(user.getEmail())) {
+						
+						response.put("success", false);
+						response.put("message", "Phone Already Exists For Other Account");
+						return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+
+					}
 				}
+				
+				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
+				if (emailUser != null) {
+				 	if (userByPhone == null && emailUser.getPhone() != null && !emailUser.getPhone().equals(user.getPhone()) && !"cenesking@gmail.com".equals(user.getEmail())) {
+						//If the user does not exist with new number, but the user exists for that email.
+						response.put("success", false);
+						response.put("errorCode", 1001);
+						response.put("message", "\"FB\" has been registered by different number");
+						return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+					}
+				}
+
 			}
 			
 			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
 			if (facebookIdUser != null) {
 				
-				if (facebookIdUser.getPhone() == null && user.getPhone() != null) {
-					facebookIdUser.setPhone(user.getPhone());
+				if (user.getCountry() != null) {
+					facebookIdUser.setCountry(user.getCountry());
 					facebookIdUser = userService.saveUser(facebookIdUser);
 				}
+
+
+				if (facebookIdUser.getPhone() == null && user.getPhone() != null) {
+					facebookIdUser.setPhone(user.getPhone());
+					
+					if (user.getCountry() != null) {
+						facebookIdUser.setCountry(user.getCountry());
+					}
+					
+					facebookIdUser = userService.saveUser(facebookIdUser);
+				} else 	if (userByPhone == null && facebookIdUser.getPhone() != null && !facebookIdUser.getPhone().equals(user.getPhone()) && !"cenesking@gmail.com".equals(user.getEmail())) {
+					//If the user does not exist with new number, but the user exists for that email.
+					response.put("success", false);
+					response.put("errorCode", 1001);
+					response.put("message", "\"FB\" has been registered by different number");
+					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+				}
+
 				
 				facebookIdUser.setIsNew(false);
 				response.put("success", true);
@@ -395,28 +427,60 @@ public class UserController {
 		//If its a Google User Request
 		if (user.getAuthType().equals(AuthenticateType.google)) {
 			
+			//Lets first fetch the user from dabtabase by the verified phone number.
+			//We will then check this user with one for email id from google account.
 			User userByPhone = userRepository.findByPhone(user.getPhone());
 			
 			//Lets first find the user for the email used in google
-			if (user.getEmail() != null) {
-				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
+			if (user.getEmail() != null) {				
 				
+				//If phone already exists for another account.
+				//This is the case if user has signup with email and now trying to login via gmail.
 				if (userByPhone != null && !user.getEmail().equals(userByPhone.getEmail())) {
 					
-					response.put("success", false);
-					response.put("message", "Phone Already Exists For Other Account");
-					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+					if (!"cenesking@gmail.com".equals(user.getEmail())) {
+						
+						response.put("success", false);
+						response.put("message", "Phone Already Exists For Other Account");
+						return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 
+					}
+					
+				}
+
+				emailUser = userRepository.findByEmailAndGoogleIdIsNull(user.getEmail());
+				if (emailUser != null) {
+				 	if (userByPhone == null && emailUser.getPhone() != null && !emailUser.getPhone().equals(user.getPhone()) && !"cenesking@gmail.com".equals(user.getEmail())) {
+						//If the user does not exist with new number, but the user exists for that email.
+						response.put("success", false);
+						response.put("errorCode", 1001);
+						response.put("message", "\"Google Email\" has been registered by different number");
+						return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+					}
 				}
 			}
 			
 			User googleIdUser = userRepository.findUserByGoogleId(user.getGoogleId());
 			if (googleIdUser != null) {
 				
-				if (googleIdUser.getPhone() == null && user.getPhone() != null) {
-					googleIdUser.setPhone(user.getPhone());
+				if (user.getCountry() != null) {
+					googleIdUser.setCountry(user.getCountry());
 					googleIdUser = userService.saveUser(googleIdUser);
 				}
+
+				if (googleIdUser.getPhone() == null && user.getPhone() != null) {
+					googleIdUser.setPhone(user.getPhone());
+					
+					googleIdUser = userService.saveUser(googleIdUser);
+					
+				} else if (userByPhone == null && googleIdUser.getPhone() != null && !googleIdUser.getPhone().equals(user.getPhone()) && !"cenesking@gmail.com".equals(user.getEmail())) {
+					//If the user does not exist with new number, but the user exists for that email.
+					response.put("success", false);
+					response.put("errorCode", 1001);
+					response.put("message", "\"Google Email\" has been registered by different number");
+					return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+				}
+
 				
 				googleIdUser.setIsNew(false);
 				response.put("success", true);
@@ -431,6 +495,11 @@ public class UserController {
 			if (emailUser.getPhone() == null && user.getPhone() != null) {
 				emailUser.setPhone(user.getPhone());
 			}
+			
+			if (user.getCountry() != null) {
+				emailUser.setCountry(user.getCountry());
+			}
+
 			emailUser.setPhoto(user.getPhoto());
 			emailUser.setName(user.getName());
 			emailUser.setGender(user.getGender());
@@ -504,6 +573,119 @@ public class UserController {
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/api/users/websignup", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> signupUserWeb(@RequestBody User user, HttpServletResponse httpServletResponse) {
+
+		
+		boolean isNewUser = false;
+		
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		//Lets check if same phone number exists for the user.
+		if (user.getPhone() == null) {
+			response.put("success", false);
+			response.put("message", "Please visit Phone Verification Steps");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+	
+		//Lets check if Phone already exists during signup step
+		User userByPhone = userRepository.findByPhone(user.getPhone());
+		if (userByPhone != null) {
+			response.put("success", false);
+			response.put("errorCode", 1001);
+			response.put("message", "Phone Already Exists.");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+	
+		//If User signup via Email
+		if (user.getAuthType().equals(AuthenticateType.email)) {
+			
+			User emailUser = userRepository.findUserByEmail(user.getEmail());
+			if (emailUser != null) {
+				response.put("success", false);
+				response.put("errorCode", 1002);
+				response.put("message", "Account Already Exists");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+			
+			user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
+			user.setPassword(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+			user.setToken(establishUserAndLogin(httpServletResponse, user));
+			user = userService.saveUser(user);
+			isNewUser = true;
+		}
+		
+		//User emailUser = null;
+		//If its a Facebook User Request
+		if (user.getAuthType().equals(AuthenticateType.facebook)) {
+			
+			//Lets first find the user for the email used in facebook
+			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
+			if (facebookIdUser != null) {
+				
+				response.put("success", false);
+				response.put("errorCode", 1002);
+				response.put("message", "Account Already Exists");
+				
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+		}
+		
+		//If its a Google User Request
+		if (user.getAuthType().equals(AuthenticateType.google)) {
+			
+			User googleIdUser = userRepository.findUserByGoogleId(user.getGoogleId());
+			if (googleIdUser != null) {
+				
+				response.put("success", false);
+				response.put("errorCode", 1002);
+				response.put("message", "Account Already Exists");
+
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+			}
+		}
+
+		//We will get email user if user did not logged in via Facebook/Google
+		if (user.getAuthType().equals(AuthenticateType.facebook) || user.getAuthType().equals(AuthenticateType.google)) {
+			if (user.getEmail() != null) {
+				user.setUsername(user.getEmail().split("@")[0].replaceAll(" ",".")+System.currentTimeMillis());
+			} else {
+				user.setUsername(user.getName().replaceAll(" ",".")+System.currentTimeMillis());
+			}
+			user.setToken(establishUserAndLogin(httpServletResponse, user));
+		}
+		
+		user = userService.saveUser(user);
+		try {
+			//Updating this user in other users contact list.
+			if (user.getPhone() != null) {
+				String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+				List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
+				if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+					for (UserContact userContact : userContactInOtherContacts) {
+						userContact.setCenesMember(CenesMember.yes);
+						userContact.setFriendId(user.getUserId());
+					}
+					userContactRepository.save(userContactInOtherContacts);
+					
+					//Now lets update the counts of cenes member counts under user stats
+					//UserThread userThread = new UserThread();
+					//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);`
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+			user.setErrorCode(ErrorCodes.InternalServerError.ordinal());
+			user.setErrorDetail(ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+		}
+		
+		recurringManager.saveDefaultMeTime(user.getUserId());
+		
+		response.put("data", user);
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
 
 	@ResponseBody
 	@RequestMapping(value="/api/user/update/", method = RequestMethod.POST)
@@ -1246,6 +1428,152 @@ public class UserController {
 		}
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 	}
+	
+	
+	@RequestMapping(value = "/auth/updatePhoneNumber/v2/sendEmail", method = RequestMethod.POST)
+	public ResponseEntity<Map<String, Object>> sendForgetPasswordEmail(@RequestBody Map<String, Object> postData) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			
+			String email = postData.get("email").toString();
+			
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					
+					String newPhone = postData.get("phone").toString();
+
+					emailManager.sendUpdatePhoneNumberConfirmationLink(user, newPhone);
+					response.put("success", true);
+				} else {
+					response.put("success", false);
+					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
+				}
+				response.put("errorCode", 0);
+			} else {
+				response.put("success", false);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/auth/phoneNumberUpdateConfirmation", method = RequestMethod.GET)
+	public ResponseEntity<Object> updatePhoneConfirmationLinkRequest(HttpServletRequest request) {
+		
+		
+		System.out.println("phoneNumberUpdateConfirmation Servlet request : "+request.getParameter("phone"));
+		System.out.println("phoneNumberUpdateConfirmation Servlet request : "+request.getParameter("email"));		
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			
+			user = userService.findUserByEmail(request.getParameter("email"));
+			
+			if (user == null) {
+				response.put("success", false);
+				response.put("message", "Link Expired.");
+				String url = request.getScheme()+"://thankyou-update-phone.html?success=false";
+				
+			    URI yahoo = new URI(url);
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+				//return response.toString();
+				
+			}
+
+			
+			//Lets first update all the contacts of old phone number to be 
+			try {
+				//Updating this user in other users contact list.
+				if (user.getPhone() != null) {
+					String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
+					if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+						for (UserContact userContact : userContactInOtherContacts) {
+							userContact.setCenesMember(CenesMember.no);
+							userContact.setFriendId(null);
+						}
+						userContactRepository.save(userContactInOtherContacts);
+						//Now lets update the counts of cenes member counts under user stats
+						//UserThread userThread = new UserThread();
+						//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);`
+					}
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			user.setPhone(request.getParameter("phone"));
+			userService.saveUser(user);
+			
+			try {
+				//Updating this user in other users contact list.
+				if (user.getPhone() != null) {
+					String userNumber = user.getPhone().replaceAll("\\+", "").substring(2, user.getPhone().replaceAll("\\+", "").length());
+					List<UserContact> userContactInOtherContacts = userContactRepository.findByPhoneContaining(userNumber);
+					if (userContactInOtherContacts != null && userContactInOtherContacts.size() > 0) {
+						for (UserContact userContact : userContactInOtherContacts) {
+							userContact.setCenesMember(CenesMember.yes);
+							userContact.setFriendId(user.getUserId());
+						}
+						userContactRepository.save(userContactInOtherContacts);
+						//Now lets update the counts of cenes member counts under user stats
+						//UserThread userThread = new UserThread();
+						//userThread.runUpdateUserStatThreadByContacts(userContactInOtherContacts, userService);`
+					}
+				}
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			
+			response.put("success", true);
+			response.put("message", "Phone Number Updated Successfully");
+
+			String userAgent = request.getHeader("User-Agent");
+			System.out.println("User Agent : "+userAgent);
+			if (userAgent.toLowerCase().indexOf("iphone") != -1 || userAgent.toLowerCase().indexOf("ipad") != -1  || userAgent.toLowerCase().indexOf("android") != -1 || 
+					userAgent.toLowerCase().indexOf("blackberry") != -1 || userAgent.toLowerCase().indexOf("nokia") != -1 || userAgent.toLowerCase().indexOf("opera mini") != -1 || 
+					userAgent.toLowerCase().indexOf("windows mobile") != -1 || userAgent.toLowerCase().indexOf("windows phone") != -1 || userAgent.toLowerCase().indexOf("iemobile") != -1 ) {
+				
+				String url = domain+"://thankyou-update-phone.html?success=true";
+				
+			    URI yahoo = new URI(url);
+			    HttpHeaders httpHeaders = new HttpHeaders();
+			    httpHeaders.setLocation(yahoo);
+			    return new ResponseEntity<>(httpHeaders, HttpStatus.SEE_OTHER);
+				
+			} else {
+			    return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+	
+
 	
 	@RequestMapping(value = "/auth/forgetPassword/v2/sendEmail", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> sendForgetPasswordEmail(String email) {

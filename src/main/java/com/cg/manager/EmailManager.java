@@ -1,5 +1,6 @@
 package com.cg.manager;
 
+import java.net.URLEncoder;
 import java.util.Properties;
 
 import javax.mail.Message;
@@ -53,6 +54,25 @@ public class EmailManager {
 	           message.addRecipient(Message.RecipientType.TO,new InternetAddress(user.getEmail()));    
 	           message.setSubject("Email Confirmation Link");    
 	           message.setContent(emailConfirmationHTMLTemplate(user.getResetToken(), user.getName()), "text/html");   
+	           //send message  
+	           Transport.send(message);    
+	           System.out.println("message sent successfully");    
+
+	          System.out.println("Sent message successfully....");
+	       } catch (Exception ex) {
+	    	   ex.printStackTrace();
+	       }
+	}
+	
+	public void sendUpdatePhoneNumberConfirmationLink(User user, String newPhoneNumber) {
+		// Recipient's email ID needs to be mentioned.
+	      try {
+	    	  setAuthenticateSession();
+	          // Create a default MimeMessage object.
+	    	  MimeMessage message = new MimeMessage(session);    
+	           message.addRecipient(Message.RecipientType.TO,new InternetAddress(user.getEmail()));    
+	           message.setSubject("Update Phone Number Confirmation Link");    
+	           message.setContent(phoneUpdateConfirmationHTMLTemplate(user, newPhoneNumber), "text/html");   
 	           //send message  
 	           Transport.send(message);    
 	           System.out.println("message sent successfully");    
@@ -188,7 +208,60 @@ public class EmailManager {
 		
 		return htmlContent;
 	}
-	
+
+	public String phoneUpdateConfirmationHTMLTemplate(User user, String newPhone) {
+		String updatePhoneLink = domain+"/auth/phoneNumberUpdateConfirmation?phone="+URLEncoder.encode(newPhone)+"&email="+URLEncoder.encode(user.getEmail());
+		String htmlContent = "<html>\n" + 
+				"<body style=\"font-size: 18px;font-family: AvenirLTStd Book;color: #595757;padding-left:10px;padding-right:10px;\">\n" + 
+				"	\n" + 
+				"<div align=\"center\"><img src=\"https://www.cenesgroup.com/assets/images/Logo.png\"></div>\n" + 
+				"<div align=\"center\">\n" + 
+				"	\n" + 
+				"	<h3 style=\"letter-spacing: 1px;font-size: 28px;font-weight: lighter;\">\n" + 
+				"		Update Phone Number\n" + 
+				"	</h3>\n" + 
+				"</div>\n" + 
+				"<br/>\n" + 
+				"<div align=\"center\">Hi "+user.getName()+",</div>\n" + 
+				"<br>\n" + 
+				"<br>\n" + 
+				"<div align=\"center\">You have requested to update your CENES account phone number to "+newPhone+" for "+user.getEmail()+". Click the Confirmation link below to confirm the changes:</div>\n" + 
+				"<br/>\n" + 
+				"<br/>\n" + 
+				"<br/>\n" + 
+				"\n" + 
+				"<div align=\"center\">\n" + 
+				"	<a href=\""+updatePhoneLink+"\" class=\"reset-btn\" style=\"text-decoration: none;color: #EE9B26;\"><span style=\"font-size: 18px;border:2px solid #EE9B26; padding:15px 40px; border-radius: 35px;text-align:center;\">Update Phone Number</span></a>\n" + 
+				"</div>\n" + 
+				"<br>\n" + 
+				"<br>\n" + 
+				"<br>\n" + 
+				"<div align=\"center\">If you didn't request this, please ignore this email.</div>\n" + 
+				"<br>\n" + 
+				"\n" + 
+				"<div align=\"center\">Your phone number remains the same until you access the link above and update the phone number.</div>\n" + 
+				"<br>\n" + 
+				"<br>\n" + 
+				"<div align=\"center\">&#169; CENES</div>\n" + 
+				"</body>\n" + 
+				"<style type=\"text/css\">\n" + 
+				"\n" + 
+				" @font-face {\n" + 
+				"    font-family: 'AvenirLTStd Book';\n" + 
+				"    src: url('https://www.cenesgroup.com/assets/fonts/AvenirLTStd-Book.eot');\n" + 
+				"    src: url('https://www.cenesgroup.com/assets/fonts/AvenirLTStd-Book.eot?#iefix') format('embedded-opentype'),\n" + 
+				"        url('https://www.cenesgroup.com/assets/fonts/AvenirLTStd-Book.woff2') format('woff2'),\n" + 
+				"        url('https://www.cenesgroup.com/assets/fonts/AvenirLTStd-Book.woff') format('woff'),\n" + 
+				"        url('https://www.cenesgroup.com/assets/fonts/AvenirLTStd-Book.ttf') format('truetype'),\n" + 
+				"        url('https://www.cenesgroup.com/assets/fonts/AvenirLTStd-Book.svg#AvenirLTStd-Book') format('svg');\n" + 
+				"    font-weight: normal;\n" + 
+				"    font-style: normal;\n" + 
+				"}</style>\n" + 
+				"</html>\n" + 
+				"";
+		
+		return htmlContent;
+	}
 	/*public static void main(String[] args) {
 		User user = new User();
 		user.setResetToken("wewfwefw");
