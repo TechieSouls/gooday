@@ -368,7 +368,7 @@ public class UserController {
 				
 				if (userByPhone != null && !user.getEmail().equals(userByPhone.getEmail())) {
 					
-					if ("cenesking@gmail.com".equals(user.getEmail())) {
+					if (!"cenesking@gmail.com".equals(user.getEmail())) {
 						
 						response.put("success", false);
 						response.put("message", "Phone Already Exists For Other Account");
@@ -439,7 +439,7 @@ public class UserController {
 				//This is the case if user has signup with email and now trying to login via gmail.
 				if (userByPhone != null && !user.getEmail().equals(userByPhone.getEmail())) {
 					
-					if ("cenesking@gmail.com".equals(user.getEmail())) {
+					if (!"cenesking@gmail.com".equals(user.getEmail())) {
 						
 						response.put("success", false);
 						response.put("message", "Phone Already Exists For Other Account");
