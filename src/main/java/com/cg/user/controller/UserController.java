@@ -388,8 +388,19 @@ public class UserController {
 			User facebookIdUser = userRepository.findUserByFacebookId(user.getFacebookId());
 			if (facebookIdUser != null) {
 				
+				if (user.getCountry() != null) {
+					facebookIdUser.setCountry(user.getCountry());
+					facebookIdUser = userService.saveUser(facebookIdUser);
+				}
+
+
 				if (facebookIdUser.getPhone() == null && user.getPhone() != null) {
 					facebookIdUser.setPhone(user.getPhone());
+					
+					if (user.getCountry() != null) {
+						facebookIdUser.setCountry(user.getCountry());
+					}
+					
 					facebookIdUser = userService.saveUser(facebookIdUser);
 				} else 	if (userByPhone == null && facebookIdUser.getPhone() != null && !facebookIdUser.getPhone().equals(user.getPhone())) {
 					//If the user does not exist with new number, but the user exists for that email.
@@ -444,8 +455,14 @@ public class UserController {
 			User googleIdUser = userRepository.findUserByGoogleId(user.getGoogleId());
 			if (googleIdUser != null) {
 				
+				if (user.getCountry() != null) {
+					googleIdUser.setCountry(user.getCountry());
+					googleIdUser = userService.saveUser(googleIdUser);
+				}
+
 				if (googleIdUser.getPhone() == null && user.getPhone() != null) {
 					googleIdUser.setPhone(user.getPhone());
+					
 					googleIdUser = userService.saveUser(googleIdUser);
 					
 				} else if (userByPhone == null && googleIdUser.getPhone() != null && !googleIdUser.getPhone().equals(user.getPhone())) {
@@ -470,6 +487,11 @@ public class UserController {
 			if (emailUser.getPhone() == null && user.getPhone() != null) {
 				emailUser.setPhone(user.getPhone());
 			}
+			
+			if (user.getCountry() != null) {
+				emailUser.setCountry(user.getCountry());
+			}
+
 			emailUser.setPhoto(user.getPhoto());
 			emailUser.setName(user.getName());
 			emailUser.setGender(user.getGender());
