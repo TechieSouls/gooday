@@ -104,6 +104,16 @@ public class UserDetailController {
 					userContactRepository.save(userContactInOtherContacts);
 				}
 				userRepository.save(user);
+			} else {
+				
+				//If logged In user logged in with different phone number.
+				//Then we will ask him to check phone number.
+				if (phone != null && user.getPhone() != null && !phone.equals(user.getPhone()) && !"cenesking@gmail.com".equals(user.getEmail())) {
+					
+					user = new User();
+					user.setErrorCode(1001);
+					user.setErrorDetail("\"Email\" has been registered by different number");
+				}
 			}
 		}
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user "+user.toString());	
