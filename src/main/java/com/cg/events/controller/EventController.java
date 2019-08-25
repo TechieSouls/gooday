@@ -381,6 +381,54 @@ public class EventController {
 		}
 	}
 
+	
+	@RequestMapping(value = "/api/event/webinvitation", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> assignEventToUser(@RequestBody Map<String, Object> postData) {
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		Event event = null;
+		
+		try {
+			
+			event = eventServiceDao.findGatheringByKey(postData.get("privateKey").toString());
+			if (event == null) {
+				
+				response.put("success", false);
+				response.put("message", "Event Does not exist");
+				
+			} else {
+				
+				Long userId = Long.valueOf(postData.get("userId").toString());
+				User user = userService.findUserById(userId);
+				if (user == null) {
+					
+					response.put("success", false);
+					response.put("message", "User Does not exist");
+
+					return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+				} else {
+					EventMember eventMember = new EventMember();
+					eventMember.setUserId(userId);
+					eventMember.setEventId(event.getEventId());
+					eventService.saveEventMember(eventMember);					
+				}
+				response.put("data", event);
+
+			}
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("message", ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+	}
+
+	
 	@RequestMapping(value = "/api/event/update", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> updateEventMemberStatus(
 			@RequestParam("event_member_id") Long eventMemberId, @RequestParam("status") String status) {
