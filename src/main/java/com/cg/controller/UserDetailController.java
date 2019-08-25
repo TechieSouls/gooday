@@ -129,14 +129,11 @@ public class UserDetailController {
 			@RequestBody User user) {
 		
 		
+		System.out.println(user.toString());
 		Map<String, Object> responseMap = new HashMap<String, Object>();
 		responseMap.put("success", true);
 		
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user");
-		
-		if (user.getAuthType() != null) {
-			
-		}
 		
 		if (user.getAuthType() == AuthenticateType.email && user.getEmail() != null) {
 			
@@ -159,6 +156,7 @@ public class UserDetailController {
 				responseMap.put("message", ErrorCodes.IncorrectEmailOrPassword.toString());
 				return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
 			}
+			
 		} else if (user.getAuthType() == AuthenticateType.facebook) {
 			
 			User emailUser = userRepository.findUserByEmail(user.getEmail());
@@ -216,7 +214,6 @@ public class UserDetailController {
 						responseMap.put("message", "Account does not exist");
 						return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
 					}
-
 				}
 			
 			} else {
