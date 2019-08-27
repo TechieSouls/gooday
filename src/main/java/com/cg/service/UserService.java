@@ -461,11 +461,24 @@ public class UserService {
 						//Check if event Member is a host 
 						System.out.println("Is User "+goingMember.getUserId()+" An Host : "+event.getCreatedById().equals(goingMember.getUserId()));
 						if (event.getCreatedById().equals(goingMember.getUserId())) {
+							
+							System.out.println("Event Hosted Count Befor Increment : "+userStat.getEventsHostedCounts());
+							
 							userStat.setEventsHostedCounts(userStat.getEventsHostedCounts() + 1);
+							
+
+							System.out.println("Event Hosted Count After Increment : "+userStat.getEventsHostedCounts());
+
 						} else {
 							//If event member is not a host
 							//Then we will update his events attended counts.
+							
+							System.out.println("Event Attended Counts Befor Increment : "+userStat.getEventsAttendedCounts());
+
 							userStat.setEventsAttendedCounts(userStat.getEventsAttendedCounts() + 1);
+							
+							System.out.println("Event Attended Counts Befor Increment : "+userStat.getEventsAttendedCounts());
+
 						}
 						
 						usersStatToUpdate.add(userStat);
@@ -492,6 +505,7 @@ public class UserService {
 			
 			
 			if (usersStatToUpdate.size() > 0) {
+				
 				userStatRepository.save(usersStatToUpdate);
 			}
 		}
