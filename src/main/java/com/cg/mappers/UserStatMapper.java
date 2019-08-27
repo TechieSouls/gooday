@@ -15,8 +15,8 @@ public class UserStatMapper implements RowMapper<UserStat> {
 		userStat.setUserStatId(rs.getLong("user_stat_id"));
 		userStat.setUserId(rs.getLong("user_id"));
 		userStat.setCenesMemberCounts(rs.getLong("cenes_member_counts"));
-		userStat.setEventsAttendedCounts(rs.getLong("events_hosted_counts"));
-		userStat.setEventsHostedCounts(rs.getLong("events_attended_counts"));
+		userStat.setEventsAttendedCounts(rs.getLong("events_attended_counts"));
+		userStat.setEventsHostedCounts(rs.getLong("events_hosted_counts"));
 
 		return userStat;
 	}
