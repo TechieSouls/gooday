@@ -437,6 +437,7 @@ public class UserService {
 			List<EventMember> goingMembers = new ArrayList<>();
 			for (EventMember eventMember: eventMembers) {
 				if (eventMember.getStatus() != null && eventMember.getStatus().equals(EventMember.MemberStatus.Going.toString())) {
+					System.out.println("Going Members : "+eventMember.getUserId());
 					goingMembers.add(eventMember);
 				}
 			}
@@ -458,6 +459,7 @@ public class UserService {
 					if (userStat.getUserId().equals(goingMember.getUserId())) {
 						
 						//Check if event Member is a host 
+						System.out.println("Is User "+goingMember.getUserId()+" An Host : "+event.getCreatedById().equals(goingMember.getUserId()));
 						if (event.getCreatedById().equals(goingMember.getUserId())) {
 							userStat.setEventsHostedCounts(userStat.getEventsHostedCounts() + 1);
 						} else {
