@@ -434,6 +434,10 @@ public class UserService {
 			//Lets take out event members.
 			List<EventMember> eventMembers = event.getEventMembers();
 			
+			//We will not do anything with the stats if the event is just a single event.
+			if (eventMembers.size() < 2) {
+				continue;
+			}
 			List<EventMember> goingMembers = new ArrayList<>();
 			for (EventMember eventMember: eventMembers) {
 				if (eventMember.getStatus() != null && eventMember.getStatus().equals(EventMember.MemberStatus.Going.toString())) {
