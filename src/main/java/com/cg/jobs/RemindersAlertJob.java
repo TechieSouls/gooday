@@ -48,11 +48,21 @@ public class RemindersAlertJob {
 		System.out.println("Events to be notified.");
 		if (events != null && events.size() > 0) {
 			notificationManager.sendEventAlertPush(events);
-			
-			//Now lets update the counts of cenes member counts under user stats
+		}
+		//Now lets update the counts of cenes member counts under user stats
+		updateUserStats();
+
+		System.out.println("Date : "+new Date()+" Events Alert Job ENDS");
+	}
+	
+	
+	public void updateUserStats() {
+		
+		List<Event> events = eventManager.findEventsWhichHappen();
+		if (events != null && events.size() > 0) {
 			UserThread userThread = new UserThread();
 			userThread.runUpdateUserStatThreadByEvents(events, userService);
 		}
-		System.out.println("Date : "+new Date()+" Events Alert Job ENDS");
+
 	}
 }
