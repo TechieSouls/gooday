@@ -1392,6 +1392,47 @@ public class UserController {
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 	}
 	
+	
+	@RequestMapping(value = "/auth/forgetPassword/web", method = RequestMethod.GET)
+	public ResponseEntity<Map<String, Object>> getForgetPasswordForWeb(String email) {
+		
+		User user = null;
+		Map<String, Object> response = new HashMap<>();
+		try {
+			if (email != null && !email.isEmpty()) {
+				user = userService.findUserByEmail(email);
+				if (user != null) {
+					
+					String resetPasswordToken = CenesUtils.getAlphaNumeric(40);
+					user.setResetToken(resetPasswordToken);
+					user.setResetTokenCreatedAt(new Date());
+					user = userService.saveUser(user);
+					emailManager.sendForgotPasswordLink(user);
+					response.put("success", true);
+				} else {
+					response.put("success", false);
+					response.put("errorDetail", "Email does not exist");
+					response.put("message", "Email does not exist");
+				}
+				response.put("errorCode", 0);
+			} else {
+				response.put("success", false);
+				response.put("errorCode", 0);
+				response.put("errorDetail", null);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("errorCode", HttpStatus.INTERNAL_SERVER_ERROR.ordinal());
+			response.put("errorDetail", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+			response.put("message", HttpStatus.INTERNAL_SERVER_ERROR.toString());
+
+		}
+		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+	}
+	
+	
 	@RequestMapping(value = "/auth/forgetPassword/v2", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> getForgetPasswordV2(String email) {
 		

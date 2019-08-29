@@ -102,7 +102,7 @@ public class EmailManager {
 	}
 	
 	public String resetPasswordHTMLTemplate(String resetPasswordToken, String name) {
-		String resetPasswordLink = "https://www.cenesgroup.com/app/forgetPassword?resetToken="+resetPasswordToken;
+		String resetPasswordLink = "https://dev.cenesgroup.com/app/resetPassword?resetToken="+resetPasswordToken;
 		String htmlContent = "<html>\n" + 
 				"<body style=\"font-size: 18px;font-family: AvenirLTStd Book;color: #595757;padding-left:10px;padding-right:10px;\">\n" + 
 				"	\n" + 

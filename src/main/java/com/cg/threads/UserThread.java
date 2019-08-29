@@ -5,7 +5,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.cg.events.bo.Event;
+import com.cg.manager.EmailManager;
 import com.cg.service.UserService;
+import com.cg.user.bo.User;
 import com.cg.user.bo.UserContact;
 
 @Service
@@ -53,6 +55,36 @@ public class UserThread {
 		}
 	}
 
+	class ForgetPasswordEmailThread implements Runnable {
+
+		private EmailManager emailManager;
+		private User user;
+		
+		public EmailManager getEmailManager() {
+			return emailManager;
+		}
+
+		public void setEmailManager(EmailManager emailManager) {
+			this.emailManager = emailManager;
+		}
+
+		public User getUser() {
+			return user;
+		}
+
+		public void setUser(User user) {
+			this.user = user;
+		}
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			emailManager.sendForgotPasswordConfirmationLink(user);
+		}
+		
+	}
+	
+	
 	public void runUpdateUserStatThreadByContacts(List<UserContact> userContacts, UserService userService) {
 		UserStatThread userStatThread = new UserStatThread();
 		userStatThread.setUserContacts(userContacts);
@@ -65,5 +97,12 @@ public class UserThread {
 		userStatThread.setEvents(events);
 		userStatThread.setUserService(userService);
 		userStatThread.run();
+	}
+	
+	public void sendForgetPasswordConfirmationEmail(EmailManager emailManager, User user) {
+		ForgetPasswordEmailThread fpet = new ForgetPasswordEmailThread();
+		fpet.setEmailManager(emailManager);
+		fpet.setUser(user);
+		fpet.run();
 	}
 }

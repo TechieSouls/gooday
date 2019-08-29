@@ -431,6 +431,7 @@ public class UserService {
 		
 		for (Event event: events) {
 			
+			//Lets take out event members.
 			List<EventMember> eventMembers = event.getEventMembers();
 			
 			List<EventMember> goingMembers = new ArrayList<>();
@@ -441,6 +442,8 @@ public class UserService {
 			}
 			
 			List<UserStat> usersStatToUpdate = new ArrayList<UserStat>();
+			
+			//Lets find the stats for Attending Members.
 			List<UserStat> usersStat = userDao.getUserStatByEventMembers(goingMembers);
 			
 			for (EventMember goingMember: goingMembers) {
@@ -456,11 +459,12 @@ public class UserService {
 						
 						//Check if event Member is a host 
 						if (event.getCreatedById().equals(goingMember.getUserId())) {
+														
 							userStat.setEventsHostedCounts(userStat.getEventsHostedCounts() + 1);
 						} else {
 							//If event member is not a host
 							//Then we will update his events attended counts.
-							userStat.setEventsHostedCounts(userStat.getEventsAttendedCounts() + 1);
+							userStat.setEventsAttendedCounts(userStat.getEventsAttendedCounts() + 1);
 						}
 						
 						usersStatToUpdate.add(userStat);
@@ -487,6 +491,7 @@ public class UserService {
 			
 			
 			if (usersStatToUpdate.size() > 0) {
+				
 				userStatRepository.save(usersStatToUpdate);
 			}
 		}
