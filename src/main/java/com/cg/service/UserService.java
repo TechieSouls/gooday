@@ -127,6 +127,10 @@ public class UserService {
 		userDeviceRepository.deleteByUserId(userId);
 	}
 	
+	public List<UserContact> findByPhoneContainingAndFriendIdAndUserId(String phone, Long friendId, Long userId) {
+		return userContactRepository.findByPhoneContainingAndFriendIdAndUserId(phone, friendId, userId);
+	}
+	
 	public void deleteUserByUserId(Long userId) {
 		userRepository.deleteByUserId(userId);
 	}

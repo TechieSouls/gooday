@@ -70,6 +70,7 @@ import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
 import com.cg.threads.EventThread;
 import com.cg.user.bo.User;
+import com.cg.user.bo.UserContact;
 import com.cg.utils.CenesUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -425,6 +426,14 @@ public class EventController {
 						eventMember.setUserId(userId);
 						eventMember.setEventId(event.getEventId());
 						eventMember.setStatus(EventMember.MemberStatus.Going.toString());
+						
+						
+						List<UserContact> userContacts = userService.findByPhoneContainingAndFriendIdAndUserId(user.getPhone(), userId, event.getCreatedById());
+						if (userContacts != null && userContacts.size() > 0) {
+							UserContact uc = userContacts.get(0);
+							eventMember.setUserContactId(uc.getUserContactId());
+						}
+						
 						eventService.saveEventMember(eventMember);					
 					}
 
