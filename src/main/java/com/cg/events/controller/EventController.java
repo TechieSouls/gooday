@@ -424,6 +424,7 @@ public class EventController {
 						EventMember eventMember = new EventMember();
 						eventMember.setUserId(userId);
 						eventMember.setEventId(event.getEventId());
+						eventMember.setStatus(EventMember.MemberStatus.Going.toString());
 						eventService.saveEventMember(eventMember);					
 					}
 
