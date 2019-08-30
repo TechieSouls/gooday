@@ -402,18 +402,31 @@ public class EventController {
 			} else {
 				
 				Long userId = Long.valueOf(postData.get("userId").toString());
-				User user = userService.findUserById(userId);
-				if (user == null) {
+				
+				boolean userAlreadMember = false;
+				for (EventMember eventMember: event.getEventMembers()) {
+					if (eventMember.getUserId().equals(userId)) {
+						userAlreadMember = true;
+						break;
+					}
+				}
+				
+				if (!userAlreadMember) {
 					
-					response.put("success", false);
-					response.put("message", "User Does not exist");
+					User user = userService.findUserById(userId);
+					if (user == null) {
+						
+						response.put("success", false);
+						response.put("message", "User Does not exist");
 
-					return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
-				} else {
-					EventMember eventMember = new EventMember();
-					eventMember.setUserId(userId);
-					eventMember.setEventId(event.getEventId());
-					eventService.saveEventMember(eventMember);					
+						return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+					} else {
+						EventMember eventMember = new EventMember();
+						eventMember.setUserId(userId);
+						eventMember.setEventId(event.getEventId());
+						eventService.saveEventMember(eventMember);					
+					}
+
 				}
 				response.put("data", event);
 
