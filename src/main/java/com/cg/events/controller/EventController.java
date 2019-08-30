@@ -407,7 +407,7 @@ public class EventController {
 				
 				boolean userAlreadMember = false;
 				for (EventMember eventMember: event.getEventMembers()) {
-					if (eventMember.getUserId().equals(userId)) {
+					if (eventMember.getUserId() != null && eventMember.getUserId().equals(userId)) {
 						userAlreadMember = true;
 						break;
 					}
@@ -2656,6 +2656,7 @@ public class EventController {
 
 	@RequestMapping(value = "/api/event/locations", method = RequestMethod.GET)
 	public List<GatheringPreviousLocation> findEventLocationsByUserId(Long userId) {
+		
 		return eventManager.findTop15PreviousLocationsByUserId(userId);
 	}
 	/*
