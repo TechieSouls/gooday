@@ -250,8 +250,10 @@ public class EventController {
 			}
 			event = eventManager.createEvent(event);
 
-			/*if (event.getPlaceId() != null && event.getEventPicture() != null
-					&& event.getEventPicture().indexOf("google") != -1) {
+			//if (event.getPlaceId() != null && event.getEventPicture() != null
+					//&& event.getEventPicture().indexOf("google") != -1) {
+						
+			if (event.getPlaceId() != null) {
 				GatheringPreviousLocation gatheringPreviousLocation = null;
 				gatheringPreviousLocation = eventManager
 						.findGatheringPreviousLocationByUserIdAndPlaceId(event.getCreatedById(), event.getPlaceId());
@@ -266,9 +268,8 @@ public class EventController {
 					gatheringPreviousLocation.setPlaceId(event.getPlaceId());
 					eventManager.saveUpdateGatheringPreviousLocation(gatheringPreviousLocation);
 				}
-			}*/
+			}
 
-			
 			//Sending push to owner to refresh Home screen for time effect.
 			notificationManager.sendRefreshPushNotification(event.getCreatedById());	
 			
