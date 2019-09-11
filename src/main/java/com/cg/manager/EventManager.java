@@ -1847,7 +1847,10 @@ public Map<String, List<HomeScreenDto>> parseEventsForHomeScreenAndroid(List<Eve
 	public List<CalendarSyncToken> findCalendarSyncTokensWithLastExpiryDate() {
 		return calendarSyncTokenRepository.findBySubExpiryDateGreaterThanThreeDays();
 	}
-	
+	public List<Event> findEventsWhichHappen() {
+		return eventRepository.findEventsEndTimeEqualsNowAndScheduleAsGathering();
+	}
+
 	public void saveEventsInBatch(List<Event> events) {
 		eventRepository.save(events);
 	}

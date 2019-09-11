@@ -67,6 +67,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers(HttpMethod.POST,"/api/users/").permitAll()
 				.antMatchers(HttpMethod.POST,"/api/users/signupstep1").permitAll()
 				.antMatchers(HttpMethod.POST,"/api/users/signupstep2").permitAll()
+				.antMatchers(HttpMethod.POST,"/api/users/websignup").permitAll()
 				.antMatchers(HttpMethod.POST,"api/event/outlook/notifyWebhook").permitAll()
 				.antMatchers(HttpMethod.POST,"api/event/outlook/iosNotifyWebhook").permitAll()
 				.antMatchers(HttpMethod.POST,"api/event/google/notifyWebhook").permitAll()

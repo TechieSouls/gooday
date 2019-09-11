@@ -20,7 +20,8 @@ public interface UserContactRepository extends JpaRepository<UserContact, Long>{
 	List<UserContact> findByUserIdOrderByNameAsc(Long userId);
 	List<UserContact> findByPhoneContaining(String phone);
 	
-	
+	List<UserContact> findByPhoneContainingAndFriendIdAndUserId(String phone, Long friendId, Long userId);
+
 	@Query("SELECT COUNT(uc) FROM UserContact uc WHERE uc.cenesMember = 1 and uc.friendId is not null and uc.userId = :userId")
     public Long findCenesMemberCountsByUserId(@Param("userId") Long userId);
 	

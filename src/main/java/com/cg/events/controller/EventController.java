@@ -70,6 +70,7 @@ import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
 import com.cg.threads.EventThread;
 import com.cg.user.bo.User;
+import com.cg.user.bo.UserContact;
 import com.cg.utils.CenesUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -249,8 +250,10 @@ public class EventController {
 			}
 			event = eventManager.createEvent(event);
 
-			/*if (event.getPlaceId() != null && event.getEventPicture() != null
-					&& event.getEventPicture().indexOf("google") != -1) {
+			//if (event.getPlaceId() != null && event.getEventPicture() != null
+					//&& event.getEventPicture().indexOf("google") != -1) {
+						
+			if (event.getPlaceId() != null) {
 				GatheringPreviousLocation gatheringPreviousLocation = null;
 				gatheringPreviousLocation = eventManager
 						.findGatheringPreviousLocationByUserIdAndPlaceId(event.getCreatedById(), event.getPlaceId());
@@ -265,7 +268,7 @@ public class EventController {
 					gatheringPreviousLocation.setPlaceId(event.getPlaceId());
 					eventManager.saveUpdateGatheringPreviousLocation(gatheringPreviousLocation);
 				}
-			}*/
+			}
 
 			
 			//Sending push to owner to refresh Home screen for time effect.
@@ -381,6 +384,76 @@ public class EventController {
 		}
 	}
 
+	
+	@RequestMapping(value = "/api/event/webinvitation", method = RequestMethod.POST)
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> assignEventToUser(@RequestBody Map<String, Object> postData) {
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		Event event = null;
+		
+		try {
+			
+			event = eventServiceDao.findGatheringByKey(postData.get("privateKey").toString());
+			if (event == null) {
+				
+				response.put("success", false);
+				response.put("message", "Event Does not exist");
+				
+			} else {
+				
+				Long userId = Long.valueOf(postData.get("userId").toString());
+				
+				boolean userAlreadMember = false;
+				for (EventMember eventMember: event.getEventMembers()) {
+					if (eventMember.getUserId() != null && eventMember.getUserId().equals(userId)) {
+						userAlreadMember = true;
+						break;
+					}
+				}
+				
+				if (!userAlreadMember) {
+					
+					User user = userService.findUserById(userId);
+					if (user == null) {
+						
+						response.put("success", false);
+						response.put("message", "User Does not exist");
+
+						return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+					} else {
+						EventMember eventMember = new EventMember();
+						eventMember.setUserId(userId);
+						eventMember.setEventId(event.getEventId());
+						eventMember.setStatus(EventMember.MemberStatus.Going.toString());
+						
+						
+						List<UserContact> userContacts = userService.findByPhoneContainingAndFriendIdAndUserId(user.getPhone(), userId, event.getCreatedById());
+						if (userContacts != null && userContacts.size() > 0) {
+							UserContact uc = userContacts.get(0);
+							eventMember.setUserContactId(uc.getUserContactId());
+						}
+						
+						eventService.saveEventMember(eventMember);					
+					}
+
+				}
+				response.put("data", event);
+
+			}
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.put("success", false);
+			response.put("message", ErrorCodes.InternalServerError.toString());
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+		}
+	}
+
+	
 	@RequestMapping(value = "/api/event/update", method = RequestMethod.GET)
 	public ResponseEntity<Map<String, Object>> updateEventMemberStatus(
 			@RequestParam("event_member_id") Long eventMemberId, @RequestParam("status") String status) {
@@ -2584,6 +2657,7 @@ public class EventController {
 
 	@RequestMapping(value = "/api/event/locations", method = RequestMethod.GET)
 	public List<GatheringPreviousLocation> findEventLocationsByUserId(Long userId) {
+		
 		return eventManager.findTop15PreviousLocationsByUserId(userId);
 	}
 	/*

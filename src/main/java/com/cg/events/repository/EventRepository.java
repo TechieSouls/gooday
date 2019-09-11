@@ -78,6 +78,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query("select e from Event e where e.startTime >= now() and e.scheduleAs = 'Gathering' and TIMESTAMPDIFF(MINUTE,now(),e.startTime) = 0 order by e.startTime asc")
 	List<Event> findAllEventsWithTimeDifferenceEqualToOne();
 	
+	@Query("select e from Event e where DATE_FORMAT(now(),'%Y-%m-%d %H:%i:00') = DATE_FORMAT(e.endTime,'%Y-%m-%d %H:%i:00') and e.source = 'Cenes' and e.scheduleAs = 'Gathering' order by e.startTime asc")
+	List<Event> findEventsEndTimeEqualsNowAndScheduleAsGathering();
+	
 	@Modifying(clearAutomatically = true)
 	@Transactional
 	@Query("delete from Event e where e.createdById = :createdById and e.source = :source and e.scheduleAs = 'Event'")

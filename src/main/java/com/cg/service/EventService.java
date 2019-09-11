@@ -139,6 +139,7 @@ public class EventService {
 	public List<Event> findUserPastGatherings() {
 		return eventRepository.findPastUserGatherings();
 	}
+	
 	public List<Event> findUserFutureGatherings(Long userId,String status) {
 		//return eventRepository.findFutureGatherings(userId, status);
 		return eventServiceDao.findGatheringsByUserIdAndStatus(userId, status);

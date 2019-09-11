@@ -150,6 +150,9 @@ public class Event extends CgGeneral {
 	@Column(name="is_active")
 	private EventStatus isActive = EventStatus.Active;
 	
+	@Transient
+	private String address;
+	
 	public Long getEventId() {
 		return eventId;
 	}
@@ -341,6 +344,12 @@ public class Event extends CgGeneral {
 		this.isActive = isActive;
 	}
 	
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
 	
 	@Override
 	public String toString() {
