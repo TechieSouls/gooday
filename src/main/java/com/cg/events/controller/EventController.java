@@ -270,6 +270,7 @@ public class EventController {
 				}
 			}
 
+			
 			//Sending push to owner to refresh Home screen for time effect.
 			notificationManager.sendRefreshPushNotification(event.getCreatedById());	
 			
@@ -573,9 +574,11 @@ public class EventController {
 			c.add(Calendar.DATE, 5); // Adding 5 days
 			String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(c.getTime());
 
-			List<HomeScreenDto> responseDataToSend = eventManager
-					.getEventsAndRemindersMergedDataByUserIdStartDateEndDate(userId,
-							CenesUtils.yyyyMMddTHHmmss.parse(eventDate), CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+			//List<HomeScreenDto> responseDataToSend = eventManager
+			//		.getEventsAndRemindersMergedDataByUserIdStartDateEndDate(userId,
+			//				CenesUtils.yyyyMMddTHHmmss.parse(eventDate), CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+			List<Event> responseDataToSend = eventServiceDao.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, CenesUtils.yyyyMMddTHHmmss.format(CenesUtils.yyyyMMddTHHmmss.parse(eventDate)));
+
 			System.out.println("[USER EVENTS -  Events list : " + responseDataToSend.size() + "]");
 
 			response.put("success", true);
