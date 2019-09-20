@@ -436,7 +436,9 @@ public class EventController {
 							eventMember.setUserContactId(uc.getUserContactId());
 						}
 						
-						eventService.saveEventMember(eventMember);					
+						eventService.saveEventMember(eventMember);			
+						
+						notificationManager.sendEventAcceptDeclinedPush(eventMember);
 					}
 
 				}
