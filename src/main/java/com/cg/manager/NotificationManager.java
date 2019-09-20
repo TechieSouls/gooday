@@ -65,6 +65,78 @@ public class NotificationManager {
 		notificationRepository.deleteByRecepientIdAndNotificationTypeId(recepientId, notificationTypeId);
 	}
 	
+	public void sendRemoveUserNotification(Event event, List<EventMember> eventMembers) {
+		
+			String pushMessage = "Host has removed you from the event "+event.getTitle()+"";
+
+			for (EventMember eventMember : eventMembers) {
+				
+				if (eventMember.getUserId() == null) {
+					continue;
+				}
+				JSONArray toAndroidArray = new JSONArray();
+				List toIosArray = new ArrayList<>();
+				
+				List<UserDevice> userDevices = userService.findUserDeviceInfoByUserId(eventMember.getUserId());
+				if (userDevices != null && userDevices.size() > 0) {
+					for (UserDevice userDevice : userDevices) {
+						if ("android".equals(userDevice.getDeviceType())){
+							toAndroidArray.put(userDevice.getDeviceToken());
+						} else if ("ios".equals(userDevice.getDeviceType())){
+							toIosArray.add(userDevice);
+						}
+					}
+				}
+				
+				try {
+					if (toAndroidArray.length() > 0) {
+						
+						JSONObject payloadObj = new JSONObject();
+						payloadObj.put(CgConstants.notificationType,Event.ScheduleEventAs.Gathering.toString());
+						payloadObj.put(CgConstants.notificationTypeStatus,"AcceptAndDecline");
+						
+						JSONObject notifyObj = new JSONObject();
+						notifyObj.put("title", "");
+						notifyObj.put("body", pushMessage);
+						notifyObj.put("payload", payloadObj);
+						
+						PushNotificationService.sendAndroidPush(toAndroidArray,notifyObj);
+					}
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+
+				try {
+					System.out.println("IOS Push to send : "+toIosArray.size());
+					if (toIosArray.size() > 0) {
+						
+						List<UserDevice> iosUserDevices = toIosArray;
+						for (UserDevice userDevice : iosUserDevices) {
+							JSONObject notifyObj = new JSONObject();
+							JSONObject payloadObj = new JSONObject();
+							JSONObject alert = new JSONObject();
+							alert.put("title",event.getTitle());
+							alert.put("body",pushMessage);
+							payloadObj.put("alert",alert);
+							payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+							payloadObj.put("sound","cenes-notification-ringtone.aiff");
+
+							notifyObj.put("aps", payloadObj);
+							
+							List deviceTokenList = new ArrayList();
+							deviceTokenList.add(userDevice.getDeviceToken());
+							System.out.println("IOS Device token : "+userDevice.getDeviceToken());
+							PushNotificationService.sendIosPushNotification(deviceTokenList,notifyObj);
+						}
+						
+					}
+				} catch(Exception e) {
+					e.printStackTrace();
+				}
+			}
+		
+	}
+	
 	public void sendDeleteNotification(Event event) {
 				
 		List<EventMember> eventMembers = event.getEventMembers();

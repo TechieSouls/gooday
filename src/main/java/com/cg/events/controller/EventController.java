@@ -183,6 +183,9 @@ public class EventController {
 		System.out.println("[CreateEvent : " + new Date() + ", STARTS]");
 		System.out.println("Event Details : " + event);
 		try {
+			
+			List<EventMember> eventMembersRemovedFromInvitation = new ArrayList<>();
+			
 			response.put("success", true);
 			response.put("errorCode", 0);
 			response.put("errorDetail", null);
@@ -226,6 +229,24 @@ public class EventController {
 				if (oldCounts != newCounts) {
 					event.setUpdatedFor(EventUpdateFor.GuestList);
 					countsForNumberOfChanges++;
+					
+					
+					for (EventMember eventMemberFromDb: eventFromDatabase.getEventMembers()) {
+						
+						boolean eventMemberExists = false;
+						for (EventMember eventMember: event.getEventMembers()) {
+							
+							if (eventMemberFromDb.getEventMemberId().equals(eventMember.getEventMemberId())) {
+								eventMemberExists = true;
+								break;
+							}
+							
+						}
+						
+						if (!eventMemberExists) {
+							eventMembersRemovedFromInvitation.add(eventMemberFromDb);
+						}
+					}
 				}
 
 				if (countsForNumberOfChanges == 0) {
@@ -273,6 +294,12 @@ public class EventController {
 			
 			//Sending push to owner to refresh Home screen for time effect.
 			notificationManager.sendRefreshPushNotification(event.getCreatedById());	
+			
+			
+			if (eventMembersRemovedFromInvitation.size() > 0) {
+				notificationManager.sendRemoveUserNotification(event, eventMembersRemovedFromInvitation);
+				
+			}
 			
 			response.put("data", event);
 		} catch (Exception e) {
