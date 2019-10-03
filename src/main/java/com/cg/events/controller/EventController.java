@@ -548,6 +548,8 @@ public class EventController {
 				
 				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
 				eventMember = eventManager.generateTimeSlotsForEventMember(event, eventMember);
+				notificationManager.sendEventAcceptDeclinedPush(eventMember);
+
 			} else if ("NotGoing".equals(status)) {
 				// if (eventMember.getStatus() != null) {
 				// eventManager.updateEventMemberTimeSlot(event, eventMember);
@@ -556,12 +558,15 @@ public class EventController {
 				eventService.saveEventMember(eventMember);
 				
 				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
+				notificationManager.sendEventAcceptDeclinedPush(eventMember);
 
-
+			} else {
+				
+				eventService.saveEventMember(eventMember);
+				eventMember = eventManager.generateTimeSlotsForEventMember(event, eventMember);
+				
 			}
 			// eventService.updateEventMemberStatus(memberStatus, eventMemberId);
-
-			notificationManager.sendEventAcceptDeclinedPush(eventMember);
 
 			response.put("success", true);
 			response.put("message", "Status Updated Successfully");
