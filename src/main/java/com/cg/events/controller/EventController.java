@@ -529,6 +529,13 @@ public class EventController {
 
 			Event event = eventManager.findEventByEventId(eventId);
 			EventMember eventMember = eventManager.findEventMemberByEventIdAndUserId(eventId, userId);
+			
+			//Creating new Event Member if, he is not in sthe event member list.
+			if (eventMember == null) {
+				eventMember = new EventMember();
+				eventMember.setEventId(event.getEventId());
+				eventMember.setUserId(userId);
+			}
 			/*
 			 * if (eventMember != null) {
 			 * notificationManager.deleteNotificationByRecepientIdNotificationTypeId(
