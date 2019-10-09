@@ -602,6 +602,14 @@ public class UserController {
 		//If User signup via Email
 		if (user.getAuthType().equals(AuthenticateType.email)) {
 			
+			if (user.getPassword() == null) {
+				response.put("success", false);
+				response.put("errorCode", 1003);
+				response.put("message", "Password cannot be empty");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+
+			}
+			
 			User emailUser = userRepository.findUserByEmail(user.getEmail());
 			if (emailUser != null) {
 				response.put("success", false);
