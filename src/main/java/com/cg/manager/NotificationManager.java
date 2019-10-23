@@ -195,6 +195,7 @@ public class NotificationManager {
 		return 0l;
 	}
 	
+	//Welcome notificatoi
 	public void sendWelcomeNotification(Event event) {
 		User toUser = userService.findUserById(event.getCreatedById());
 		if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
@@ -227,7 +228,7 @@ public class NotificationManager {
 		notification.setSenderId(toUser.getUserId());
 		notification.setRecepientId(toUser.getUserId());
 		notification.setNotificationTypeId(event.getEventId());
-		notification.setType(NotificationType.Gathering);
+		notification.setType(NotificationType.Welcome);
 		notification.setCreatedAt(new Date());
 		notification.setUpdateAt(new Date());
 		notificationRepository.save(notification);

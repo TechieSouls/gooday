@@ -17,7 +17,7 @@ import com.cg.user.bo.User;
 @Table(name="notifications")
 public class Notification extends CgGeneral{
 	
-	public enum NotificationType {Event,Gathering,Reminder};
+	public enum NotificationType {Event,Gathering,Reminder, Welcome};
 	public enum NotificationTypeAction {Create, AcceptDecline, Delete, Update};
 	public enum NotificationTypeStatus {New,Old}
 	public enum NotificationReadStatus {Read,UnRead}
