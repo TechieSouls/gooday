@@ -51,12 +51,24 @@ public class NotificationDao {
 					
 					
 					Event eventTemp = null;
-					if (eventMap.containsKey(event.getEventId())) {
+					if (event.getEventId() != null && eventMap.containsKey(event.getEventId())) {
 						eventTemp = eventMap.get(event.getEventId());
 						
 						List<EventMember> members = eventTemp.getEventMembers();
 						if (members == null) {
 							members = new ArrayList<>();
+						} else {
+							boolean memberExists = false;
+							for (EventMember mem: members) {
+								
+								if (mem.getEventMemberId().equals(event.getEventMembers().get(0).getEventMemberId())) {
+									memberExists = true;
+									break;
+								}
+							}
+							if (memberExists == true) {
+								continue;
+							}
 						}
 						members.add(event.getEventMembers().get(0));
 						eventTemp.setEventMembers(members);
