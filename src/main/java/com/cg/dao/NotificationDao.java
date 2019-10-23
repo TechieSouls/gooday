@@ -41,7 +41,6 @@ public class NotificationDao {
 		
 		if (notifications != null && notifications.size() > 0) {
 			
-			
 			//Populating Events in Notifications
 			List<Event> events = eventServiceDao.findEventsByNotifications(notifications, recepientId);
 			Map<Long, Event> eventMap = new HashMap<>();
