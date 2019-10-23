@@ -219,7 +219,7 @@ public class NotificationManager {
 		Notification notification = new Notification();
 		notification.setSender("Cenes");
 		
-		eventMessage = "You got a message from CENES";	
+		eventMessage = "You got a message from CENES!";	
 		notification.setNotificationTypeStatus(NotificationTypeStatus.New);
 		
 		
