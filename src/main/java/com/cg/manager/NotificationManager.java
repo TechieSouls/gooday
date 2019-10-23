@@ -224,6 +224,7 @@ public class NotificationManager {
 		
 		notification.setMessage(eventMessage);
 		notification.setTitle("Welcome To Cenes!");
+		notification.setSenderId(toUser.getUserId());
 		notification.setRecepientId(toUser.getUserId());
 		notification.setNotificationTypeId(event.getEventId());
 		notification.setType(NotificationType.Gathering);
