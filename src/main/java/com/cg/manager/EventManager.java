@@ -29,6 +29,7 @@ import com.cg.dto.LocationDto;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.events.bo.Event.EventSource;
+import com.cg.events.bo.Event.EventStatus;
 import com.cg.events.bo.Event.ScheduleEventAs;
 import com.cg.events.bo.EventMember;
 import com.cg.events.bo.EventMember.MemberStatus;
@@ -202,6 +203,36 @@ public class EventManager {
 		System.out.println("[CreateEvent : "+new Date()+", ENDS]");
 		// saveEventsInSlots(event);
 		return event;
+	}
+	
+	
+	public void createWelcomeEvent(User user) {
+		
+		Event event = new Event();
+		event.setTitle("Welcome To Cenes!");
+		event.setDescription("Create and preview your first invite.");
+		event.setCreatedById(user.getUserId());
+		event.setCreatedAt(new Date());
+		event.setStartTime(new Date());
+		event.setEndTime(new Date());
+		event.setExpired(false);
+		event.setIsActive(EventStatus.Active);
+		event.setScheduleAs(Event.ScheduleEventAs.Notification.toString());
+		event.setSource(Event.EventSource.Cenes.toString());
+		event.setProcessed(Event.EventProcessedStatus.Processed.ordinal());
+		
+		List<EventMember> members = new ArrayList<>();
+		EventMember eventMember = new EventMember();
+		eventMember.setName(user.getName());
+		eventMember.setPicture(user.getPhoto());
+		eventMember.setStatus("Going");
+		eventMember.setUserId(user.getUserId());
+		members.add(eventMember);
+		event.setEventMembers(members);
+
+		event = eventService.saveEvent(event);
+
+		notificationManager.sendWelcomeNotification(event);
 	}
 	
 	public List<HomeScreenDto> getEventsAndRemindersMergedDataByUserIdStartDateEndDate(Long userId,Date startDate,Date endDate) {

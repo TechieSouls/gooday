@@ -312,6 +312,14 @@ public class EventController {
 		}
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 	}
+	
+	@RequestMapping(value = "/api/event/createwelcomeevent", method = RequestMethod.GET)
+	@ResponseBody
+	public void createWlcomeEvent(Long userId) {
+
+		User user = userService.findUserById(userId);
+		eventManager.createWelcomeEvent(user);
+	}
 
 	@RequestMapping(value = "/api/event/delete", method = RequestMethod.GET)
 	@ResponseBody

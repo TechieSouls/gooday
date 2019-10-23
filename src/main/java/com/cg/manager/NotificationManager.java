@@ -195,6 +195,137 @@ public class NotificationManager {
 		return 0l;
 	}
 	
+	public void sendWelcomeNotification(Event event) {
+		User toUser = userService.findUserById(event.getCreatedById());
+		if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {
+			System.out.println("[CreateEvent : "+new Date()+", Event Member Size : "+event.getEventMembers().size()+"]");
+		}
+		
+		Map<String,JSONArray> androidMap = new HashMap<>();
+		Map<String,List> iOSMap = new HashMap<>();
+		
+		Map<Long, Integer> userIdBadgeCountMap = new HashMap<>();
+		
+	List<EventMember> eventMembers = event.getEventMembers();
+		boolean notificationAlreadySent = false;
+		
+		String eventMessage = "";
+		
+		//Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(event.getEventId(),eventMember.getUserId(), NotificationTypeAction.Create);
+		//if (notification == null) {
+		//	notification = new Notification();
+		//}
+		Notification notification = new Notification();
+		notification.setSender("Cenes");
+		
+		eventMessage = "You got a message from CENES";	
+		notification.setNotificationTypeStatus(NotificationTypeStatus.New);
+		
+		
+		notification.setMessage(eventMessage);
+		notification.setTitle("Welcome To Cenes!");
+		notification.setRecepientId(toUser.getUserId());
+		notification.setNotificationTypeId(event.getEventId());
+		notification.setType(NotificationType.Gathering);
+		notification.setCreatedAt(new Date());
+		notification.setUpdateAt(new Date());
+		notificationRepository.save(notification);
+		
+		userIdBadgeCountMap.put(toUser.getUserId(), getBadgeCountsByUserId(toUser.getUserId()));
+		
+		List<UserDevice> toUserDeviceInfo = userService.findUserDeviceInfoByUserId(toUser.getUserId());
+		if (toUserDeviceInfo != null && toUserDeviceInfo.size() > 0) {
+			for (UserDevice userDevice : toUserDeviceInfo) {
+				if ("android".equals(userDevice.getDeviceType())) {
+					
+					JSONArray toAndroidArray = new JSONArray();
+					if (androidMap.containsKey(eventMessage)) {
+						toAndroidArray = androidMap.get(eventMessage);
+					}
+					toAndroidArray.put(userDevice.getDeviceToken());
+					androidMap.put(eventMessage, toAndroidArray);
+					
+				} else if ("ios".equals(userDevice.getDeviceType())) {
+					
+					List toIosArray = new ArrayList();
+					if (iOSMap.containsKey(eventMessage)) {
+						toIosArray = iOSMap.get(eventMessage);
+					}
+					toIosArray.add(userDevice);
+					iOSMap.put(eventMessage, toIosArray);
+				}
+			}
+		}
+			
+		try {
+			for (Entry<String,JSONArray> androidSet : androidMap.entrySet()) {
+
+				//String pushMessage = " sent you an invitation ";
+				
+				JSONObject payloadObj = new JSONObject();
+				payloadObj.put(CgConstants.notificationTypeTitle,event.getTitle());
+				payloadObj.put(CgConstants.notificationTypeId,event.getEventId());
+				payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
+				/*if (androidSet.getKey().equals("old")) {
+					payloadObj.put(CgConstants.notificationTypeStatus,"Old");
+					pushMessage = " updated an invitation ";
+				} else {
+					payloadObj.put(CgConstants.notificationTypeStatus,"New");
+				}*/
+				
+				JSONObject notifyObj = new JSONObject();
+				notifyObj.put("title", event.getTitle());
+				notifyObj.put("body", androidSet.getKey());
+				notifyObj.put("payload", payloadObj);
+				
+				PushNotificationService.sendAndroidPush(androidSet.getValue(),notifyObj);
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			for (Entry<String,List> iosSet : iOSMap.entrySet()) {
+				
+				for (UserDevice userDevice : (List<UserDevice>)iosSet.getValue()) {
+					//String pushMessage = " sent you an invitation ";
+					JSONObject notifyObj = new JSONObject();
+					
+					JSONObject payloadObj = new JSONObject();
+					payloadObj.put(CgConstants.notificationTypeTitle,event.getTitle());
+					payloadObj.put(CgConstants.notificationTypeId,event.getEventId());
+					payloadObj.put(CgConstants.notificationType,NotificationType.Gathering.toString());
+					/*if (iosSet.getKey().equals("old")) {
+						payloadObj.put(CgConstants.notificationTypeStatus,"Old");
+						pushMessage = " updated an invitation ";
+					} else {
+						payloadObj.put(CgConstants.notificationTypeStatus,"New");
+					}*/
+					
+					JSONObject alert = new JSONObject();
+					alert.put("title",event.getTitle());
+					alert.put("body",iosSet.getKey());
+
+					payloadObj.put("alert",alert);
+					//payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
+					payloadObj.put("badge",userIdBadgeCountMap.get(userDevice.getUserId()));
+					payloadObj.put("sound","cenes-notification-ringtone.aiff");
+
+					notifyObj.put("aps", payloadObj);
+					
+					List tokenList = new ArrayList();
+					tokenList.add(userDevice.getDeviceToken());
+					PushNotificationService.sendIosPushNotification(tokenList,notifyObj);
+				}
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
+		System.out.println("[CreateEvent : "+new Date()+", Notification Sent]");
+	}
+	
+	
 	public void sendGatheringNotification(Event event) {
 		User fromUser = userService.findUserById(event.getCreatedById());
 		if (event.getEventMembers() != null && event.getEventMembers().size() > 0) {

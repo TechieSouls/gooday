@@ -28,7 +28,7 @@ import com.cg.bo.CgGeneral;
 @Table(name="events")
 public class Event extends CgGeneral {
 	
-	public enum ScheduleEventAs{Event,MeTime,Holiday,Gathering}
+	public enum ScheduleEventAs{Event,MeTime,Holiday,Gathering, Notification}
 	public enum EventType{Sport,Cafe,Entertainment,Travel,Birthday,Food,Seasonal};
 	public enum EventSource{Cenes,Facebook,Google,Outlook,Apple, GoogleHoliday}
 	public enum EventProcessedStatus{UnProcessed,Waiting,Processed}
@@ -149,6 +149,9 @@ public class Event extends CgGeneral {
 	@Enumerated(EnumType.ORDINAL)
 	@Column(name="is_active")
 	private EventStatus isActive = EventStatus.Active;
+	
+	@Transient
+	private String address;
 	
 	public Long getEventId() {
 		return eventId;
@@ -341,6 +344,12 @@ public class Event extends CgGeneral {
 		this.isActive = isActive;
 	}
 	
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
+	}
 	
 	@Override
 	public String toString() {
