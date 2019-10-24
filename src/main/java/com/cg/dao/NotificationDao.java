@@ -80,7 +80,7 @@ public class NotificationDao {
 			}
 			
 			for (Notification notification: notifications) {
-				if (notification != null && notification.getNotificationTypeId() != null && eventMap.containsKey(notification.getNotificationTypeId()) && notification.getType() != null && notification.getType().equals(Notification.NotificationType.Gathering)) {
+				if (notification != null && notification.getNotificationTypeId() != null && eventMap.containsKey(notification.getNotificationTypeId()) && notification.getType() != null && (notification.getType().equals(Notification.NotificationType.Gathering) || notification.getType().equals(Notification.NotificationType.Welcome))) {
 					notification.setEvent(eventMap.get(notification.getNotificationTypeId()));
 				}
 			}
