@@ -207,16 +207,11 @@ public class NotificationManager {
 		
 		String eventMessage = "";
 		
-		//Notification notification = notificationRepository.findByNotificationTypeIdAndRecepientIdAndAction(event.getEventId(),eventMember.getUserId(), NotificationTypeAction.Create);
-		//if (notification == null) {
-		//	notification = new Notification();
-		//}
 		Notification notification = new Notification();
 		notification.setSender("Cenes");
 		
 		eventMessage = "You got a message from CENES!";	
 		notification.setNotificationTypeStatus(NotificationTypeStatus.New);
-		
 		
 		notification.setMessage(eventMessage);
 		notification.setTitle("Welcome To Cenes!");
