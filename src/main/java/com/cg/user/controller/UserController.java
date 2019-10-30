@@ -340,8 +340,6 @@ public class UserController {
 				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 			}
 			
-			
-			
 			User emailUser = userRepository.findUserByEmail(user.getEmail());
 			if (emailUser != null) {
 				response.put("success", false);
@@ -421,8 +419,6 @@ public class UserController {
 				response.put("data", facebookIdUser);
 				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 			}
-			
-			
 		}
 		
 		//If its a Google User Request
@@ -551,6 +547,7 @@ public class UserController {
 		
 		if (isNewUser) {
 			recurringManager.saveDefaultMeTime(user.getUserId());
+			eventManager.createWelcomeEvent(user);
 		}
 		
 		
