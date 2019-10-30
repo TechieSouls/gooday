@@ -688,6 +688,7 @@ public class UserController {
 		}
 		
 		recurringManager.saveDefaultMeTime(user.getUserId());
+		eventManager.createWelcomeEvent(user);
 		
 		response.put("data", user);
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
