@@ -521,6 +521,7 @@ public class UserController {
 		}
 		
 		user = userService.saveUser(user);
+		user.setIsNew(isNewUser);
 		try {
 			//Updating this user in other users contact list.
 			if (user.getPhone() != null) {
