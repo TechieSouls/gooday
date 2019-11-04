@@ -118,6 +118,7 @@ public class NotificationManager {
 							alert.put("title",event.getTitle());
 							alert.put("body",pushMessage);
 							payloadObj.put("alert",alert);
+							payloadObj.put("content-available",1);
 							payloadObj.put("badge",getBadgeCountsByUserId(userDevice.getUserId()));
 							payloadObj.put("sound","cenes-notification-ringtone.aiff");
 
