@@ -2438,7 +2438,7 @@ public class EventController {
 
 			List<Event> events = null;
 			if ("pending".equals(status)) {
-				events = eventService.findPendingInvitations(userId);
+				events = eventService.findUserFutureGatherings(userId, null);
 			} else if ("NotGoing".equals(status)) {
 				events = eventService.findUserFutureGatherings(userId, "NotGoing");
 			} else {
