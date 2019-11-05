@@ -2461,8 +2461,8 @@ public class EventController {
 							}
 						}
 						for (EventMember eventMember : iteratableEvent.getEventMembers()) {
-							if (eventMember.getUserId() != null
-									&& !eventMember.getUserId().equals(iteratableEvent.getCreatedById())) {
+							if (!(eventMember.getUserId() != null
+									&& eventMember.getUserId().equals(iteratableEvent.getCreatedById()))) {
 								members.add(eventMember);
 							}
 						}
