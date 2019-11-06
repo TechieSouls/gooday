@@ -32,11 +32,11 @@ public class BaseMapper {
 			user.setUserId(rs.getLong("user_id"));
 			user.setPhoto(rs.getString("photo"));
 			
-			if (rs.getString("name") != null) {
-				user.setName(rs.getString("name"));
-			} else if (rs.getString("nameuser") != null) {
+			if (rs.getString("nameuser") != null) {
 				user.setName(rs.getString("nameuser"));
-			}
+			} else if (rs.getString("name") != null) {
+				user.setName(rs.getString("name"));
+			} 
 			
 			user.setPhone(rs.getString("phone"));
 		} catch (Exception e) {
@@ -159,7 +159,12 @@ public class BaseMapper {
 			} catch(Exception e) {
 				eventMember.setUserId(rs.getLong("user_id"));
 			}
+			try {
+				eventMember.setName(rs.getString("nameuser"));
+			} catch(Exception e) {
 
+			}
+			
 			eventMember.setProcessed(rs.getInt("processed"));
 			eventMember.setUserContactId(rs.getLong("user_contact_id"));
 			eventMember.setUser(populateUserData(rs));

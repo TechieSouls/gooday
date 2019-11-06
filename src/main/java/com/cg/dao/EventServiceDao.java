@@ -393,7 +393,7 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 		}
 		String eventIdsStr = eventIds.toString().substring(0, eventIds.toString().length() - 1);
 		String query = "select *, us.name as nameuser, uc.name as phonebookName from events ev INNER JOIN event_members em on ev.event_id = em.event_id and ev.event_id in ("+eventIdsStr.toString()+")"
-				+ " LEFT JOIN users us on em.user_id = us.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = "+recepientId+"";
+				+ " LEFT JOIN users us on em.user_id = us.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = created_by_id";
 		System.out.println("Notification : "+query);
 		
 		List<Event> events = jdbcTemplate.query(query, new EventDataMapper());
