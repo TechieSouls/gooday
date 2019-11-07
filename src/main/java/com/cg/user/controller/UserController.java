@@ -340,8 +340,6 @@ public class UserController {
 				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 			}
 			
-			
-			
 			User emailUser = userRepository.findUserByEmail(user.getEmail());
 			if (emailUser != null) {
 				response.put("success", false);
@@ -421,8 +419,6 @@ public class UserController {
 				response.put("data", facebookIdUser);
 				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
 			}
-			
-			
 		}
 		
 		//If its a Google User Request
@@ -525,6 +521,7 @@ public class UserController {
 		}
 		
 		user = userService.saveUser(user);
+		user.setIsNew(isNewUser);
 		try {
 			//Updating this user in other users contact list.
 			if (user.getPhone() != null) {
@@ -551,6 +548,7 @@ public class UserController {
 		
 		if (isNewUser) {
 			recurringManager.saveDefaultMeTime(user.getUserId());
+			eventManager.createWelcomeEvent(user);
 		}
 		
 		
@@ -601,6 +599,14 @@ public class UserController {
 	
 		//If User signup via Email
 		if (user.getAuthType().equals(AuthenticateType.email)) {
+			
+			if (user.getPassword() == null) {
+				response.put("success", false);
+				response.put("errorCode", 1003);
+				response.put("message", "Password cannot be empty");
+				return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);
+
+			}
 			
 			User emailUser = userRepository.findUserByEmail(user.getEmail());
 			if (emailUser != null) {
@@ -683,6 +689,7 @@ public class UserController {
 		}
 		
 		recurringManager.saveDefaultMeTime(user.getUserId());
+		eventManager.createWelcomeEvent(user);
 		
 		response.put("data", user);
 		return new ResponseEntity<Map<String,Object>>(response, HttpStatus.OK);

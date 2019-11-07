@@ -183,6 +183,9 @@ public class EventController {
 		System.out.println("[CreateEvent : " + new Date() + ", STARTS]");
 		System.out.println("Event Details : " + event);
 		try {
+			
+			List<EventMember> eventMembersRemovedFromInvitation = new ArrayList<>();
+			
 			response.put("success", true);
 			response.put("errorCode", 0);
 			response.put("errorDetail", null);
@@ -226,6 +229,24 @@ public class EventController {
 				if (oldCounts != newCounts) {
 					event.setUpdatedFor(EventUpdateFor.GuestList);
 					countsForNumberOfChanges++;
+					
+					
+					for (EventMember eventMemberFromDb: eventFromDatabase.getEventMembers()) {
+						
+						boolean eventMemberExists = false;
+						for (EventMember eventMember: event.getEventMembers()) {
+							
+							if (eventMemberFromDb.getEventMemberId().equals(eventMember.getEventMemberId())) {
+								eventMemberExists = true;
+								break;
+							}
+							
+						}
+						
+						if (!eventMemberExists) {
+							eventMembersRemovedFromInvitation.add(eventMemberFromDb);
+						}
+					}
 				}
 
 				if (countsForNumberOfChanges == 0) {
@@ -274,6 +295,12 @@ public class EventController {
 			//Sending push to owner to refresh Home screen for time effect.
 			notificationManager.sendRefreshPushNotification(event.getCreatedById());	
 			
+			
+			if (eventMembersRemovedFromInvitation.size() > 0) {
+				notificationManager.sendRemoveUserNotification(event, eventMembersRemovedFromInvitation);
+				
+			}
+			
 			response.put("data", event);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -284,6 +311,14 @@ public class EventController {
 			response.put("errorDetail", ErrorCodes.InternalServerError.toString());
 		}
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/api/event/createwelcomeevent", method = RequestMethod.GET)
+	@ResponseBody
+	public void createWlcomeEvent(Long userId) {
+
+		User user = userService.findUserById(userId);
+		eventManager.createWelcomeEvent(user);
 	}
 
 	@RequestMapping(value = "/api/event/delete", method = RequestMethod.GET)
@@ -436,7 +471,9 @@ public class EventController {
 							eventMember.setUserContactId(uc.getUserContactId());
 						}
 						
-						eventService.saveEventMember(eventMember);					
+						eventService.saveEventMember(eventMember);			
+						
+						notificationManager.sendEventAcceptDeclinedPush(eventMember);
 					}
 
 				}
@@ -500,6 +537,13 @@ public class EventController {
 
 			Event event = eventManager.findEventByEventId(eventId);
 			EventMember eventMember = eventManager.findEventMemberByEventIdAndUserId(eventId, userId);
+			
+			//Creating new Event Member if, he is not in sthe event member list.
+			if (eventMember == null) {
+				eventMember = new EventMember();
+				eventMember.setEventId(event.getEventId());
+				eventMember.setUserId(userId);
+			}
 			/*
 			 * if (eventMember != null) {
 			 * notificationManager.deleteNotificationByRecepientIdNotificationTypeId(
@@ -512,6 +556,8 @@ public class EventController {
 				
 				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
 				eventMember = eventManager.generateTimeSlotsForEventMember(event, eventMember);
+				notificationManager.sendEventAcceptDeclinedPush(eventMember);
+
 			} else if ("NotGoing".equals(status)) {
 				// if (eventMember.getStatus() != null) {
 				// eventManager.updateEventMemberTimeSlot(event, eventMember);
@@ -520,12 +566,15 @@ public class EventController {
 				eventService.saveEventMember(eventMember);
 				
 				eventManager.deleteTimeSlotsForEventMember(event, eventMember);
+				notificationManager.sendEventAcceptDeclinedPush(eventMember);
 
-
+			} else {
+				
+				eventService.saveEventMember(eventMember);
+				eventMember = eventManager.generateTimeSlotsForEventMember(event, eventMember);
+				
 			}
 			// eventService.updateEventMemberStatus(memberStatus, eventMemberId);
-
-			notificationManager.sendEventAcceptDeclinedPush(eventMember);
 
 			response.put("success", true);
 			response.put("message", "Status Updated Successfully");
@@ -574,9 +623,11 @@ public class EventController {
 			c.add(Calendar.DATE, 5); // Adding 5 days
 			String endDateStr = CenesUtils.yyyyMMddTHHmmss.format(c.getTime());
 
-			List<HomeScreenDto> responseDataToSend = eventManager
-					.getEventsAndRemindersMergedDataByUserIdStartDateEndDate(userId,
-							CenesUtils.yyyyMMddTHHmmss.parse(eventDate), CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+			//List<HomeScreenDto> responseDataToSend = eventManager
+			//		.getEventsAndRemindersMergedDataByUserIdStartDateEndDate(userId,
+			//				CenesUtils.yyyyMMddTHHmmss.parse(eventDate), CenesUtils.yyyyMMddTHHmmss.parse(endDateStr));
+			List<Event> responseDataToSend = eventServiceDao.findByCreatedByIdAndStartDateAndEventMemberStatus(userId, CenesUtils.yyyyMMddTHHmmss.format(CenesUtils.yyyyMMddTHHmmss.parse(eventDate)));
+
 			System.out.println("[USER EVENTS -  Events list : " + responseDataToSend.size() + "]");
 
 			response.put("success", true);
@@ -2387,7 +2438,7 @@ public class EventController {
 
 			List<Event> events = null;
 			if ("pending".equals(status)) {
-				events = eventService.findPendingInvitations(userId);
+				events = eventService.findUserFutureGatherings(userId, null);
 			} else if ("NotGoing".equals(status)) {
 				events = eventService.findUserFutureGatherings(userId, "NotGoing");
 			} else {
@@ -2410,8 +2461,8 @@ public class EventController {
 							}
 						}
 						for (EventMember eventMember : iteratableEvent.getEventMembers()) {
-							if (eventMember.getUserId() != null
-									&& !eventMember.getUserId().equals(iteratableEvent.getCreatedById())) {
+							if (!(eventMember.getUserId() != null
+									&& eventMember.getUserId().equals(iteratableEvent.getCreatedById()))) {
 								members.add(eventMember);
 							}
 						}

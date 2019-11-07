@@ -41,7 +41,6 @@ public class NotificationDao {
 		
 		if (notifications != null && notifications.size() > 0) {
 			
-			
 			//Populating Events in Notifications
 			List<Event> events = eventServiceDao.findEventsByNotifications(notifications, recepientId);
 			Map<Long, Event> eventMap = new HashMap<>();
@@ -51,7 +50,7 @@ public class NotificationDao {
 					
 					
 					Event eventTemp = null;
-					if (eventMap.containsKey(event.getEventId())) {
+					if (event.getEventId() != null && eventMap.containsKey(event.getEventId())) {
 						eventTemp = eventMap.get(event.getEventId());
 						
 						List<EventMember> members = eventTemp.getEventMembers();
@@ -81,7 +80,7 @@ public class NotificationDao {
 			}
 			
 			for (Notification notification: notifications) {
-				if (eventMap.containsKey(notification.getNotificationTypeId()) && notification.getType().equals(Notification.NotificationType.Gathering)) {
+				if (notification != null && notification.getNotificationTypeId() != null && eventMap.containsKey(notification.getNotificationTypeId()) && notification.getType() != null && (notification.getType().equals(Notification.NotificationType.Gathering) || notification.getType().equals(Notification.NotificationType.Welcome))) {
 					notification.setEvent(eventMap.get(notification.getNotificationTypeId()));
 				}
 			}

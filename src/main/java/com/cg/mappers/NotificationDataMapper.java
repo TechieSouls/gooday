@@ -32,6 +32,8 @@ public class NotificationDataMapper extends BaseMapper implements RowMapper<Noti
 			notification.setType(Notification.NotificationType.Gathering);
 		} else if ("Reminder".equals(type)) {
 			notification.setType(Notification.NotificationType.Reminder);
+		} else if ("Welcome".equals(type)) {
+			notification.setType(Notification.NotificationType.Welcome);
 		}
 		
 		

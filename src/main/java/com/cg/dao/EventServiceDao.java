@@ -393,7 +393,7 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 		}
 		String eventIdsStr = eventIds.toString().substring(0, eventIds.toString().length() - 1);
 		String query = "select *, us.name as nameuser, uc.name as phonebookName from events ev INNER JOIN event_members em on ev.event_id = em.event_id and ev.event_id in ("+eventIdsStr.toString()+")"
-				+ " LEFT JOIN users us on em.user_id = us.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = "+recepientId+"";
+				+ " LEFT JOIN users us on em.user_id = us.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = created_by_id";
 		System.out.println("Notification : "+query);
 		
 		List<Event> events = jdbcTemplate.query(query, new EventDataMapper());
@@ -613,11 +613,25 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 	
 	public List<Event> findGatheringsByUserIdAndStatus(Long userId, String status) {
 		
-		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
-				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+") as event_temp "
-				+ "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
+		//String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+		//		+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status = '"+status+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+") as event_temp "
+		//		+ "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
 		
-		System.out.println(query);
+		String query = "select *, event_temp.source as event_source, em.user_id as em_user_id, em.source as member_source, em.name as non_cenes_member_name, u.name as origname, "
+				+ "uc.name as phonebookName from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and ";
+		
+				if (status == null) {
+					query += "em.status is NULL order by e.start_time asc) as event_temp ";
+				} else {
+					query += "em.status = '"+status+"' order by e.start_time asc) as event_temp ";
+				}
+						
+				query += "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
+				+ "LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = "+userId+" "
+				+ "order by event_temp.start_time asc";
+			
+			System.out.println(query);
 		
 		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
 		
@@ -746,7 +760,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "DATE(e.end_time) >= DATE(now()) and  e.schedule_as = 'Gathering' and em.user_id = "+userId+" and em.status is null) as event_temp "
 				+ "JOIN event_members em on event_temp.event_id = em.event_id JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc";
-
+		
 		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
 		
 		

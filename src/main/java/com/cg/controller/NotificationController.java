@@ -47,8 +47,8 @@ public class NotificationController {
 		responseMap.put("errorDetail", null);
 		responseMap.put("success", true);
 		try {
-			List<Notification> notificatoins = notificationRepository.findByRecepientIdOrderByCreatedAtDesc(userId);
-			
+			//List<Notification> notificatoins = notificationRepository.findByRecepientIdOrderByCreatedAtDesc(userId);
+			List<Notification> notificatoins = notificationManager.findPageableNotificationsByRecepientId(userId, 0, 1000);
 			if (notificatoins != null && notificatoins.size() > 0) {
 				
 				for (Notification notification: notificatoins) {
