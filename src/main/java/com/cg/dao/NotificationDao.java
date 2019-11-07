@@ -88,4 +88,61 @@ public class NotificationDao {
 		
 		return notifications;
 	}
+	
+	public List<Notification> findPageableNotificationsByUserIdInAndroid(Long recepientId, int pageNumber, int offSet) {
+		String query = "select * from notifications noti JOIN users us on noti.sender_id = us.user_id "
+				+ "and noti.recepient_id = "+recepientId+"  order by noti.created_at desc limit "+pageNumber+","+offSet+" ";
+		System.out.println(query);
+		
+		List<Notification> notifications = jdbcTemplate.query(query, new NotificationDataMapper());
+		
+		if (notifications != null && notifications.size() > 0) {
+			
+			//Populating Events in Notifications
+			List<Event> events = eventServiceDao.findEventsByNotifications(notifications, recepientId);
+			Map<Long, Event> eventMap = new HashMap<>();
+			if (events != null && events.size() > 0) {
+				
+				for (Event event: events) {
+					
+					
+					Event eventTemp = null;
+					if (event.getEventId() != null && eventMap.containsKey(event.getEventId())) {
+						eventTemp = eventMap.get(event.getEventId());
+						
+						List<EventMember> members = eventTemp.getEventMembers();
+						if (members == null) {
+							members = new ArrayList<>();
+						} else {
+							boolean memberExists = false;
+							for (EventMember mem: members) {
+								
+								if (mem.getEventMemberId().equals(event.getEventMembers().get(0).getEventMemberId())) {
+									memberExists = true;
+									break;
+								}
+							}
+							if (memberExists == true) {
+								continue;
+							}
+						}
+						members.add(event.getEventMembers().get(0));
+						eventTemp.setEventMembers(members);
+						
+					} else {
+						eventTemp = event;
+					}
+					eventMap.put(event.getEventId(), eventTemp);
+				}
+			}
+			
+			for (Notification notification: notifications) {
+				if (notification != null && notification.getNotificationTypeId() != null && eventMap.containsKey(notification.getNotificationTypeId()) && notification.getType() != null && (notification.getType().equals(Notification.NotificationType.Gathering) || notification.getType().equals(Notification.NotificationType.Welcome))) {
+					notification.setEvent(eventMap.get(notification.getNotificationTypeId()));
+				}
+			}
+		}
+		
+		return notifications;
+	}
 }

@@ -718,6 +718,11 @@ public class NotificationManager {
 		return notificationDao.findPageableNotificationsByUserId(recepientId, pageNumber, offset);
 	}
 	
+	public List<Notification> findPageableNotificationsByRecepientIdAndroid(Long recepientId, int pageNumber, int offset) {
+		
+		return notificationDao.findPageableNotificationsByUserIdInAndroid(recepientId, pageNumber, offset);
+	}
+
 	public int findNotificationsCountsByRecepientId(Long recepientId) {
 		
 		return notificationDao.findTotalNotificationCountsByRecepientId(recepientId);
