@@ -159,23 +159,76 @@ public class UserDetailController {
 				responseMap.put("message", ErrorCodes.IncorrectEmailOrPassword.toString());
 				return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
 			}
+			
 		} else if (user.getAuthType() == AuthenticateType.facebook) {
 			
-			user = this.userRepository.findUserByFacebookId(user.getFacebookId());
-			if (user == null) {
-				responseMap.put("success", false);
-				responseMap.put("errorCode", 1001);
-				responseMap.put("message", "Account does not exist");
-				return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+			User emailUser = userRepository.findUserByEmail(user.getEmail());
+
+			//Lets check if email user facebook id already exists
+			if (emailUser != null) {
+
+				if (emailUser.getFacebookId() == null) {
+					
+					emailUser.setFacebookId(user.getFacebookId());
+					user = this.userRepository.save(emailUser);
+					
+				} else {
+					
+					user = this.userRepository.findUserByFacebookId(user.getFacebookId());
+					if (user == null) {
+						responseMap.put("success", false);
+						responseMap.put("errorCode", 1001);
+						responseMap.put("message", "Account does not exist");
+						return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+					}
+
+				}
+			
+			} else {
+
+				user = this.userRepository.findUserByFacebookId(user.getFacebookId());
+				if (user == null) {
+					responseMap.put("success", false);
+					responseMap.put("errorCode", 1001);
+					responseMap.put("message", "Account does not exist");
+					return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+				}
+
 			}
+			
 		} else if (user.getAuthType() == AuthenticateType.google) {
 			
-			user = this.userRepository.findUserByFacebookId(user.getGoogleId());
-			if (user == null) {
-				responseMap.put("success", false);
-				responseMap.put("errorCode", 1001);
-				responseMap.put("message", "Account does not exist");
-				return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+			User emailUser = userRepository.findUserByEmail(user.getEmail());
+
+			//Lets check if email user facebook id already exists
+			if (emailUser != null) {
+
+				if (emailUser.getGoogleId() == null) {
+					
+					emailUser.setGoogleId(user.getGoogleId());
+					user = this.userRepository.save(emailUser);
+					
+				} else {
+					
+					user = this.userRepository.findUserByGoogleId(user.getGoogleId());
+					if (user == null) {
+						responseMap.put("success", false);
+						responseMap.put("errorCode", 1001);
+						responseMap.put("message", "Account does not exist");
+						return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+					}
+				}
+			
+			} else {
+
+				user = this.userRepository.findUserByGoogleId(user.getGoogleId());
+				if (user == null) {
+					responseMap.put("success", false);
+					responseMap.put("errorCode", 1001);
+					responseMap.put("message", "Account does not exist");
+					return new ResponseEntity<Map<String, Object>>(responseMap, HttpStatus.OK);
+				}
+
 			}
 		}
 		

@@ -28,7 +28,7 @@ import com.cg.bo.CgGeneral;
 @Table(name="events")
 public class Event extends CgGeneral {
 	
-	public enum ScheduleEventAs{Event,MeTime,Holiday,Gathering}
+	public enum ScheduleEventAs{Event,MeTime,Holiday,Gathering, Notification}
 	public enum EventType{Sport,Cafe,Entertainment,Travel,Birthday,Food,Seasonal};
 	public enum EventSource{Cenes,Facebook,Google,Outlook,Apple, GoogleHoliday}
 	public enum EventProcessedStatus{UnProcessed,Waiting,Processed}
