@@ -129,14 +129,11 @@ public class UserDetailController {
 			@RequestBody User user) {
 		
 		
+		System.out.println(user.toString());
 		Map<String, Object> responseMap = new HashMap<String, Object>();
 		responseMap.put("success", true);
 		
 		System.out.println("[ Date : "+new Date()+", UserType : Email, Message : Creating new user");
-		
-		if (user.getAuthType() != null) {
-			
-		}
 		
 		if (user.getAuthType() == AuthenticateType.email && user.getEmail() != null) {
 			
