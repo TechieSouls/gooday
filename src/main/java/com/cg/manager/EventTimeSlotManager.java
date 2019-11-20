@@ -55,6 +55,7 @@ public class EventTimeSlotManager {
 	 * free and which are booked
 	 * */
 	public List<Event> saveEventsInSlots(List<Event> events) {
+		long startTime = new Date().getTime();
 		System.out.println("saveEventsInSlots STARTS");
 		try {
 			for (Event event : events) {
@@ -69,7 +70,8 @@ public class EventTimeSlotManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("Matching Slots ENDS");
+		long endTime = new Date().getTime();
+		System.out.println("Matching Slots ENDS : Time in saving datatbase : "+(endTime - startTime)/1000);
 		return events;
 	}
 	
