@@ -68,7 +68,6 @@ import com.cg.service.GoogleService;
 import com.cg.service.OutlookService;
 import com.cg.service.PushNotificationService;
 import com.cg.service.UserService;
-import com.cg.threads.EventThread;
 import com.cg.user.bo.User;
 import com.cg.user.bo.UserContact;
 import com.cg.utils.CenesUtils;
@@ -130,6 +129,10 @@ public class EventController {
 
 	@Value("${cenes.domain}")
 	private String domain;
+	
+	@Value("${cenes.imageDomain}")
+	private String imageDomain;
+
 
 	SimpleDateFormat zoneFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -259,7 +262,6 @@ public class EventController {
 
 				// eventManager.deleteTimeSlotsForEventMember(eventFromDatabase, eventMember);
 				eventManager.deleteTimeSlotsForEvent(eventFromDatabase);
-
 			}
 			if (event.getEventId() == null || event.getKey() == null) {
 				event.setScheduleAs("Gathering");
@@ -459,9 +461,11 @@ public class EventController {
 
 						return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
 					} else {
+						System.out.println("User Name : "+user.getName());
 						EventMember eventMember = new EventMember();
 						eventMember.setUserId(userId);
 						eventMember.setEventId(event.getEventId());
+						eventMember.setName(user.getName());
 						eventMember.setStatus(EventMember.MemberStatus.Going.toString());
 						
 						
@@ -472,7 +476,9 @@ public class EventController {
 						}
 						
 						eventService.saveEventMember(eventMember);			
-						
+						eventMember.setName(user.getName());
+
+						System.out.println("Prepariing Notification To Send Web Invitation Push");
 						notificationManager.sendEventAcceptDeclinedPush(eventMember);
 					}
 
@@ -1600,10 +1606,14 @@ public class EventController {
 				Map<String, Long> dateHoursMap = new HashMap<String, Long>();
 
 				for (String friendId : userIds.split(",")) {
+					
+					//Finding Slots for Event Member
 					List<EventTimeSlot> eventTimeSlots = eventServiceDao
 							.getFreeTimeSlotsByUserIdAndStartDateAndEndDate(Long.valueOf(friendId), sDateStr, eDateStr);
+					
+					//Lets create date and slots map
+					//that means map of slots afor that day
 					Map<String, List<EventTimeSlot>> etsDateWiseMap = new HashMap<>();
-
 					for (EventTimeSlot etsFromList : eventTimeSlots) {
 
 						List<EventTimeSlot> etsMapList = null;
@@ -1617,6 +1627,7 @@ public class EventController {
 						etsDateWiseMap.put(CenesUtils.yyyyMMdd.format(etsFromList.getEventDate()), etsMapList);
 					}
 
+					//Lets iterate the whole month dates one by one
 					for (String mDate : monthlyDates) {
 						System.out.println(mDate);
 						Calendar cal = Calendar.getInstance();
@@ -1625,6 +1636,7 @@ public class EventController {
 						cal.set(Calendar.MINUTE, searchCalDate.get(Calendar.MINUTE));
 						cal.set(Calendar.SECOND, 0);
 
+						//Now lets fetch the current date slots from date and slots map
 						if (etsDateWiseMap.containsKey(mDate)) {
 							List<EventTimeSlot> userTimeSlots = etsDateWiseMap.get(mDate);
 
@@ -1666,6 +1678,7 @@ public class EventController {
 								// setOfUsersWithTimeSlots.add(userEts.getUserId());
 							}
 
+							//If user is busy for 5 minutes then we will ignore it and make user free
 							if (slotExistsBetweenTimeRange && checkForNumberOfSlotsUserIsBusy.size() < 2) {
 								slotExistsBetweenTimeRange = false;
 							}
@@ -1676,9 +1689,9 @@ public class EventController {
 								String userAvailabilityIds = "";
 								if (dateFriendsAvailabilityMap.containsKey(mDate)) {
 									userAvailabilityIds = dateFriendsAvailabilityMap.get(mDate);
-									userAvailabilityIds += "," + userId;
+									userAvailabilityIds += "," + friendId ;
 								} else {
-									userAvailabilityIds += userId;
+									userAvailabilityIds += friendId;
 								}
 								dateFriendsAvailabilityMap.put(mDate, userAvailabilityIds);
 							}
@@ -1711,9 +1724,9 @@ public class EventController {
 							String userAvailabilityIds = "";
 							if (dateFriendsAvailabilityMap.containsKey(mDate)) {
 								userAvailabilityIds = dateFriendsAvailabilityMap.get(mDate);
-								userAvailabilityIds += "," + userId;
+								userAvailabilityIds += "," + friendId;
 							} else {
-								userAvailabilityIds += userId;
+								userAvailabilityIds += friendId;
 							}
 							dateFriendsAvailabilityMap.put(mDate, userAvailabilityIds);
 						}
@@ -1750,6 +1763,7 @@ public class EventController {
 					pc.setDate(dateCal.getTimeInMillis());
 					pc.setTotalFriends(totalFriends);
 					pc.setAttendingFriends(friendsAttending);
+					pc.setAttendingFriendsList(availableUserIds);
 					pc.setPredictivePercentage((int) predictivePercentage);
 					predictiveCalendarDateWise.add(pc);
 

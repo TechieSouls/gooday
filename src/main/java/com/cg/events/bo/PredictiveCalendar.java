@@ -7,6 +7,8 @@ public class PredictiveCalendar {
 	private Integer totalFriends;
 	private Integer attendingFriends;
 	private Integer predictivePercentage;
+	private String attendingFriendsList;
+	
 	public Long getDate() {
 		return date;
 	}
@@ -36,6 +38,12 @@ public class PredictiveCalendar {
 	}
 	public void setReadableDate(String readableDate) {
 		this.readableDate = readableDate;
+	}
+	public String getAttendingFriendsList() {
+		return attendingFriendsList;
+	}
+	public void setAttendingFriendsList(String attendingFriendsList) {
+		this.attendingFriendsList = attendingFriendsList;
 	}
 	@Override
 	public String toString() {

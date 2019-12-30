@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.cg.dao.EventTimeSlotDao;
 import com.cg.events.bo.Event;
 import com.cg.events.bo.Event.EventProcessedStatus;
 import com.cg.events.bo.EventMember;
@@ -35,6 +36,9 @@ public class EventTimeSlotManager {
 	@Autowired
 	EventService eventService;
 	
+	@Autowired
+	EventTimeSlotDao eventTimeSlotDao;
+	
 	public List<Event> findEventsToProcessed() {
 		Pageable pageable = new PageRequest(0, 100);
 		List<Event> events = eventRepository.findByEventProcessedOrNot(EventProcessedStatus.UnProcessed.ordinal(),pageable);
@@ -55,12 +59,14 @@ public class EventTimeSlotManager {
 	 * free and which are booked
 	 * */
 	public List<Event> saveEventsInSlots(List<Event> events) {
-		long startTime = new Date().getTime();
+		Long startTime = new Date().getTime();
+
 		System.out.println("saveEventsInSlots STARTS");
 		try {
 			for (Event event : events) {
 				List<EventTimeSlot> eventTimeSlots = getTimeSlots(event,event.getCreatedById());
 				eventTimeSlotRepository.save(eventTimeSlots);
+				//eventTimeSlotDao.saveEventTimeSlotBatch(eventTimeSlots);
 				
 				//Releasing space allocated to time slots list
 				eventTimeSlots = null;
@@ -70,14 +76,15 @@ public class EventTimeSlotManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		long endTime = new Date().getTime();
-		System.out.println("Matching Slots ENDS : Time in saving datatbase : "+(endTime - startTime)/1000);
+		
+		Long endTime = new Date().getTime();
+		System.out.println("Matching Slots ENDS : Total Seconds to save : "+(endTime - startTime)/1000);
 		return events;
 	}
 	
 	public List<EventTimeSlot> getTimeSlots(Event event,Long userId) {
 		
-		System.out.println("Start Time : "+event.getStartTime()+", End Time : "+event.getEndTime());
+		//System.out.println("Start Time : "+event.getStartTime()+", End Time : "+event.getEndTime());
 		
 		List<EventTimeSlot> eventTimeSlots = new ArrayList<>();
 		Long eventDayStartTimeValue = CenesUtils.getStartOfDay(event.getStartTime()).getTime();
@@ -184,6 +191,7 @@ public class EventTimeSlotManager {
 	
 	
 	public List<Event> saveEventMemberSlots(List<Event> events) {
+		Long startTime = new Date().getTime();
 		System.out.println("saveEventMemberSlots STARTS");
 		System.out.println("Events List : "+events.size());
 		try {
@@ -198,6 +206,7 @@ public class EventTimeSlotManager {
 					List<EventTimeSlot> eventTimeSlots = getTimeSlots(event,eventMember.getUserId());
 					if (eventTimeSlots != null && eventTimeSlots.size() > 0) {
 						eventTimeSlotRepository.save(eventTimeSlots);
+						eventTimeSlotRepository.flush();
 					}
 					
 					//Releasing space allocated to time slots list
@@ -210,7 +219,9 @@ public class EventTimeSlotManager {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		System.out.println("saveEventMemberSlots END");
+		
+		Long endTime = new Date().getTime();
+		System.out.println("saveEventMemberSlots END : Total Seconds to save : "+(endTime - startTime)/1000);
 		return events;
 	}
 	

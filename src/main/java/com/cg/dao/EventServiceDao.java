@@ -23,6 +23,7 @@ import com.cg.events.bo.EventTimeSlot;
 import com.cg.mappers.EventDataMapper;
 import com.cg.user.bo.User;
 import com.cg.user.bo.UserContact;
+import com.cg.user.bo.UserContact.CenesMember;
 import com.cg.utils.CenesUtils;
 
 @Service
@@ -108,10 +109,11 @@ public class EventServiceDao {
 		
 		
 		String query = "select *, event_temp.source as event_source,  em.source as member_source, em.name as non_cenes_member_name, "
-				+ "u.name as origname from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
+				+ "u.name as origname, uc.name as phonebookName from (select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 				+ "e.start_time >= '"+eventDate+"' and  em.user_id = "+createdById+" and em.status = 'Going' "
 				+ "and e.schedule_as in ('Event','Holiday','Gathering') and e.is_active = "+Event.EventStatus.Active.ordinal()+" ) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
-				+ "LEFT JOIN users u on em.user_id = u.user_id order by event_temp.start_time asc limit 100";
+				+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on (em.user_contact_id = uc.user_contact_id OR em.user_id = uc.friend_id) and uc.uc_user_id = "+createdById+" "
+				+ "order by event_temp.start_time asc limit 100";
 	
 		System.out.println("Home Events Query : "+query);
 		List<Map<String, Object>> userGatheringsMapList = jdbcTemplate.queryForList(query);
@@ -288,7 +290,7 @@ public class EventServiceDao {
 					+ "(select e.* from events e JOIN event_members em on e.event_id = em.event_id where "
 					+ "e.start_time >= '"+eventDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" and em.user_id = "+createdById+" and em.status = 'Going' "
 					+ " "+sourcesQuery+" order by e.start_time asc limit "+pageNumber+","+offSet+") as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
-					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_contact_id = uc.user_contact_id "
+					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on (em.user_contact_id = uc.user_contact_id OR em.user_id = uc.friend_id) and uc.uc_user_id = "+createdById+" "
 					+ "order by event_temp.start_time asc";
 		
 			System.out.println("Home Events Query : "+query);
@@ -344,7 +346,8 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 					+ "e.start_time >= '"+eventDate+"' and e.start_time <= '"+endDate+"' and e.is_active = "+Event.EventStatus.Active.ordinal()+" "
 					+ "and em.user_id = "+createdById+" and em.status = 'Going' "
 					+ " "+sourcesQuery+" order by e.start_time asc) as event_temp JOIN event_members em on event_temp.event_id = em.event_id "
-					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on em.user_contact_id = uc.user_contact_id "
+					+ "LEFT JOIN users u on em.user_id = u.user_id LEFT JOIN user_contacts uc on "
+					+ "(em.user_contact_id = uc.user_contact_id OR em.user_id = uc.friend_id) and uc.uc_user_id = "+createdById+" "
 					+ "order by event_temp.start_time asc";
 		
 			System.out.println("Home Events Query : "+query);
@@ -393,7 +396,8 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 		}
 		String eventIdsStr = eventIds.toString().substring(0, eventIds.toString().length() - 1);
 		String query = "select *, us.name as nameuser, uc.name as phonebookName from events ev INNER JOIN event_members em on ev.event_id = em.event_id and ev.event_id in ("+eventIdsStr.toString()+")"
-				+ " LEFT JOIN users us on em.user_id = us.user_id LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = created_by_id";
+				+ " LEFT JOIN users us on em.user_id = us.user_id LEFT JOIN user_contacts uc on "
+				+ "(em.user_contact_id = uc.user_contact_id OR em.user_id = uc.friend_id) and uc.uc_user_id = "+recepientId+"";
 		System.out.println("Notification : "+query);
 		
 		List<Event> events = jdbcTemplate.query(query, new EventDataMapper());
@@ -492,11 +496,25 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 	}
 	
 	public void deleteEventTimeSlotsAndEventsByCreatedById(Long createdById) {
-		String deleteEventTimeSlots = "delete from event_time_slots where event_id in (select event_id from events where created_by_id = "+createdById+")";
-		 jdbcTemplate.execute(deleteEventTimeSlots);
+		try {
+			
+			String deleteEventTimeSlots = "delete from event_time_slots where event_id in (select event_id from events where created_by_id = "+createdById+")";
+			System.out.println("Delete Event Time Slots : "+deleteEventTimeSlots);
+			jdbcTemplate.execute(deleteEventTimeSlots);
 
-		 String deleteEvnts = "delete from events where created_by_id = "+createdById+"";
-		 jdbcTemplate.execute(deleteEvnts);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			
+			 String deleteEvnts = "delete from events where created_by_id = "+createdById+"";
+			 System.out.println("Delete Events : "+deleteEvnts);
+			 jdbcTemplate.execute(deleteEvnts);
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -628,7 +646,7 @@ public List<Event> findMonthWiseByCreatedByIdAndStartDate(Long createdById, Stri
 				}
 						
 				query += "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
-				+ "LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = "+userId+" "
+				+ "LEFT JOIN user_contacts uc on em.user_contact_id = uc.user_contact_id "
 				+ "order by event_temp.start_time asc";
 			
 			System.out.println(query);
@@ -705,7 +723,7 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 			}
 					
 			query += "JOIN event_members em on event_temp.event_id = em.event_id LEFT JOIN users u on em.user_id = u.user_id "
-			+ "LEFT JOIN user_contacts uc on em.user_id = uc.friend_id and uc.uc_user_id = "+userId+" "
+			+ "LEFT JOIN user_contacts uc on (em.user_contact_id = uc.user_contact_id OR em.user_id = uc.friend_id) and uc.uc_user_id = "+userId+" "
 			+ "order by event_temp.start_time asc";
 		
 		System.out.println(query);
@@ -984,12 +1002,28 @@ public List<Event> findPageableGatheringsByUserIdAndStatus(Long userId, String s
 				eventMember.setUser(populateUser(eventMembersMap));
 			}
 			
-			if (eventMembersMap.get("user_id") != null) {
+			if (eventMembersMap.get("user_contact_id") != null) {
 				try {
 					UserContact userContact = null;
 					if (eventMembersMap.get("phonebookName") != null) {
 						userContact =  new UserContact();
 						userContact.setName(eventMembersMap.get("phonebookName").toString());
+						userContact.setUserContactId(Long.valueOf(eventMembersMap.get("user_contact_id").toString()));
+						try {
+							userContact.setFriendId(Long.valueOf(eventMembersMap.get("friend_id").toString()));
+						} catch(Exception e) {
+							
+						}
+						try {
+							userContact.setUserId(Long.valueOf(eventMembersMap.get("user_id").toString()));
+						} catch(Exception e) {
+							
+						}
+						if (Boolean.valueOf(eventMembersMap.get("cenes_member").toString()) == true) {
+							userContact.setCenesMember(CenesMember.yes);
+						} else {
+							userContact.setCenesMember(CenesMember.no);
+						}
 					}
 					eventMember.setUserContact(userContact);
 				} catch (Exception e) {

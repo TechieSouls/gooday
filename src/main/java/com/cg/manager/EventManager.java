@@ -946,8 +946,14 @@ public Map<String, List<HomeScreenDto>> parseEventsForHomeScreenAndroid(List<Eve
 			
 			List<Event> existingGoogleEvents = eventRepository.findByCreatedByIdAndStartTimeGreaterThanAndSourceAndScheduleAs(user.getUserId(), cal.getTime(), Event.EventSource.Google.toString(), Event.ScheduleEventAs.Event.toString());
 			for (Event exEvent: existingGoogleEvents) {
-				googleEventIdsToDelete.put(exEvent.getSourceEventId(), exEvent);
-				eventsToDeleteList.add(exEvent);
+				
+				String sourceEventIdAndDateKey = exEvent.getTitle()+"_"+exEvent.getSourceEventId()+"_"+CenesUtils.yyyyMMddTHHmmssX.format(exEvent.getStartTime());
+				if (!googleEventIdsToDelete.containsKey(sourceEventIdAndDateKey)) {
+					
+					googleEventIdsToDelete.put(sourceEventIdAndDateKey, exEvent);
+					eventsToDeleteList.add(exEvent);
+
+				}
 			}
 			System.out.println("Totdal Events from databse : "+eventsToDeleteList.size());
 		}
@@ -958,6 +964,8 @@ public Map<String, List<HomeScreenDto>> parseEventsForHomeScreenAndroid(List<Eve
 			
 			List<GoogleEventItem> googleEventItems = new ArrayList<>();
 			
+			//This is needed to track the duplicacy of events.
+			List<String> googleEventSourceEventIteamList =  new ArrayList<String>();
 			//We will iterate the events and remove all those that are to be added and that are to be deleted.
 			for (GoogleEvents googleEvents : googleEventsCalendarList) {
 				if (googleEvents.getItems() != null
@@ -968,18 +976,66 @@ public Map<String, List<HomeScreenDto>> parseEventsForHomeScreenAndroid(List<Eve
 							continue;
 						}
 						
-						if (googleEventIdsToDelete.containsKey(eventItem.getId())) {
+						Date startDateTemp = null;
+						try {
 							
-							eventsToDeleteList.remove(googleEventIdsToDelete.get(eventItem.getId()));
+							if (eventItem.getStart() != null) {
+								if (eventItem.getStart().containsKey("dateTime")) {
+									startDateTemp = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getStart().get("dateTime"));
+								} else if (eventItem.getStart().containsKey("date")) {
+									//Events with no hours and minutes
+									//We will mark them full day events.
+									startDateTemp = CenesUtils.yyyyMMdd.parse((String) eventItem.getStart().get("date"));
+								}
+								
+							}
+
+						} catch (Exception e) {
+							// TODO: handle exception
+							e.printStackTrace();
+						}
+						
+						String databaseEventTrackingKey = eventItem.getSummary()+"_"+eventItem.getId()+"_"+CenesUtils.yyyyMMddTHHmmssX.format(startDateTemp);
+						if (googleEventIdsToDelete.containsKey(databaseEventTrackingKey)) {
+							
+							eventsToDeleteList.remove(googleEventIdsToDelete.get(databaseEventTrackingKey));
 							googleEventIdsToDelete.remove(eventItem.getId());
 						} else {
-							googleEventItems.add(eventItem);
+							
+							try {
+								
+								Date startDate = null;
+								if (eventItem.getStart() != null) {
+									if (eventItem.getStart().containsKey("dateTime")) {
+										startDate = CenesUtils.yyyyMMddTHHmmssX.parse((String) eventItem.getStart().get("dateTime"));
+									} else if (eventItem.getStart().containsKey("date")) {
+										//Events with no hours and minutes
+										//We will mark them full day events.
+										startDate = CenesUtils.yyyyMMdd.parse((String) eventItem.getStart().get("date"));
+									}
+									
+								}
+								
+								String googleEventTrackingKey = eventItem.getSummary()+"_"+eventItem.getId();
+								if (startDate != null) {
+									googleEventTrackingKey = googleEventTrackingKey+"_"+CenesUtils.yyyyMMddTHHmmssX.format(startDate);
+								}
+								if (googleEventSourceEventIteamList.contains(googleEventTrackingKey)) {
+									continue;
+								}
+								googleEventItems.add(eventItem);
+								googleEventSourceEventIteamList.add(googleEventTrackingKey);
+
+
+							} catch(Exception e) {
+								e.addSuppressed(e);
+							}
 						}
 					}
 				}
 			}
 			
-			
+			System.out.println("Google Events To Add : "+googleEventItems.size());
 			eventThread.runGoogleEventSyncThread(googleEventItems, user.getUserId(), googleEventsCalendarList.get(0).getTimeZone());
 			if (eventsToDeleteList.size() > 0) {
 				

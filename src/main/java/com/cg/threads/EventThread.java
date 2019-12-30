@@ -280,6 +280,7 @@ public class EventThread {
 		public void run() {
 			// TODO Auto-generated method stub
 			for (GoogleEventItem event: items) {
+				System.out.println("Event Title : "+event.getSummary()+", Source Event Id : "+event.getId());
 				eventManager.saveGoogleEventIems(event, userId, timezone);
 			}
 		}

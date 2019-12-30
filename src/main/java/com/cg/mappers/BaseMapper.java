@@ -162,7 +162,11 @@ public class BaseMapper {
 			try {
 				eventMember.setName(rs.getString("nameuser"));
 			} catch(Exception e) {
-
+				try {
+					eventMember.setName(rs.getString("phonebookName"));
+				} catch (Exception ex) {
+					// TODO: handle exception
+				}
 			}
 			
 			eventMember.setProcessed(rs.getInt("processed"));

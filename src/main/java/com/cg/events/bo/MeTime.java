@@ -8,6 +8,7 @@ public class MeTime {
 	private Long recurringEventId;
 	private List<MeTimeEvent> events;
 	private String timezone;
+	private String photo;
 	
 	public Long getUserId() {
 		return userId;
@@ -33,4 +34,11 @@ public class MeTime {
 	public void setRecurringEventId(Long recurringEventId) {
 		this.recurringEventId = recurringEventId;
 	}
+	public String getPhoto() {
+		return photo;
+	}
+	public void setPhoto(String photo) {
+		this.photo = photo;
+	}
+	
 }

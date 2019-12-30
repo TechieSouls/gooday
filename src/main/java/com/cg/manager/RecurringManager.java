@@ -211,12 +211,11 @@ public class RecurringManager {
 		Calendar currentCal = Calendar.getInstance();
 		currentCal.setTime(new Date());
 		if (pattern.getDayOfWeek() != null) {//Event to be occurred Daily
-			generateEventsUptoOneYear = 12*4;
+			generateEventsUptoOneYear = 18*4; //Upto 1.5 year
 			List<Event> dailyEvents = handleDailyEventLogic(currentCal,recurringEvent,pattern);
 			if (dailyEvents != null && dailyEvents.size() > 0) {
 				eventService.saveEventsBatch(dailyEvents);
-				System.out.println("Saving Daily Events Batch Size : "+dailyEvents.size());
-				
+				//System.out.println("Saving Daily Events Batch Size : "+dailyEvents.size());
 				List<Event> eventsToAllocateToThread = new ArrayList<>();
 				int trackElementsTraversed = 0;
 				for (Event event : dailyEvents) {

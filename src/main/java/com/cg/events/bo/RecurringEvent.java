@@ -77,6 +77,9 @@ public class RecurringEvent {
 	@Column(name="photo")
 	private String photo;
 	
+	@Column(name="deleted")
+	private Integer deleted = 0;
+	
 	@OneToMany(cascade = CascadeType.ALL,fetch=FetchType.EAGER)
 	@JoinColumn(name="recurring_event_id")
 	@Cascade(org.hibernate.annotations.CascadeType.DELETE_ORPHAN)
@@ -200,5 +203,13 @@ public class RecurringEvent {
 
 	public void setPhoto(String photo) {
 		this.photo = photo;
+	}
+
+	public Integer getDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(Integer deleted) {
+		this.deleted = deleted;
 	}
 }

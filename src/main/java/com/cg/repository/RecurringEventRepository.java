@@ -15,6 +15,9 @@ import com.cg.events.bo.RecurringEvent;
 @Repository
 public interface RecurringEventRepository extends JpaRepository<RecurringEvent, Long>{
 
+	@Query("Select re from RecurringEvent re where deleted = :deleted")
+	public List<RecurringEvent> findDeletedEvents(@Param("deleted") int deleted);
+
 	@Query("Select re from RecurringEvent re where processed = :processedStatus")
 	public List<RecurringEvent> findUnprocessedEvents(@Param("processedStatus") int processedSatus);
 	

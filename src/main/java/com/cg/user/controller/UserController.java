@@ -1025,7 +1025,7 @@ public class UserController {
         OutputStream outputStream = null;
         String extension = uploadfile.getOriginalFilename().substring(uploadfile.getOriginalFilename().trim().lastIndexOf("."),uploadfile.getOriginalFilename().length());
         
-        String fileName = recurringEventId.toString()+extension;
+        String fileName = recurringEventId.toString()+"-"+(new Date().getTime())+extension;
 
         File f = new File(recurringEventUploadPath);
         if(!f.exists()) { 
@@ -1066,6 +1066,53 @@ public class UserController {
         }
     }
 	
+	@RequestMapping(value = "/api/recurring/upload/v2", method = RequestMethod.POST)
+    public ResponseEntity<Map<String, Object>> uploadRecurringEventImageV2(MultipartFile uploadfile,Long recurringEventId) {
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("success", true);
+		
+		InputStream inputStream = null;
+        OutputStream outputStream = null;
+        String extension = uploadfile.getOriginalFilename().substring(uploadfile.getOriginalFilename().trim().lastIndexOf("."),uploadfile.getOriginalFilename().length());
+        
+        String fileName = recurringEventId.toString()+"-"+(new Date().getTime())+extension;
+
+        File f = new File(recurringEventUploadPath);
+        if(!f.exists()) { 
+        	try {
+				f.mkdirs();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }        
+        File newFile = new File(recurringEventUploadPath+fileName);
+        try {
+            inputStream = uploadfile.getInputStream();
+
+            if (!newFile.exists()) {
+                newFile.createNewFile();
+            }
+            outputStream = new FileOutputStream(newFile);
+            int read = 0;
+            byte[] bytes = new byte[1024];
+
+            while ((read = inputStream.read(bytes)) != -1) {
+                outputStream.write(bytes, 0, read);
+            }
+           
+            String photoUrl = "/assets/uploads/recurring/"+fileName;
+    		response.put("data", photoUrl);
+
+            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+            
+        } catch (Exception e) {
+        	e.printStackTrace();
+        	response.put("success", false);
+        	return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+        }
+    }
 	
 	@RequestMapping(value = "/api/user/friends", method = RequestMethod.GET)
 	@ResponseBody
@@ -1100,10 +1147,15 @@ public class UserController {
 						imageUrl = recurringEvent.getPhoto();
 
 				 }
-					recurringEvent.setCreatedById(null);
-					recurringManager.saveRecurringEvent(recurringEvent);
+				recurringEvent.setDeleted(1);
+				recurringEvent.setCreatedById(null);
+				recurringManager.saveRecurringEvent(recurringEvent);
 			}
-			deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
+			//deleteMeTimeByRecurringEventId(meTime.getRecurringEventId());
+		} else {
+			if (meTime.getPhoto() != null) {
+				imageUrl = meTime.getPhoto();
+			}
 		}
 		
 		Long starTimeMillis = new Date().getTime();
@@ -1126,7 +1178,7 @@ public class UserController {
 				Calendar startCal = Calendar.getInstance();
 				startCal.setTimeInMillis(meEvent.getStartTime());
 				
-				System.out.println("MeTime Start Time : "+meEvent.getStartTime());
+				//System.out.println("MeTime Start Time : "+meEvent.getStartTime());
 				
 				if (!recurringEventMap.containsKey(meEvent.getTitle())) {
 					RecurringEvent recurringEvent = new RecurringEvent();
@@ -1202,9 +1254,9 @@ public class UserController {
 			}
 			
 			//Generating time slots for MeTimeEvents
-			if (recurringEvents.size() > 0) {
+			/*if (recurringEvents.size() > 0) {
 				recurringManager.generateSlotsForRecurringEventList(recurringEvents);
-			}
+			}*/
 			
 			responseObject.put("status", "success");
 			responseObject.put("saved", "true");
@@ -1819,19 +1871,22 @@ public class UserController {
 			String userName =  updateUserDetails.get("username").toString();
 			
 			userService.updateNameByUserId(userName, userId);
-		} else if (updateUserDetails.containsKey("gender")) {
+		} 
+		if (updateUserDetails.containsKey("gender")) {
 			String gender =  updateUserDetails.get("gender").toString();
 			userService.updateGenderByUserId(gender, userId);
-		} else if (updateUserDetails.containsKey("birthDayStr")) {
+		} 
+		if (updateUserDetails.containsKey("birthDayStr")) {
 			String birthDayStr =  updateUserDetails.get("birthDayStr").toString();
 			userService.updateBirthDayByUserId(birthDayStr, userId);
-		} else if (updateUserDetails.containsKey("newPassword")) {
-			
+		} 
+		if (updateUserDetails.containsKey("newPassword")) {
 			String newPassword = updateUserDetails.get("newPassword").toString();
 			//Now lets create new password and update it.
 			String newPass = new Md5PasswordEncoder().encodePassword(newPassword, salt);
 			userService.updatePasswordByUserId(newPass, userId);
-		} else if (updateUserDetails.containsKey("profilePic")) {
+		} 
+		if (updateUserDetails.containsKey("profilePic")) {
 			String profilePic =  updateUserDetails.get("profilePic").toString();
 			userService.updateProfilePicByUserId(profilePic, userId);
 		}
@@ -2083,6 +2138,9 @@ public class UserController {
 	
 	@RequestMapping(value = "/api/deleteUserByPhonePassword", method = RequestMethod.POST)
 	public Map<String, Object> deleteUserByPhoneAndPassword(@RequestBody User user) {
+		
+		System.out.print("Delete User Account STARTS");
+		
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		response.put("message", "User Deleted SuccessFully");
@@ -2112,7 +2170,7 @@ public class UserController {
 					
 					
 					//eventManager.deleteEventsByCreatedById(user.getUserId());
-					eventServiceDao.deleteEventTimeSlotsAndEventsByCreatedById(user.getUserId());
+					eventServiceDao.deleteEventTimeSlotsAndEventsByCreatedById(userByPhone.getUserId());
 					userService.deleteContactsByUserId(userByPhone.getUserId());
 					//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
 					//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
@@ -2129,10 +2187,9 @@ public class UserController {
 			
 			response.put("success", false);
 			response.put("message", e.getMessage());
-
 			
 		}
-		
+		System.out.print("Delete User Account ENDS");
 		return response;
 	}
 	

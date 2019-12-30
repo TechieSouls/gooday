@@ -61,6 +61,12 @@ public class EventService {
 		return recurringEvents;
 	}
 	
+	public List<RecurringEvent> findAllDeletedRecurringEvents() {
+		List<RecurringEvent> recurringEvents = recurringEventRepository.findDeletedEvents(1);
+		return recurringEvents;
+	}
+
+	
 	public RecurringPattern findRecurringPatternByRecurringEventId(Long recurringEventId) {
 		RecurringPattern recurringPattern = recurringPatternRepository.findByRecurringEventId(recurringEventId);
 		return recurringPattern;

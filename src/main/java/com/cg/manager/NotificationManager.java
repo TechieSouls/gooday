@@ -81,6 +81,9 @@ public class NotificationManager {
 				if (userDevices != null && userDevices.size() > 0) {
 					for (UserDevice userDevice : userDevices) {
 						if ("android".equals(userDevice.getDeviceType())){
+							
+							getBadgeCountsByUserId(userDevice.getUserId());
+
 							toAndroidArray.put(userDevice.getDeviceToken());
 						} else if ("ios".equals(userDevice.getDeviceType())){
 							toIosArray.add(userDevice);
@@ -222,7 +225,10 @@ public class NotificationManager {
 		notification.setType(NotificationType.Welcome);
 		notification.setCreatedAt(new Date());
 		notification.setUpdateAt(new Date());
-		notificationRepository.save(notification);		
+		notificationRepository.save(notification);	
+		
+		getBadgeCountsByUserId(toUser.getUserId());
+
 	}
 	
 	
@@ -421,7 +427,7 @@ public class NotificationManager {
 		notification.setUpdateAt(new Date());
 		notificationRepository.save(notification);
 		
-
+		System.out.println("Sendng Push");
 		sendPushForAcceptAndDeclineRequest(event.getTitle(), pushMessage,event.getCreatedById(),eventMember.getName(),Notification.NotificationType.Gathering);
 	}
 
@@ -584,6 +590,9 @@ public class NotificationManager {
 					if (userDevices != null && userDevices.size() > 0) {
 						for (UserDevice userDevice : userDevices) {
 							if ("android".equals(userDevice.getDeviceType())){
+								
+								getBadgeCountsByUserId(userDevice.getUserId());
+
 								toAndroidArray.put(userDevice.getDeviceToken());
 							} else if ("ios".equals(userDevice.getDeviceType())){
 								toIosArray.add(userDevice);
@@ -643,9 +652,12 @@ public class NotificationManager {
 		List<UserDevice> userDevices = userService.findUserDeviceInfoByUserId(organizerId);
 		if (userDevices != null && userDevices.size() > 0) {
 			for (UserDevice userDevice : userDevices) {
-				if ("android".equals(userDevice.getDeviceType())){
+				if ("android".equals(userDevice.getDeviceType())) {
+					
+					getBadgeCountsByUserId(userDevice.getUserId());
+					
 					toAndroidArray.put(userDevice.getDeviceToken());
-				} else if ("ios".equals(userDevice.getDeviceType())){
+				} else if ("ios".equals(userDevice.getDeviceType())) {
 					toIosArray.add(userDevice);
 				}
 			}
