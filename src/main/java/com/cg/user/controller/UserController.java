@@ -2154,29 +2154,44 @@ public class UserController {
 				response.put("message", "User not found");
 				return response;
 			} else {					
-					
+				
+				boolean isValidUser = false;
 				for (User userByPhone: usersToDelete) {
 					
-					userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
-					
-					if (user.getPassword() != null) {
-						System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
-						if (userByPhone.getPassword() != null && !userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
-							response.put("success", false);
-							response.put("message", "Incorrect Password");
-							return response;
-						}
+					if (user.getUserId() == null) {
+						isValidUser = true;
 					}
-					
-					
-					//eventManager.deleteEventsByCreatedById(user.getUserId());
-					eventServiceDao.deleteEventTimeSlotsAndEventsByCreatedById(userByPhone.getUserId());
-					userService.deleteContactsByUserId(userByPhone.getUserId());
-					//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
-					//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
-					userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
-					userService.deleteUserDeviceByUserId(userByPhone.getUserId());
-					userService.deleteUserByUserId(userByPhone.getUserId());
+					if (user.getUserId() != null && userByPhone.getUserId().equals(user.getUserId())) {
+						isValidUser = true;
+					}
+					if (isValidUser) {
+						userService.updateContactsByFriendIdAndUserId(null, userByPhone.getPhone().substring(4, userByPhone.getPhone().length()));
+						
+						if (user.getPassword() != null) {
+							System.out.println(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt));
+							if (userByPhone.getPassword() != null && !userByPhone.getPassword().equals(new Md5PasswordEncoder().encodePassword(user.getPassword(), salt))) {
+								response.put("success", false);
+								response.put("message", "Incorrect Password");
+								return response;
+							}
+						}
+						
+						
+						//eventManager.deleteEventsByCreatedById(user.getUserId());
+						eventServiceDao.deleteEventTimeSlotsAndEventsByCreatedById(userByPhone.getUserId());
+						userService.deleteContactsByUserId(userByPhone.getUserId());
+						//eventTimeSlotManager.deleteEventTimeSlotsByUserId(user.getUserId());
+						//recurringManager.deleteRecurringEventsByUserId(user.getUserId());
+						userService.deleteCalendarSyncTokensByUserId(userByPhone.getUserId());
+						userService.deleteUserDeviceByUserId(userByPhone.getUserId());
+						userService.deleteUserByUserId(userByPhone.getUserId());
+					}
+				}
+				
+				if (!isValidUser) {
+					response.put("success", false);
+					response.put("message", "The phone number you entered doesn't match your account's.");
+					return response;
 				}
 				
 			}
