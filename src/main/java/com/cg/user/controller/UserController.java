@@ -2151,7 +2151,7 @@ public class UserController {
 			List<User> usersToDelete = userRepository.findListByPhone(user.getPhone());
 			if (usersToDelete == null || usersToDelete.size() == 0) {
 				response.put("success", false);
-				response.put("message", "User not found");
+				response.put("message", "The phone number you entered doesn't match your account's.");
 				return response;
 			} else {					
 				
